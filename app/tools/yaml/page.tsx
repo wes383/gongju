@@ -6,14 +6,14 @@ import { YamlTool } from "@/components/tools/yaml-tool";
 const meta = getTool("yaml")!;
 
 export const metadata: Metadata = {
-  title: meta.name,
-  description: meta.description,
+  title: meta.name.zh,
+  description: meta.description.zh,
   keywords: meta.keywords,
 };
 
 export default function Page() {
   return (
-    <ToolFrame tool={meta}>
+    <ToolFrame slug="yaml">
       <YamlTool />
     </ToolFrame>
   );

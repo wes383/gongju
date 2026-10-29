@@ -6,14 +6,14 @@ import { MarkdownTool } from "@/components/tools/markdown-tool";
 const meta = getTool("markdown")!;
 
 export const metadata: Metadata = {
-  title: meta.name,
-  description: meta.description,
+  title: meta.name.zh,
+  description: meta.description.zh,
   keywords: meta.keywords,
 };
 
 export default function Page() {
   return (
-    <ToolFrame tool={meta}>
+    <ToolFrame slug="markdown">
       <MarkdownTool />
     </ToolFrame>
   );

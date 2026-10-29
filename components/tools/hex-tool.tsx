@@ -3,6 +3,7 @@
 import * as React from "react";
 import { Sparkles } from "lucide-react";
 import { hexToText, safe, textToHex, type HexSeparator } from "@/lib/encoding";
+import { useCopy } from "@/components/locale-provider";
 import {
   DualPane,
   OptionBar,
@@ -14,9 +15,45 @@ import {
 
 type Mode = "encode" | "decode";
 
-const SAMPLE = "Hello 世界";
+const COPY = {
+  zh: {
+    toHex: "字符串 → 十六进制",
+    toText: "十六进制 → 字符串",
+    upper: "大写",
+    separator: "分隔符",
+    none: "无",
+    space: "空格",
+    comma: "逗号",
+    prefix: "0x 前缀",
+    plain: "原文",
+    hex: "十六进制",
+    inputPlaceholder: "输入文本…",
+    decodePlaceholder: "粘贴 48 65 6c 6c 6f 或 48656c6c6f…",
+    sample: "示例",
+    sampleText: "Hello 世界",
+    note: "按 UTF-8 字节转换，空格、逗号、0x 前缀与换行都会被自动忽略，因此可以直接粘贴 hexdump 片段。",
+  },
+  en: {
+    toHex: "Text → Hex",
+    toText: "Hex → Text",
+    upper: "Uppercase",
+    separator: "Separator",
+    none: "None",
+    space: "Space",
+    comma: "Comma",
+    prefix: "0x prefix",
+    plain: "Text",
+    hex: "Hex",
+    inputPlaceholder: "Enter text…",
+    decodePlaceholder: "Paste 48 65 6c 6c 6f or 48656c6c6f…",
+    sample: "Sample",
+    sampleText: "Hello 世界",
+    note: "Conversion is byte-wise on UTF-8, and spaces, commas, 0x prefixes and newlines are ignored, so you can paste a hexdump fragment directly.",
+  },
+};
 
 export function HexTool() {
+  const t = useCopy(COPY);
   const [input, setInput] = React.useState("");
   const [mode, setMode] = React.useState<Mode>("encode");
   const [upper, setUpper] = React.useState(false);
@@ -42,26 +79,26 @@ export function HexTool() {
     <div className="flex flex-col gap-4">
       <OptionBar>
         <Segmented
-          ariaLabel="转换方向"
+          ariaLabel={t.toHex}
           value={mode}
           onChange={setMode}
           options={[
-            { value: "encode", label: "字符串 → 十六进制" },
-            { value: "decode", label: "十六进制 → 字符串" },
+            { value: "encode", label: t.toHex },
+            { value: "decode", label: t.toText },
           ]}
         />
         {mode === "encode" && (
           <>
-            <Toggle checked={upper} onChange={setUpper} label="大写" />
+            <Toggle checked={upper} onChange={setUpper} label={t.upper} />
             <Segmented
-              ariaLabel="分隔符"
+              ariaLabel={t.separator}
               value={separator}
               onChange={setSeparator}
               options={[
-                { value: "none", label: "无" },
-                { value: "space", label: "空格" },
-                { value: "comma", label: "逗号" },
-                { value: "0x", label: "0x 前缀" },
+                { value: "none", label: t.none },
+                { value: "space", label: t.space },
+                { value: "comma", label: t.comma },
+                { value: "0x", label: t.prefix },
               ]}
             />
           </>
@@ -73,15 +110,13 @@ export function HexTool() {
         onInputChange={setInput}
         output={output ?? ""}
         error={error}
-        inputLabel={mode === "encode" ? "原文" : "十六进制"}
-        outputLabel={mode === "encode" ? "十六进制" : "原文"}
-        inputPlaceholder={
-          mode === "encode" ? "输入文本…" : "粘贴 48 65 6c 6c 6f 或 48656c6c6f…"
-        }
+        inputLabel={mode === "encode" ? t.plain : t.hex}
+        outputLabel={mode === "encode" ? t.hex : t.plain}
+        inputPlaceholder={mode === "encode" ? t.inputPlaceholder : t.decodePlaceholder}
         inputActions={
-          <PaneButton onClick={() => setInput(SAMPLE)} title="填入示例">
+          <PaneButton onClick={() => setInput(t.sampleText)} title={t.sample}>
             <Sparkles className="h-3.5 w-3.5" />
-            <span>示例</span>
+            <span>{t.sample}</span>
           </PaneButton>
         }
         onClear={() => setInput("")}
@@ -90,10 +125,7 @@ export function HexTool() {
         outputFooter={output ? <Stats text={output} /> : null}
       />
 
-      <p className="text-xs leading-relaxed text-foreground-subtle">
-        按 UTF-8 字节转换，空格、逗号、<code className="font-mono">0x</code> 前缀与换行都会被自动忽略，
-        因此可以直接粘贴 hexdump 片段。
-      </p>
+      <p className="text-xs leading-relaxed text-foreground-subtle">{t.note}</p>
     </div>
   );
 }

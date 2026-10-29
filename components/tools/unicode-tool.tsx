@@ -3,6 +3,7 @@
 import * as React from "react";
 import { Sparkles } from "lucide-react";
 import { safe, textToUnicode, unicodeToText, type UnicodeFormat } from "@/lib/encoding";
+import { useCopy } from "@/components/locale-provider";
 import {
   DualPane,
   OptionBar,
@@ -14,9 +15,45 @@ import {
 
 type Mode = "escape" | "unescape";
 
-const SAMPLE = "中文转 Unicode：你好，世界！";
+const COPY = {
+  zh: {
+    escape: "转 Unicode",
+    unescape: "还原文本",
+    jsHint: "JavaScript 字符串转义",
+    htmlHint: "HTML 十进制实体",
+    codepointHint: "Unicode 码位写法",
+    nonAsciiOnly: "仅转换非 ASCII",
+    nonAsciiOnlyHint: "关闭后英文与标点也会一起转义",
+    plain: "原文",
+    escapes: "转义序列",
+    unicode: "Unicode",
+    inputPlaceholder: "输入中文或任意文本…",
+    unescapePlaceholder: "粘贴 \\u4E2D\\u6587 / &#20013; / U+4E2D 等转义序列…",
+    sample: "示例",
+    sampleText: "中文转 Unicode：你好，世界！",
+    note: "还原时同时识别 \\uXXXX、\\u{1F600}、&#20013;、U+4E2D、0x4E2D。emoji 等补充平面字符会输出为代理对（JS 格式）。",
+  },
+  en: {
+    escape: "To Unicode",
+    unescape: "To text",
+    jsHint: "JavaScript string escape",
+    htmlHint: "HTML decimal entity",
+    codepointHint: "Unicode code point notation",
+    nonAsciiOnly: "Non-ASCII only",
+    nonAsciiOnlyHint: "Turn off to escape ASCII letters and punctuation too",
+    plain: "Text",
+    escapes: "Escapes",
+    unicode: "Unicode",
+    inputPlaceholder: "Any text, e.g. 你好 or hello…",
+    unescapePlaceholder: "Paste \\u4E2D\\u6587 / &#20013; / U+4E2D sequences…",
+    sample: "Sample",
+    sampleText: "Unicode escape: 你好，世界！",
+    note: "Unescaping understands \\uXXXX, \\u{1F600}, &#20013;, U+4E2D and 0x4E2D. Characters outside the BMP such as emoji are emitted as surrogate pairs in JS format.",
+  },
+};
 
 export function UnicodeTool() {
+  const t = useCopy(COPY);
   const [input, setInput] = React.useState("");
   const [mode, setMode] = React.useState<Mode>("escape");
   const [format, setFormat] = React.useState<UnicodeFormat>("js");
@@ -42,31 +79,31 @@ export function UnicodeTool() {
     <div className="flex flex-col gap-4">
       <OptionBar>
         <Segmented
-          ariaLabel="转换方向"
+          ariaLabel={t.escape}
           value={mode}
           onChange={setMode}
           options={[
-            { value: "escape", label: "转 Unicode" },
-            { value: "unescape", label: "还原文本" },
+            { value: "escape", label: t.escape },
+            { value: "unescape", label: t.unescape },
           ]}
         />
         {mode === "escape" && (
           <>
             <Segmented
-              ariaLabel="输出格式"
+              ariaLabel={t.unicode}
               value={format}
               onChange={setFormat}
               options={[
-                { value: "js", label: "\\uXXXX", hint: "JavaScript 字符串转义" },
-                { value: "html", label: "&#NNNN;", hint: "HTML 十进制实体" },
-                { value: "codepoint", label: "U+XXXX", hint: "Unicode 码位写法" },
+                { value: "js", label: "\\uXXXX", hint: t.jsHint },
+                { value: "html", label: "&#NNNN;", hint: t.htmlHint },
+                { value: "codepoint", label: "U+XXXX", hint: t.codepointHint },
               ]}
             />
             <Toggle
               checked={nonAsciiOnly}
               onChange={setNonAsciiOnly}
-              label="仅转换非 ASCII"
-              hint="关闭后英文与标点也会一起转义"
+              label={t.nonAsciiOnly}
+              hint={t.nonAsciiOnlyHint}
             />
           </>
         )}
@@ -77,17 +114,13 @@ export function UnicodeTool() {
         onInputChange={setInput}
         output={output ?? ""}
         error={error}
-        inputLabel={mode === "escape" ? "原文" : "转义序列"}
-        outputLabel={mode === "escape" ? "Unicode" : "原文"}
-        inputPlaceholder={
-          mode === "escape"
-            ? "输入中文或任意文本…"
-            : "粘贴 \\u4E2D\\u6587 / &#20013; / U+4E2D 等转义序列…"
-        }
+        inputLabel={mode === "escape" ? t.plain : t.escapes}
+        outputLabel={mode === "escape" ? t.unicode : t.plain}
+        inputPlaceholder={mode === "escape" ? t.inputPlaceholder : t.unescapePlaceholder}
         inputActions={
-          <PaneButton onClick={() => setInput(SAMPLE)} title="填入示例">
+          <PaneButton onClick={() => setInput(t.sampleText)} title={t.sample}>
             <Sparkles className="h-3.5 w-3.5" />
-            <span>示例</span>
+            <span>{t.sample}</span>
           </PaneButton>
         }
         onClear={() => setInput("")}
@@ -96,13 +129,7 @@ export function UnicodeTool() {
         outputFooter={output ? <Stats text={output} /> : null}
       />
 
-      <p className="text-xs leading-relaxed text-foreground-subtle">
-        还原时同时识别 <code className="font-mono">\uXXXX</code>、
-        <code className="font-mono">\u&#123;1F600&#125;</code>、
-        <code className="font-mono">&#38;#20013;</code>、
-        <code className="font-mono">U+4E2D</code>、<code className="font-mono">0x4E2D</code>。
-        emoji 等补充平面字符会输出为代理对（JS 格式）。
-      </p>
+      <p className="text-xs leading-relaxed text-foreground-subtle">{t.note}</p>
     </div>
   );
 }

@@ -6,14 +6,14 @@ import { CsvTool } from "@/components/tools/csv-tool";
 const meta = getTool("csv")!;
 
 export const metadata: Metadata = {
-  title: meta.name,
-  description: meta.description,
+  title: meta.name.zh,
+  description: meta.description.zh,
   keywords: meta.keywords,
 };
 
 export default function Page() {
   return (
-    <ToolFrame tool={meta}>
+    <ToolFrame slug="csv">
       <CsvTool />
     </ToolFrame>
   );

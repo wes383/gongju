@@ -1,6 +1,9 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
-import type { ToolMeta } from "@/lib/tools";
+import { useLocale } from "@/components/locale-provider";
+import { toolDescription, toolName, type ToolMeta } from "@/lib/tools";
 import { cn } from "@/lib/utils";
 
 interface ToolCardProps {
@@ -9,7 +12,9 @@ interface ToolCardProps {
 }
 
 export function ToolCard({ tool, className }: ToolCardProps) {
+  const locale = useLocale();
   const Icon = tool.icon;
+
   return (
     <Link
       href={`/tools/${tool.slug}`}
@@ -27,9 +32,11 @@ export function ToolCard({ tool, className }: ToolCardProps) {
       </div>
       <div className="flex flex-col gap-1">
         <h3 className="font-display text-sm font-semibold leading-snug text-foreground">
-          {tool.name}
+          {toolName(tool, locale)}
         </h3>
-        <p className="text-xs leading-relaxed text-foreground-muted">{tool.description}</p>
+        <p className="text-xs leading-relaxed text-foreground-muted">
+          {toolDescription(tool, locale)}
+        </p>
       </div>
     </Link>
   );

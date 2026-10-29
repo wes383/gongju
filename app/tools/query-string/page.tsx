@@ -6,14 +6,14 @@ import { QueryStringTool } from "@/components/tools/query-string-tool";
 const meta = getTool("query-string")!;
 
 export const metadata: Metadata = {
-  title: meta.name,
-  description: meta.description,
+  title: meta.name.zh,
+  description: meta.description.zh,
   keywords: meta.keywords,
 };
 
 export default function Page() {
   return (
-    <ToolFrame tool={meta}>
+    <ToolFrame slug="query-string">
       <QueryStringTool />
     </ToolFrame>
   );

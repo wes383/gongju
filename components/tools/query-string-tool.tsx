@@ -10,12 +10,57 @@ import {
 } from "@/lib/encoding";
 import { Button } from "@/components/ui/button";
 import { CopyButton, OptionBar, PaneButton, Toggle } from "@/components/tools/tool-ui";
+import { useCopy } from "@/components/locale-provider";
 import { cn } from "@/lib/utils";
+
+const COPY = {
+  zh: {
+    sample: "示例",
+    clear: "清空",
+    placeholder: "粘贴完整 URL 或 ?a=1&b=2，会自动拆成参数表…",
+    ariaInput: "URL 或 Query String",
+    chars: "字符",
+    params: "个参数",
+    inputHint: "支持完整 URL、? 开头或裸 query",
+    encode: "对键值做 URL 编码",
+    encodeHint: "关闭后直接输出原文，便于阅读",
+    sort: "按参数名排序",
+    active: "个生效参数",
+    paramsTitle: "参数",
+    addRow: "添加一行",
+    empty: "粘贴 URL 或点击「添加一行」开始编辑",
+    enable: "启用该参数",
+    remove: "删除该参数",
+    outputTitle: "生成的 Query String",
+    pairs: "组键值",
+  },
+  en: {
+    sample: "Sample",
+    clear: "Clear",
+    placeholder: "Paste a full URL or ?a=1&b=2 to split it into rows…",
+    ariaInput: "URL or query string",
+    chars: "chars",
+    params: "params",
+    inputHint: "Accepts a full URL, a leading ? or a bare query",
+    encode: "URL-encode keys and values",
+    encodeHint: "Turn off to keep the raw text, easier to read",
+    sort: "Sort by key",
+    active: "active params",
+    paramsTitle: "Parameters",
+    addRow: "Add row",
+    empty: "Paste a URL or click Add row to start editing",
+    enable: "Enable this parameter",
+    remove: "Remove this parameter",
+    outputTitle: "Generated query string",
+    pairs: "pairs",
+  },
+};
 
 const SAMPLE =
   "https://example.com/search?q=%E7%BC%96%E7%A0%81&tag=base64&tag=url&page=2&debug";
 
 export function QueryStringTool() {
+  const t = useCopy(COPY);
   const [text, setText] = React.useState("");
   const [rows, setRows] = React.useState<QueryRow[]>([]);
   const [encode, setEncode] = React.useState(true);
@@ -48,14 +93,14 @@ export function QueryStringTool() {
             URL / Query
           </span>
           <div className="ml-auto flex items-center gap-1">
-            <PaneButton onClick={() => importText(SAMPLE)}>示例</PaneButton>
+            <PaneButton onClick={() => importText(SAMPLE)}>{t.sample}</PaneButton>
             <PaneButton
               onClick={() => {
                 setText("");
                 setRows([]);
               }}
             >
-              清空
+              {t.clear}
             </PaneButton>
           </div>
         </header>
@@ -63,34 +108,33 @@ export function QueryStringTool() {
           value={text}
           onChange={(e) => importText(e.target.value)}
           spellCheck={false}
-          placeholder="粘贴完整 URL 或 ?a=1&b=2，会自动拆成参数表…"
-          aria-label="URL 或 Query String"
+          placeholder={t.placeholder}
+          aria-label={t.ariaInput}
           className="min-h-[96px] w-full resize-y break-all bg-transparent px-3.5 py-3 font-mono text-[13px] leading-relaxed text-foreground placeholder:text-foreground-faint focus:outline-none"
         />
         <footer className="flex h-8 items-center gap-3 border-t border-border px-3 font-mono text-[11px] text-foreground-faint">
-          <span>{text.length} 字符</span>
-          <span>{rows.length} 个参数</span>
-          <span className="ml-auto">支持完整 URL、? 开头或裸 query</span>
+          <span>
+            {text.length} {t.chars}
+          </span>
+          <span>
+            {rows.length} {t.params}
+          </span>
+          <span className="ml-auto">{t.inputHint}</span>
         </footer>
       </div>
 
       <OptionBar>
-        <Toggle
-          checked={encode}
-          onChange={setEncode}
-          label="对键值做 URL 编码"
-          hint="关闭后直接输出原文，便于阅读"
-        />
-        <Toggle checked={sort} onChange={setSort} label="按参数名排序" />
+        <Toggle checked={encode} onChange={setEncode} label={t.encode} hint={t.encodeHint} />
+        <Toggle checked={sort} onChange={setSort} label={t.sort} />
         <span className="ml-auto font-mono text-[11px] text-foreground-faint">
-          {activeCount} 个生效参数
+          {activeCount} {t.active}
         </span>
       </OptionBar>
 
       <div className="overflow-hidden rounded-lg border border-border bg-surface">
         <header className="flex h-11 items-center gap-2 border-b border-border px-3">
           <span className="font-mono text-[11px] uppercase tracking-wide text-foreground-subtle">
-            参数
+            {t.paramsTitle}
           </span>
           <Button
             type="button"
@@ -100,14 +144,12 @@ export function QueryStringTool() {
             className="ml-auto gap-1.5"
           >
             <Plus className="h-3.5 w-3.5" />
-            添加一行
+            {t.addRow}
           </Button>
         </header>
 
         {rows.length === 0 ? (
-          <p className="px-4 py-10 text-center text-sm text-foreground-subtle">
-            粘贴 URL 或点击「添加一行」开始编辑
-          </p>
+          <p className="px-4 py-10 text-center text-sm text-foreground-subtle">{t.empty}</p>
         ) : (
           <div className="divide-y divide-border">
             {rows.map((row) => (
@@ -122,7 +164,7 @@ export function QueryStringTool() {
                   type="checkbox"
                   checked={row.enabled}
                   onChange={(e) => updateRow(row.id, { enabled: e.target.checked })}
-                  aria-label="启用该参数"
+                  aria-label={t.enable}
                   className="h-3.5 w-3.5 shrink-0 accent-[var(--accent)]"
                 />
                 <input
@@ -143,7 +185,7 @@ export function QueryStringTool() {
                 <button
                   type="button"
                   onClick={() => removeRow(row.id)}
-                  aria-label="删除该参数"
+                  aria-label={t.remove}
                   className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-foreground-faint transition-colors hover:bg-red-soft hover:text-red-fg"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
@@ -157,7 +199,7 @@ export function QueryStringTool() {
       <div className="overflow-hidden rounded-lg border border-border bg-surface">
         <header className="flex h-11 items-center gap-2 border-b border-border px-3">
           <span className="font-mono text-[11px] uppercase tracking-wide text-foreground-subtle">
-            生成的 Query String
+            {t.outputTitle}
           </span>
           <div className="ml-auto">
             <CopyButton value={output} />
@@ -167,8 +209,12 @@ export function QueryStringTool() {
           {output || <span className="text-foreground-faint">—</span>}
         </pre>
         <footer className="flex h-8 items-center gap-3 border-t border-border px-3 font-mono text-[11px] text-foreground-faint">
-          <span>{output.length} 字符</span>
-          <span>{output ? output.split("&").length : 0} 组键值</span>
+          <span>
+            {output.length} {t.chars}
+          </span>
+          <span>
+            {output ? output.split("&").length : 0} {t.pairs}
+          </span>
         </footer>
       </div>
     </div>

@@ -5,11 +5,13 @@ import { Check, Copy, Eraser, Repeat, TriangleAlert } from "lucide-react";
 import { toast } from "@/components/ui/toaster";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useLocale, useT } from "@/components/locale-provider";
+import { translateError } from "@/lib/i18n";
 
 /** Copy to clipboard with a 1.5s "copied" state */
 export function CopyButton({
   value,
-  label = "复制",
+  label,
   size = "xs",
   className,
   disabled,
@@ -20,8 +22,10 @@ export function CopyButton({
   className?: string;
   disabled?: boolean;
 }) {
+  const t = useT();
   const [copied, setCopied] = React.useState(false);
   const timer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const text = label ?? t.copy;
 
   React.useEffect(() => {
     return () => {
@@ -34,11 +38,11 @@ export function CopyButton({
     try {
       await navigator.clipboard.writeText(value);
       setCopied(true);
-      toast.success("已复制到剪贴板");
+      toast.success(t.copySuccess);
       if (timer.current) clearTimeout(timer.current);
       timer.current = setTimeout(() => setCopied(false), 1500);
     } catch {
-      toast.error("复制失败，请手动选择文本");
+      toast.error(t.copyError);
     }
   };
 
@@ -52,14 +56,14 @@ export function CopyButton({
       onClick={handleCopy}
       disabled={disabled || !value}
       className={cn("gap-1.5", className)}
-      aria-label={label}
+      aria-label={text}
     >
       {copied ? (
         <Check className="h-3.5 w-3.5 text-green" />
       ) : (
         <Copy className="h-3.5 w-3.5" />
       )}
-      {!iconOnly && <span>{copied ? "已复制" : label}</span>}
+      {!iconOnly && <span>{copied ? t.copied : text}</span>}
     </Button>
   );
 }
@@ -90,20 +94,23 @@ export function PaneButton({
   );
 }
 
-export function ClearButton({ onClick, label = "清空" }: { onClick: () => void; label?: string }) {
+export function ClearButton({ onClick, label }: { onClick: () => void; label?: string }) {
+  const t = useT();
+  const text = label ?? t.clear;
   return (
-    <PaneButton onClick={onClick} title={label}>
+    <PaneButton onClick={onClick} title={text}>
       <Eraser className="h-3.5 w-3.5" />
-      <span>{label}</span>
+      <span>{text}</span>
     </PaneButton>
   );
 }
 
 export function SwapButton({ onClick }: { onClick: () => void }) {
+  const t = useT();
   return (
-    <PaneButton onClick={onClick} title="交换输入与输出">
+    <PaneButton onClick={onClick} title={t.swapHint}>
       <Repeat className="h-3.5 w-3.5" />
-      <span>交换</span>
+      <span>{t.swap}</span>
     </PaneButton>
   );
 }
@@ -166,7 +173,7 @@ InputArea.displayName = "InputArea";
 
 export function OutputArea({
   value,
-  placeholder = "结果会显示在这里",
+  placeholder,
   minHeight = "min-h-[300px]",
   wrap = true,
   highlight,
@@ -178,6 +185,8 @@ export function OutputArea({
   /** Pre-highlighted, already-escaped HTML used to colour JSON output */
   highlight?: string;
 }) {
+  const t = useT();
+  const hint = placeholder ?? t.outputPlaceholder;
   if (highlight) {
     return (
       <pre
@@ -198,7 +207,7 @@ export function OutputArea({
         wrap ? "whitespace-pre-wrap break-all" : "whitespace-pre"
       )}
     >
-      {value || <span className="text-foreground-faint">{placeholder}</span>}
+      {value || <span className="text-foreground-faint">{hint}</span>}
     </pre>
   );
 }
@@ -208,8 +217,8 @@ export function DualPane({
   onInputChange,
   output,
   error,
-  inputLabel = "输入",
-  outputLabel = "输出",
+  inputLabel,
+  outputLabel,
   inputPlaceholder,
   inputActions,
   outputActions,
@@ -223,7 +232,7 @@ export function DualPane({
   input: string;
   onInputChange: (v: string) => void;
   output: string;
-  error?: string | null;
+  error?: unknown;
   inputLabel?: string;
   outputLabel?: string;
   inputPlaceholder?: string;
@@ -237,11 +246,15 @@ export function DualPane({
   /** Pre-highlighted HTML for JSON output */
   outputHighlight?: string;
 }) {
+  const t = useT();
+  const locale = useLocale();
+  const inputText = inputLabel ?? t.input;
+  const outputText = outputLabel ?? t.output;
   return (
     <div className="overflow-hidden rounded-lg border border-border bg-surface">
       <div className="grid grid-cols-1 lg:grid-cols-2">
         <Pane
-          label={inputLabel}
+          label={inputText}
           className="border-b border-border lg:border-b-0 lg:border-r"
           actions={
             <>
@@ -257,12 +270,12 @@ export function DualPane({
             onChange={(e) => onInputChange(e.target.value)}
             placeholder={inputPlaceholder}
             className={inputMinHeight}
-            aria-label={inputLabel}
+            aria-label={inputText}
           />
         </Pane>
 
         <Pane
-          label={outputLabel}
+          label={outputText}
           actions={
             <>
               {outputActions}
@@ -273,7 +286,7 @@ export function DualPane({
         >
           {error ? (
             <div className="p-3">
-              <ErrorNote>{error}</ErrorNote>
+              <ErrorNote>{translateError(error, locale)}</ErrorNote>
             </div>
           ) : (
             <OutputArea value={output} minHeight={inputMinHeight} highlight={outputHighlight} />
@@ -415,12 +428,19 @@ export function textStats(text: string) {
 }
 
 export function Stats({ text }: { text: string }) {
+  const t = useT();
   const { chars, bytes, lines } = textStats(text);
   return (
     <>
-      <span>{chars} 字符</span>
-      <span>{bytes} 字节</span>
-      <span>{lines} 行</span>
+      <span>
+        {chars} {t.chars}
+      </span>
+      <span>
+        {bytes} {t.bytes}
+      </span>
+      <span>
+        {lines} {t.lines}
+      </span>
     </>
   );
 }

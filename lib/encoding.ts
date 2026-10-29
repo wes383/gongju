@@ -3,6 +3,19 @@
  * no server round-trip is involved.
  */
 
+/** Error carrying an i18n key so the UI can translate it on render */
+export interface CodedError extends Error {
+  code: string;
+  params: (string | number)[];
+}
+
+function codecError(code: string, ...params: (string | number)[]): CodedError {
+  const err = new Error(code) as CodedError;
+  err.code = code;
+  err.params = params;
+  return err;
+}
+
 /* ══════════════════════════════════════════════════════════════
    Base64
    ══════════════════════════════════════════════════════════════ */
@@ -36,10 +49,10 @@ export function decodeBase64(input: string): string {
   let s = input.replace(/\s+/g, "").replace(/-/g, "+").replace(/_/g, "/");
   if (!s) return "";
   if (!/^[A-Za-z0-9+/]*={0,2}$/.test(s)) {
-    throw new Error("包含非法字符，这不是合法的 Base64 字符串");
+    throw codecError("base64.invalidChars");
   }
   const pad = s.length % 4;
-  if (pad === 1) throw new Error("长度不合法（Base64 长度应为 4 的倍数）");
+  if (pad === 1) throw codecError("base64.badLength");
   if (pad) s += "=".repeat(4 - pad);
 
   const binary = atob(s);
@@ -49,7 +62,7 @@ export function decodeBase64(input: string): string {
   try {
     return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
   } catch {
-    throw new Error("解码成功但内容不是合法的 UTF-8 文本（可能是二进制数据）");
+    throw codecError("base64.notUtf8");
   }
 }
 
@@ -313,7 +326,7 @@ export function hexToText(input: string): string {
     .replace(/[^0-9a-fA-F]/g, "");
   if (!cleaned) return "";
   if (cleaned.length % 2 !== 0) {
-    throw new Error("十六进制字符数为奇数，无法按字节解析（每个字节需要 2 个字符）");
+    throw codecError("hex.oddLength");
   }
   const bytes = new Uint8Array(cleaned.length / 2);
   for (let i = 0; i < bytes.length; i++) {
@@ -322,7 +335,7 @@ export function hexToText(input: string): string {
   try {
     return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
   } catch {
-    throw new Error("字节序列不是合法的 UTF-8 文本（可能是二进制数据）");
+    throw codecError("hex.notUtf8");
   }
 }
 
@@ -333,10 +346,10 @@ export function hexToText(input: string): string {
 const DIGITS = "0123456789abcdefghijklmnopqrstuvwxyz";
 
 export function parseInBase(value: string, base: number): bigint {
-  if (base < 2 || base > 36) throw new Error("进制需在 2–36 之间");
+  if (base < 2 || base > 36) throw codecError("radix.range");
 
   let body = value.trim().replace(/[\s_]/g, "");
-  if (!body) throw new Error("请输入数值");
+  if (!body) throw codecError("radix.empty");
 
   const negative = body.startsWith("-");
   if (negative || body.startsWith("+")) body = body.slice(1);
@@ -347,13 +360,13 @@ export function parseInBase(value: string, base: number): bigint {
   else if (base === 2 && lower.startsWith("0b")) body = body.slice(2);
   else if (base === 8 && lower.startsWith("0o")) body = body.slice(2);
 
-  if (!body) throw new Error("请输入数值");
+  if (!body) throw codecError("radix.empty");
 
   let result = 0n;
   for (const ch of body) {
     const d = DIGITS.indexOf(ch.toLowerCase());
     if (d < 0 || d >= base) {
-      throw new Error(`字符 “${ch}” 不是 ${base} 进制的合法数字`);
+      throw codecError("radix.digit", ch, base);
     }
     result = result * BigInt(base) + BigInt(d);
   }
@@ -361,7 +374,7 @@ export function parseInBase(value: string, base: number): bigint {
 }
 
 export function toBase(value: bigint, base: number, upper = false): string {
-  if (base < 2 || base > 36) throw new Error("进制需在 2–36 之间");
+  if (base < 2 || base > 36) throw codecError("radix.range");
   if (value === 0n) return "0";
   const negative = value < 0n;
   let n = negative ? -value : value;
@@ -401,10 +414,10 @@ export function decodeJwt(token: string): DecodedJwt {
   const trimmed = token.trim().replace(/^Bearer\s+/i, "");
   const parts = trimmed.split(".");
   if (parts.length < 2) {
-    throw new Error("JWT 至少应包含两段（Header.Payload），当前格式不正确");
+    throw codecError("jwt.parts");
   }
   if (parts.length > 3) {
-    throw new Error("JWT 最多三段（Header.Payload.Signature），当前段数过多");
+    throw codecError("jwt.tooMany");
   }
 
   const parse = (part: string, name: string): unknown => {
@@ -412,12 +425,12 @@ export function decodeJwt(token: string): DecodedJwt {
     try {
       json = base64UrlDecodeToString(part);
     } catch {
-      throw new Error(`${name} 段不是合法的 Base64URL 编码`);
+      throw codecError("jwt.base64", name);
     }
     try {
       return JSON.parse(json);
     } catch {
-      throw new Error(`${name} 段不是合法的 JSON`);
+      throw codecError("jwt.json", name);
     }
   };
 
@@ -513,11 +526,11 @@ export function buildQueryString(
 }
 
 /** Wrap a throwing transform into { value, error } for direct use in render */
-export function safe<T>(fn: () => T): { value: T | null; error: string | null } {
+export function safe<T>(fn: () => T): { value: T | null; error: Error | null } {
   try {
     return { value: fn(), error: null };
   } catch (e) {
-    return { value: null, error: e instanceof Error ? e.message : String(e) };
+    return { value: null, error: e instanceof Error ? e : new Error(String(e)) };
   }
 }
 

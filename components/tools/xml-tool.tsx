@@ -3,13 +3,52 @@
 import * as React from "react";
 import { XMLBuilder, XMLParser } from "fast-xml-parser";
 import { highlightJson } from "@/lib/encoding";
-import { DualPane, OptionBar, PaneButton, Segmented, Stats, Toggle } from "@/components/tools/tool-ui";
+import { useCopy } from "@/components/locale-provider";
+import {
+  DualPane,
+  OptionBar,
+  PaneButton,
+  Segmented,
+  Stats,
+  Toggle,
+} from "@/components/tools/tool-ui";
 
 type Mode = "xml2json" | "json2xml";
 
-const SAMPLE = `<catalog>
+const COPY = {
+  zh: {
+    attributes: "保留属性",
+    attributesHint: "属性以 @_ 前缀表示，例如 @_id",
+    indent: "缩进",
+    twoSpaces: "2 空格",
+    fourSpaces: "4 空格",
+    xmlPlaceholder: "粘贴 XML…",
+    jsonPlaceholder: "粘贴 JSON…",
+    sample: "示例",
+    noteBefore: "使用 fast-xml-parser。约定：属性以 ",
+    noteMiddle: " 为前缀，纯文本节点以 ",
+    noteAfter: " 表示；数字与布尔值会自动推断类型。",
+    sampleTitle: "工具站开发指南",
+  },
+  en: {
+    attributes: "Keep attributes",
+    attributesHint: "Attributes are prefixed with @_, e.g. @_id",
+    indent: "Indent",
+    twoSpaces: "2 spaces",
+    fourSpaces: "4 spaces",
+    xmlPlaceholder: "Paste XML…",
+    jsonPlaceholder: "Paste JSON…",
+    sample: "Sample",
+    noteBefore: "Powered by fast-xml-parser. Convention: attributes are prefixed with ",
+    noteMiddle: ", plain text nodes use ",
+    noteAfter: "; numbers and booleans are inferred automatically.",
+    sampleTitle: "Toolkit development guide",
+  },
+};
+
+const SAMPLE_XML = (title: string) => `<catalog>
   <book id="bk101" available="true">
-    <title>工具站开发指南</title>
+    <title>${title}</title>
     <price>39.9</price>
     <tags>
       <tag>nextjs</tag>
@@ -18,7 +57,15 @@ const SAMPLE = `<catalog>
   </book>
 </catalog>`;
 
+const SAMPLE_JSON = (title: string) =>
+  JSON.stringify(
+    { catalog: { book: { "@_id": "bk101", title, price: 39.9 } } },
+    null,
+    2
+  );
+
 export function XmlTool() {
+  const t = useCopy(COPY);
   const [input, setInput] = React.useState("");
   const [mode, setMode] = React.useState<Mode>("xml2json");
   const [attributes, setAttributes] = React.useState(true);
@@ -66,7 +113,7 @@ export function XmlTool() {
     <div className="flex flex-col gap-4">
       <OptionBar>
         <Segmented
-          ariaLabel="转换方向"
+          ariaLabel="XML"
           value={mode}
           onChange={setMode}
           options={[
@@ -77,16 +124,16 @@ export function XmlTool() {
         <Toggle
           checked={attributes}
           onChange={setAttributes}
-          label="保留属性"
-          hint="属性以 @_ 前缀表示，例如 @_id"
+          label={t.attributes}
+          hint={t.attributesHint}
         />
         <Segmented
-          ariaLabel="缩进"
+          ariaLabel={t.indent}
           value={String(indent)}
           onChange={(v) => setIndent(Number(v))}
           options={[
-            { value: "2", label: "2 空格" },
-            { value: "4", label: "4 空格" },
+            { value: "2", label: t.twoSpaces },
+            { value: "4", label: t.fourSpaces },
           ]}
         />
       </OptionBar>
@@ -98,22 +145,19 @@ export function XmlTool() {
         error={result.error}
         inputLabel={mode === "xml2json" ? "XML" : "JSON"}
         outputLabel={mode === "xml2json" ? "JSON" : "XML"}
-        inputPlaceholder={mode === "xml2json" ? "粘贴 XML…" : "粘贴 JSON…"}
+        inputPlaceholder={mode === "xml2json" ? t.xmlPlaceholder : t.jsonPlaceholder}
         inputActions={
           <PaneButton
             onClick={() =>
               setInput(
                 mode === "xml2json"
-                  ? SAMPLE
-                  : JSON.stringify(
-                      { catalog: { book: { "@_id": "bk101", title: "工具站开发指南", price: 39.9 } } },
-                      null,
-                      2
-                    )
+                  ? SAMPLE_XML(t.sampleTitle)
+                  : SAMPLE_JSON(t.sampleTitle)
               )
             }
+            title={t.sample}
           >
-            示例
+            {t.sample}
           </PaneButton>
         }
         onClear={() => setInput("")}
@@ -126,8 +170,11 @@ export function XmlTool() {
       />
 
       <p className="text-xs leading-relaxed text-foreground-subtle">
-        使用 fast-xml-parser。约定：属性以 <code className="font-mono">@_</code> 为前缀，
-        纯文本节点以 <code className="font-mono">#text</code> 表示；数字与布尔值会自动推断类型。
+        {t.noteBefore}
+        <code className="font-mono">@_</code>
+        {t.noteMiddle}
+        <code className="font-mono">#text</code>
+        {t.noteAfter}
       </p>
     </div>
   );

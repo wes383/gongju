@@ -3,12 +3,24 @@
 import * as React from "react";
 import { Search, X } from "lucide-react";
 import { ThemeToggle } from "@/components/site/theme-toggle";
+import { LanguageToggle } from "@/components/site/language-toggle";
 import { ToolCard } from "@/components/site/tool-card";
+import { useLocale, useT } from "@/components/locale-provider";
+import { useDocumentTitle } from "@/components/use-document-title";
 import { categories, toolMatches } from "@/lib/tools";
+
+const HOME_TITLE = {
+  zh: "GongJu · 在线工具箱",
+  en: "GongJu · Online Toolbox",
+};
 
 export function ToolDirectory() {
   const [query, setQuery] = React.useState("");
   const inputRef = React.useRef<HTMLInputElement>(null);
+  const locale = useLocale();
+  const t = useT();
+
+  useDocumentTitle(HOME_TITLE[locale]);
 
   // Focus the search box on ⌘K / Ctrl+K
   React.useEffect(() => {
@@ -28,7 +40,7 @@ export function ToolDirectory() {
     return categories
       .map((c) => ({
         ...c,
-        tools: q ? c.tools.filter((t) => toolMatches(t, q)) : c.tools,
+        tools: q ? c.tools.filter((tool) => toolMatches(tool, q)) : c.tools,
       }))
       .filter((c) => c.tools.length > 0);
   }, [query]);
@@ -43,8 +55,8 @@ export function ToolDirectory() {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="搜索工具…"
-            aria-label="搜索工具"
+            placeholder={t.searchPlaceholder}
+            aria-label={t.searchPlaceholder}
             spellCheck={false}
             className="h-12 w-full rounded-full border border-border bg-surface pl-11 pr-11 text-base text-foreground placeholder:text-foreground-subtle focus:border-border-strong focus:outline-none"
           />
@@ -55,13 +67,14 @@ export function ToolDirectory() {
                 setQuery("");
                 inputRef.current?.focus();
               }}
-              aria-label="清空搜索"
+              aria-label={t.clearSearch}
               className="absolute right-3 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-foreground-subtle transition-colors hover:bg-hover-bg hover:text-foreground"
             >
               <X className="h-3.5 w-3.5" />
             </button>
           )}
         </div>
+        <LanguageToggle size="icon" className="h-12 w-12 shrink-0" />
         <ThemeToggle size="icon" className="h-12 w-12 shrink-0" />
       </div>
 
@@ -73,15 +86,15 @@ export function ToolDirectory() {
               <div className="flex items-center gap-2">
                 <Icon className="h-4 w-4 text-foreground-subtle" />
                 <h2 className="font-display text-sm font-semibold text-foreground">
-                  {cat.name}
+                  {cat.name[locale]}
                 </h2>
                 <span className="font-mono text-[11px] text-foreground-faint">
                   {cat.tools.length}
                 </span>
               </div>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {cat.tools.map((t) => (
-                  <ToolCard key={t.slug} tool={t} />
+                {cat.tools.map((tool) => (
+                  <ToolCard key={tool.slug} tool={tool} />
                 ))}
               </div>
             </section>
@@ -89,9 +102,7 @@ export function ToolDirectory() {
         })}
 
         {groups.length === 0 && (
-          <p className="py-20 text-center text-sm text-foreground-subtle">
-            没有找到匹配的工具
-          </p>
+          <p className="py-20 text-center text-sm text-foreground-subtle">{t.searchEmpty}</p>
         )}
       </div>
     </div>

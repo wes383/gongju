@@ -6,14 +6,14 @@ import { Base64Tool } from "@/components/tools/base64-tool";
 const meta = getTool("base64")!;
 
 export const metadata: Metadata = {
-  title: meta.name,
-  description: meta.description,
+  title: meta.name.zh,
+  description: meta.description.zh,
   keywords: meta.keywords,
 };
 
 export default function Page() {
   return (
-    <ToolFrame tool={meta}>
+    <ToolFrame slug="base64">
       <Base64Tool />
     </ToolFrame>
   );

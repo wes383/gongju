@@ -6,14 +6,14 @@ import { HtmlEntityTool } from "@/components/tools/html-entity-tool";
 const meta = getTool("html-entity")!;
 
 export const metadata: Metadata = {
-  title: meta.name,
-  description: meta.description,
+  title: meta.name.zh,
+  description: meta.description.zh,
   keywords: meta.keywords,
 };
 
 export default function Page() {
   return (
-    <ToolFrame tool={meta}>
+    <ToolFrame slug="html-entity">
       <HtmlEntityTool />
     </ToolFrame>
   );

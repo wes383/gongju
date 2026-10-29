@@ -3,8 +3,51 @@
 import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { CopyButton, ErrorNote, PaneButton } from "@/components/tools/tool-ui";
+import { useCopy, useLocale } from "@/components/locale-provider";
+import { translateError } from "@/lib/i18n";
 import { decodeJwt, formatJwtTime, highlightJson, safe } from "@/lib/encoding";
 import { cn } from "@/lib/utils";
+
+const COPY = {
+  zh: {
+    sample: "示例",
+    sampleTitle: "填入示例 Token",
+    clear: "清空",
+    placeholder: "粘贴 JWT，例如 eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIn0.xxxxx",
+    chars: "字符",
+    segments: "段",
+    unverified: "签名未校验，仅解码展示",
+    expired: "已过期",
+    valid: "未过期",
+    notYetValid: "尚未生效",
+    timeClaims: "时间声明",
+    issuedAt: "签发时间",
+    validFrom: "生效时间",
+    expiredAgo: (days: number) => `已过期 ${days} 天`,
+    expiresIn: (days: number) => `剩余 ${days} 天`,
+    noSignature: "（无签名段）",
+    note: "本工具只做 Base64URL 解码，不验证签名。请勿把生产环境的 Token 粘贴到不受信任的网站。",
+  },
+  en: {
+    sample: "Sample",
+    sampleTitle: "Fill in a sample token",
+    clear: "Clear",
+    placeholder: "Paste a JWT, e.g. eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIn0.xxxxx",
+    chars: "chars",
+    segments: "segments",
+    unverified: "Signature is not verified, decoding only",
+    expired: "Expired",
+    valid: "Valid",
+    notYetValid: "Not yet valid",
+    timeClaims: "Time claims",
+    issuedAt: "Issued at",
+    validFrom: "Valid from",
+    expiredAgo: (days: number) => `Expired ${days} days ago`,
+    expiresIn: (days: number) => `Expires in ${days} days`,
+    noSignature: "(no signature segment)",
+    note: "This tool only decodes Base64URL and never verifies the signature. Do not paste production tokens into a site you do not trust.",
+  },
+};
 
 const SAMPLE =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IuW8oOS4iSIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoxOTAwMDAwMDAwfQ.dQw4w9WgXcQ7ExampleSignature";
@@ -51,6 +94,8 @@ function ClaimRow({
 }
 
 export function JwtTool() {
+  const t = useCopy(COPY);
+  const locale = useLocale();
   const [token, setToken] = React.useState("");
   // Read the clock on the client only: Date.now() during prerender is unstable
   const [now, setNow] = React.useState<number | null>(null);
@@ -82,8 +127,8 @@ export function JwtTool() {
     now === null || exp === null
       ? null
       : expired
-        ? `已过期 ${Math.ceil((now - exp) / 86400)} 天`
-        : `剩余 ${Math.ceil((exp - now) / 86400)} 天`;
+        ? t.expiredAgo(Math.ceil((now - exp) / 86400))
+        : t.expiresIn(Math.ceil((exp - now) / 86400));
 
   return (
     <div className="flex flex-col gap-4">
@@ -93,11 +138,11 @@ export function JwtTool() {
             JWT
           </span>
           <div className="ml-auto flex items-center gap-1">
-            <PaneButton onClick={() => setToken(SAMPLE)} title="填入示例 Token">
-              示例
+            <PaneButton onClick={() => setToken(SAMPLE)} title={t.sampleTitle}>
+              {t.sample}
             </PaneButton>
-            <PaneButton onClick={() => setToken("")} title="清空">
-              清空
+            <PaneButton onClick={() => setToken("")} title={t.clear}>
+              {t.clear}
             </PaneButton>
           </div>
         </header>
@@ -105,22 +150,22 @@ export function JwtTool() {
           value={token}
           onChange={(e) => setToken(e.target.value)}
           spellCheck={false}
-          placeholder="粘贴 JWT，例如 eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIn0.xxxxx"
+          placeholder={t.placeholder}
           aria-label="JWT Token"
           className="min-h-[110px] w-full resize-y break-all bg-transparent px-3.5 py-3 font-mono text-[13px] leading-relaxed text-foreground placeholder:text-foreground-faint focus:outline-none"
         />
         <footer className="flex h-8 items-center gap-3 border-t border-border px-3 font-mono text-[11px] text-foreground-faint">
-          <span>{token.trim().length} 字符</span>
-          <span>{token.trim() ? token.trim().split(".").length : 0} 段</span>
-          {data && (
-            <span className="ml-auto text-foreground-subtle">
-              签名未校验，仅解码展示
-            </span>
-          )}
+          <span>
+            {token.trim().length} {t.chars}
+          </span>
+          <span>
+            {token.trim() ? token.trim().split(".").length : 0} {t.segments}
+          </span>
+          {data && <span className="ml-auto text-foreground-subtle">{t.unverified}</span>}
         </footer>
       </div>
 
-      {error && token.trim() !== "" && <ErrorNote>{error}</ErrorNote>}
+      {error && token.trim() !== "" && <ErrorNote>{translateError(error, locale)}</ErrorNote>}
 
       {data && (
         <>
@@ -142,12 +187,12 @@ export function JwtTool() {
             )}
             {exp !== null && (
               <Badge variant={expired ? "danger" : "success"} size="sm" dot>
-                {expired ? "已过期" : "未过期"}
+                {expired ? t.expired : t.valid}
               </Badge>
             )}
             {notYetValid && (
               <Badge variant="warning" size="sm" dot>
-                尚未生效
+                {t.notYetValid}
               </Badge>
             )}
           </div>
@@ -161,18 +206,29 @@ export function JwtTool() {
             <div className="overflow-hidden rounded-lg border border-border bg-surface">
               <header className="flex h-10 items-center border-b border-border px-3">
                 <span className="font-mono text-[11px] uppercase tracking-wide text-foreground-subtle">
-                  时间声明
+                  {t.timeClaims}
                 </span>
               </header>
               <div className="divide-y divide-border">
-                {iat !== null && <ClaimRow label="iat" seconds={iat} note={<span className="text-[11px] text-foreground-subtle">签发时间</span>} />}
+                {iat !== null && (
+                  <ClaimRow
+                    label="iat"
+                    seconds={iat}
+                    note={<span className="text-[11px] text-foreground-subtle">{t.issuedAt}</span>}
+                  />
+                )}
                 {nbf !== null && (
                   <ClaimRow
                     label="nbf"
                     seconds={nbf}
                     note={
-                      <span className={cn("text-[11px]", notYetValid ? "text-orange-fg" : "text-foreground-subtle")}>
-                        {notYetValid ? "尚未生效" : "生效时间"}
+                      <span
+                        className={cn(
+                          "text-[11px]",
+                          notYetValid ? "text-orange-fg" : "text-foreground-subtle"
+                        )}
+                      >
+                        {notYetValid ? t.notYetValid : t.validFrom}
                       </span>
                     }
                   />
@@ -182,7 +238,9 @@ export function JwtTool() {
                     label="exp"
                     seconds={exp}
                     note={
-                      <span className={cn("text-[11px]", expired ? "text-red-fg" : "text-green-fg")}>
+                      <span
+                        className={cn("text-[11px]", expired ? "text-red-fg" : "text-green-fg")}
+                      >
                         {expNote}
                       </span>
                     }
@@ -197,11 +255,9 @@ export function JwtTool() {
               Signature
             </span>
             <code className="break-all font-mono text-xs text-foreground-muted">
-              {data.signature || "（无签名段）"}
+              {data.signature || t.noSignature}
             </code>
-            <p className="text-xs leading-relaxed text-foreground-subtle">
-              本工具只做 Base64URL 解码，不验证签名。请勿把生产环境的 Token 粘贴到不受信任的网站。
-            </p>
+            <p className="text-xs leading-relaxed text-foreground-subtle">{t.note}</p>
           </div>
         </>
       )}

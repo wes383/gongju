@@ -6,14 +6,14 @@ import { UnicodeTool } from "@/components/tools/unicode-tool";
 const meta = getTool("unicode")!;
 
 export const metadata: Metadata = {
-  title: meta.name,
-  description: meta.description,
+  title: meta.name.zh,
+  description: meta.description.zh,
   keywords: meta.keywords,
 };
 
 export default function Page() {
   return (
-    <ToolFrame tool={meta}>
+    <ToolFrame slug="unicode">
       <UnicodeTool />
     </ToolFrame>
   );
