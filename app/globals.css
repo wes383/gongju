@@ -490,9 +490,32 @@ html.dark.high-contrast {
     border-color: var(--border);
   }
 
+  /* Tailwind v4 resets buttons to `cursor: default`; restore the
+     affordance everywhere a click is expected. */
+  button:not(:disabled),
+  [role="button"]:not(:disabled),
+  [role="menuitem"],
+  [role="menuitemcheckbox"],
+  [role="menuitemradio"],
+  [role="option"],
+  summary,
+  label[for],
+  select,
+  input[type="checkbox"],
+  input[type="radio"] {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  [role="button"][aria-disabled="true"] {
+    cursor: not-allowed;
+  }
+
   html {
     background: var(--background);
     -webkit-text-size-adjust: 100%;
+    /* Keep the layout from shifting when a page grows past the viewport */
+    scrollbar-gutter: stable;
   }
 
   body {
