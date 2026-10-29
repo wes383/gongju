@@ -14,7 +14,7 @@ import {
 
 type Mode = "yaml2json" | "json2yaml";
 
-const SAMPLE = `name: toolkit
+const SAMPLE = `name: gongju
 version: 0.1.0
 features:
   - base64
@@ -103,7 +103,7 @@ export function YamlTool() {
               setInput(
                 mode === "yaml2json"
                   ? SAMPLE
-                  : JSON.stringify({ name: "toolkit", features: ["yaml", "json"], nested: { count: 3 } }, null, 2)
+                  : JSON.stringify({ name: "gongju", features: ["yaml", "json"], nested: { count: 3 } }, null, 2)
               )
             }
           >

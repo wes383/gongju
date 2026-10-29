@@ -36,8 +36,8 @@ const notoSansSC = Noto_Sans_SC({
 
 export const metadata: Metadata = {
   title: {
-    default: "Toolkit · 开发者在线工具箱",
-    template: "%s · Toolkit",
+    default: "GongJu · 在线工具箱",
+    template: "%s · GongJu",
   },
   description:
     "纯浏览器端运行的开发者工具箱：编码解码、格式化、转换、加密、时间日期等常用工具，数据不出本机。",

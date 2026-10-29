@@ -14,7 +14,7 @@ import {
 
 type Mode = "encode" | "decode";
 
-const SAMPLE = "Toolkit 工具站 — Base64 编解码 🚀";
+const SAMPLE = "GongJu — Base64 编解码 🚀";
 
 export function Base64Tool() {
   const [input, setInput] = React.useState("");
