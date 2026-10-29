@@ -7,12 +7,6 @@ export const localeLabels: Record<Locale, string> = {
   en: "English",
 };
 
-/** Short label shown inside the toggle button */
-export const localeShort: Record<Locale, string> = {
-  zh: "中",
-  en: "EN",
-};
-
 export const htmlLang: Record<Locale, string> = {
   zh: "zh-CN",
   en: "en",
@@ -47,6 +41,7 @@ export interface Dict {
   };
   language: {
     label: string;
+    menu: string;
   };
   /** Keyed by the `code` carried by CodedError; {0}, {1} are placeholders */
   errors: Record<string, string>;
@@ -81,6 +76,7 @@ const zh: Dict = {
   },
   language: {
     label: "切换语言",
+    menu: "语言",
   },
   errors: {
     "base64.invalidChars": "包含非法字符，这不是合法的 Base64 字符串",
@@ -127,6 +123,7 @@ const en: Dict = {
   },
   language: {
     label: "Switch language",
+    menu: "Language",
   },
   errors: {
     "base64.invalidChars": "Contains characters that are not valid Base64",
