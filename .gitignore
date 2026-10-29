@@ -40,5 +40,23 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# 设计参考库（独立 git 仓库，不纳入本项目）
+/.claude
+/.cursor
+/.cursorrules
+/.windsurf
+/.windsurfrules
+/.continue
+/.codeium
+/.tabnine
+/.trae
+/.workbuddy-ai
+/.qodo
+/.aider*
+/.gemini
+/.roo
+/.kiro
+/.junie
+
 /orkest-ui
+
+/features.md
