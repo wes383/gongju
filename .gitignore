@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# 设计参考库（独立 git 仓库，不纳入本项目）
+/orkest-ui
