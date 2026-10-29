@@ -25,7 +25,7 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
-// CJK 字体体积较大：关闭 preload，先显示回退字体
+// CJK font files are large: skip preload and let the fallback paint first
 const notoSansSC = Noto_Sans_SC({
   subsets: ["latin"],
   weight: ["400", "500", "700"],

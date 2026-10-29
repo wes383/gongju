@@ -42,7 +42,6 @@ export function QueryStringTool() {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* 导入区 */}
       <div className="overflow-hidden rounded-lg border border-border bg-surface">
         <header className="flex h-11 items-center gap-2 border-b border-border px-3">
           <span className="font-mono text-[11px] uppercase tracking-wide text-foreground-subtle">
@@ -88,7 +87,6 @@ export function QueryStringTool() {
         </span>
       </OptionBar>
 
-      {/* 参数表 */}
       <div className="overflow-hidden rounded-lg border border-border bg-surface">
         <header className="flex h-11 items-center gap-2 border-b border-border px-3">
           <span className="font-mono text-[11px] uppercase tracking-wide text-foreground-subtle">
@@ -156,7 +154,6 @@ export function QueryStringTool() {
         )}
       </div>
 
-      {/* 输出 */}
       <div className="overflow-hidden rounded-lg border border-border bg-surface">
         <header className="flex h-11 items-center gap-2 border-b border-border px-3">
           <span className="font-mono text-[11px] uppercase tracking-wide text-foreground-subtle">

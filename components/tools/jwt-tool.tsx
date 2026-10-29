@@ -52,7 +52,7 @@ function ClaimRow({
 
 export function JwtTool() {
   const [token, setToken] = React.useState("");
-  // 当前时间只能在客户端获取：预渲染阶段读 Date.now() 会被 Next 判定为不稳定值
+  // Read the clock on the client only: Date.now() during prerender is unstable
   const [now, setNow] = React.useState<number | null>(null);
 
   React.useEffect(() => {

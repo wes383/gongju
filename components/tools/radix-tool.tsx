@@ -14,7 +14,7 @@ const BASES = [
   { base: 36, label: "三十六进制", short: "B36" },
 ];
 
-/** 根据前缀猜测进制：0x → 16，0b → 2，0o → 8 */
+/** Infer the base from a 0x / 0b / 0o prefix */
 function detectBase(value: string): number | null {
   const v = value.trim().toLowerCase();
   if (/^[-+]?0x[0-9a-f]/.test(v)) return 16;

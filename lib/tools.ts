@@ -24,13 +24,11 @@ import {
   Terminal,
 } from "lucide-react";
 
-/** 已上线工具的元数据 */
+/** Metadata for a shipped tool */
 export interface ToolMeta {
   slug: string;
   name: string;
-  /** 一句话说明，用于卡片与列表 */
   description: string;
-  /** 搜索关键词（中英文别名） */
   keywords: string[];
   category: CategoryId;
   icon: LucideIcon;
@@ -56,9 +54,8 @@ export interface CategoryMeta {
   name: string;
   description: string;
   icon: LucideIcon;
-  /** 该分类下已上线的工具 */
   tools: ToolMeta[];
-  /** 规划中的工具名（来自需求清单，尚未实现） */
+  /** Planned tool names from the spec; not shipped yet */
   planned: string[];
 }
 
@@ -358,7 +355,7 @@ export function getCategory(id: CategoryId): CategoryMeta | undefined {
   return categories.find((c) => c.id === id);
 }
 
-/** 工具是否命中搜索关键词（名称 / 描述 / 别名） */
+/** Match a tool against a search query (name, description, keywords) */
 export function toolMatches(tool: ToolMeta, query: string): boolean {
   const q = query.trim().toLowerCase();
   if (!q) return true;

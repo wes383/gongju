@@ -10,7 +10,7 @@ export function ToolDirectory() {
   const [query, setQuery] = React.useState("");
   const inputRef = React.useRef<HTMLInputElement>(null);
 
-  // ⌘K / Ctrl+K 聚焦搜索
+  // Focus the search box on ⌘K / Ctrl+K
   React.useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {

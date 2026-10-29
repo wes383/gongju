@@ -6,7 +6,7 @@ const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
   {
-    // Orkest UI 组件按原样拷贝进来维护，保留其原有写法
+    // Orkest UI components are vendored verbatim; keep their original style
     files: [
       "components/ui/**/*.{ts,tsx}",
       "components/theme-provider.tsx",
@@ -26,7 +26,7 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
-    // Orkest UI 参考实现，不参与本项目的 lint / 类型检查
+    // Reference implementation, excluded from this project's lint and typecheck
     "orkest-ui/**",
   ]),
 ]);

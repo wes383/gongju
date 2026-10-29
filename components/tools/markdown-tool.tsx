@@ -65,7 +65,7 @@ export function MarkdownTool() {
     setMode((m) => (m === "md2html" ? "html2md" : "md2html"));
   };
 
-  // 预览内容必须净化：Markdown 里可以塞入任意 HTML
+  // Markdown can embed arbitrary HTML, so the preview must be sanitized
   const previewHtml = React.useMemo(() => {
     if (!output || typeof window === "undefined") return "";
     return DOMPurify.sanitize(output, { USE_PROFILES: { html: true } });

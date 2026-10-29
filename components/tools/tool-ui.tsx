@@ -6,7 +6,7 @@ import { toast } from "@/components/ui/toaster";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-/** 复制到剪贴板，带 1.5s 的「已复制」反馈 */
+/** Copy to clipboard with a 1.5s "copied" state */
 export function CopyButton({
   value,
   label = "复制",
@@ -64,7 +64,7 @@ export function CopyButton({
   );
 }
 
-/** 面板头部的操作按钮：清空 / 交换 / 示例 等 */
+/** Small ghost button used inside pane headers */
 export function PaneButton({
   children,
   onClick,
@@ -108,7 +108,6 @@ export function SwapButton({ onClick }: { onClick: () => void }) {
   );
 }
 
-/** 错误提示条 */
 export function ErrorNote({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex items-start gap-2 rounded-md border border-red-border bg-red-soft px-3 py-2 text-xs leading-relaxed text-red-fg">
@@ -118,7 +117,6 @@ export function ErrorNote({ children }: { children: React.ReactNode }) {
   );
 }
 
-/** 输入/输出面板外壳 */
 export function Pane({
   label,
   actions,
@@ -153,7 +151,6 @@ export function Pane({
 const areaBase =
   "w-full resize-y bg-transparent px-3.5 py-3 font-mono text-[13px] leading-relaxed text-foreground placeholder:text-foreground-faint focus:outline-none";
 
-/** 输入文本域 */
 export const InputArea = React.forwardRef<
   HTMLTextAreaElement,
   React.TextareaHTMLAttributes<HTMLTextAreaElement>
@@ -167,7 +164,6 @@ export const InputArea = React.forwardRef<
 ));
 InputArea.displayName = "InputArea";
 
-/** 只读输出区 */
 export function OutputArea({
   value,
   placeholder = "结果会显示在这里",
@@ -179,7 +175,7 @@ export function OutputArea({
   placeholder?: string;
   minHeight?: string;
   wrap?: boolean;
-  /** 传入高亮后的 HTML（已转义），用于 JSON 之类的着色展示 */
+  /** Pre-highlighted, already-escaped HTML used to colour JSON output */
   highlight?: string;
 }) {
   if (highlight) {
@@ -207,7 +203,6 @@ export function OutputArea({
   );
 }
 
-/** 双栏布局：输入 / 输出 */
 export function DualPane({
   input,
   onInputChange,
@@ -239,7 +234,7 @@ export function DualPane({
   onSwap?: () => void;
   onClear?: () => void;
   inputMinHeight?: string;
-  /** 已高亮的 HTML，用于 JSON 输出着色 */
+  /** Pre-highlighted HTML for JSON output */
   outputHighlight?: string;
 }) {
   return (
@@ -289,7 +284,6 @@ export function DualPane({
   );
 }
 
-/** 分段选择器（单选） */
 export function Segmented<T extends string>({
   options,
   value,
@@ -337,7 +331,6 @@ export function Segmented<T extends string>({
   );
 }
 
-/** 选项行：标签 + 控件 */
 export function OptionBar({
   children,
   className,
@@ -376,7 +369,7 @@ export function OptionField({
   );
 }
 
-/** 简单的开关（自绘，避免引入 Radix Switch 的密度依赖） */
+/** Hand-rolled switch: avoids pulling in Radix Switch */
 export function Toggle({
   checked,
   onChange,
@@ -414,7 +407,6 @@ export function Toggle({
   );
 }
 
-/** 统计信息（字符数 / 字节数等） */
 export function textStats(text: string) {
   const chars = [...text].length;
   const bytes = new TextEncoder().encode(text).length;

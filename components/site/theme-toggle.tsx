@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-/** 空订阅：仅用于判断是否已在客户端挂载 */
+/** No-op subscription; only used to detect that we are on the client */
 const subscribeNoop = () => () => {};
 
 export function ThemeToggle({
@@ -24,7 +24,7 @@ export function ThemeToggle({
   className?: string;
 }) {
   const { resolvedTheme, setTheme, highContrast, toggleHighContrast } = useAppTheme();
-  // 服务端快照为 false、客户端为 true，避免水合不一致
+  // Server snapshot false, client snapshot true — keeps hydration consistent
   const mounted = React.useSyncExternalStore(
     subscribeNoop,
     () => true,

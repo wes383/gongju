@@ -1,18 +1,21 @@
 @import "tailwindcss";
 
-/* 参考实现目录（orkest-ui）不参与类名扫描 */
+/* Skip the reference design system when scanning for class names */
 @source not "../orkest-ui";
 @source "../components";
 @source "../lib";
 
-/* 深色模式走 class 策略（next-themes 写入 .dark） */
+/* Class-based dark mode; next-themes toggles `.dark` on <html> */
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* ══════════════════════════════════════════════════════════════
    Orkest UI — Design Tokens
    Warm minimal aesthetic · Light / Dark / High Contrast
-   规则：会随主题变化的 token 放 :root/.dark，并在 @theme inline 里
-   用「不同名」的原始变量做桥接，避免自引用。
+
+   Theme-dependent tokens live in :root / .dark. Because a @theme
+   variable cannot reference a same-named :root variable (it would
+   be a self-reference), every bridged token uses a differently
+   named source variable.
    ══════════════════════════════════════════════════════════════ */
 
 :root {
@@ -96,7 +99,7 @@
   --palette-gray: #847a7e;
   --palette-slate: #787e85;
 
-  /* ── Elevation（随主题变化，故用 elev-* 前缀做桥接）── */
+  /* ── Elevation (theme-dependent, so bridged through elev-* vars) ── */
   --elev-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
   --elev-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
   --elev-md: 0 4px 12px rgba(28, 24, 35, 0.06);
@@ -263,7 +266,8 @@ html.dark.high-contrast {
 
 /* ══════════════════════════════════════════════════════════════
    Tailwind theme bridge
-   inline：工具类直接引用上面的变量，主题切换无需重新生成样式
+   `inline` makes the utilities reference the variables above, so
+   switching themes needs no CSS regeneration.
    ══════════════════════════════════════════════════════════════ */
 
 @theme inline {
@@ -356,7 +360,7 @@ html.dark.high-contrast {
   --animate-scale-in: scale-in var(--duration-base) cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* 静态 token：不随主题变化，直接给出值 */
+/* Static tokens: identical in every theme, so the values are inlined */
 @theme {
   --font-sans: var(--font-inter, "Inter"), var(--font-noto-sans-sc, "Noto Sans SC"),
     ui-sans-serif, system-ui, sans-serif;
@@ -445,7 +449,7 @@ html.dark.high-contrast {
   }
 }
 
-/* Orkest 专有、Tailwind 无对应命名空间的工具类 */
+/* Orkest utilities with no matching Tailwind v4 theme namespace */
 @utility duration-fast {
   transition-duration: var(--duration-fast);
 }
@@ -539,7 +543,7 @@ html.dark.high-contrast {
   }
 }
 
-/* Markdown 预览排版（无 typography 插件时的轻量替代） */
+/* Markdown preview typography (lightweight stand-in for the typography plugin) */
 @layer components {
   .md-preview {
     font-size: 14px;

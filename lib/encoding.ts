@@ -1,6 +1,6 @@
 /**
- * 编码 / 解码核心算法。
- * 全部在浏览器端执行，不依赖任何服务端接口。
+ * Encoding / decoding primitives. Everything runs in the browser,
+ * no server round-trip is involved.
  */
 
 /* ══════════════════════════════════════════════════════════════
@@ -18,9 +18,9 @@ function bytesToBinary(bytes: Uint8Array): string {
 }
 
 export interface Base64Options {
-  /** 使用 URL 安全字符集（+ → -, / → _，去掉尾部 =） */
+  /** URL-safe alphabet: + to -, / to _, trailing = stripped */
   urlSafe?: boolean;
-  /** 每 76 个字符换行（MIME 风格） */
+  /** Wrap at 76 characters (MIME style) */
   lineBreaks?: boolean;
 }
 
@@ -54,7 +54,7 @@ export function decodeBase64(input: string): string {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   URL 编码
+   URL encoding
    ══════════════════════════════════════════════════════════════ */
 
 export type UrlEncodeMode = "component" | "uri" | "form";
@@ -70,7 +70,7 @@ export function decodeUrl(text: string, mode: UrlEncodeMode): string {
   try {
     return decodeURIComponent(src);
   } catch {
-    // 容忍残缺的 % 序列：只解码合法的部分
+    // Tolerate broken % sequences: decode only the valid runs
     return src.replace(/(%[0-9A-Fa-f]{2})+/g, (m) => {
       try {
         return decodeURIComponent(m);
@@ -82,10 +82,10 @@ export function decodeUrl(text: string, mode: UrlEncodeMode): string {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   HTML 实体
+   HTML entities
    ══════════════════════════════════════════════════════════════ */
 
-/** 常用命名实体（解码用；编码只产出最基础的 5 个） */
+/** Named entities for decoding; encoding only ever emits the 5 basic ones */
 const NAMED_ENTITIES: Record<string, string> = {
   amp: "&",
   lt: "<",
@@ -188,9 +188,9 @@ const NAMED_ENTITIES: Record<string, string> = {
 };
 
 export interface HtmlEntityOptions {
-  /** 同时把非 ASCII 字符转成数字实体 */
+  /** Also convert non-ASCII characters to numeric entities */
   encodeNonAscii?: boolean;
-  /** 使用十六进制数字实体（默认十进制） */
+  /** Emit hex numeric entities instead of decimal */
   hex?: boolean;
 }
 
@@ -231,20 +231,20 @@ export function decodeHtmlEntities(text: string): string {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   Unicode 转义
+   Unicode escapes
    ══════════════════════════════════════════════════════════════ */
 
 export type UnicodeFormat = "js" | "html" | "codepoint";
 
 export interface UnicodeOptions {
   format: UnicodeFormat;
-  /** 只转换 ASCII 之外的字符 */
+  /** Only escape characters outside ASCII */
   nonAsciiOnly?: boolean;
 }
 
 function toJsEscape(code: number): string {
   if (code <= 0xffff) return `\\u${code.toString(16).toUpperCase().padStart(4, "0")}`;
-  // 补充平面：输出代理对
+  // Supplementary planes: emit a surrogate pair
   const v = code - 0x10000;
   const hi = 0xd800 + (v >> 10);
   const lo = 0xdc00 + (v & 0x3ff);
@@ -286,7 +286,7 @@ export function unicodeToText(input: string): string {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   十六进制 ↔ 字符串
+   Hex <-> string
    ══════════════════════════════════════════════════════════════ */
 
 export type HexSeparator = "none" | "space" | "comma" | "0x";
@@ -327,7 +327,7 @@ export function hexToText(input: string): string {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   进制转换（BigInt，支持大整数）
+   Base conversion (BigInt, no overflow)
    ══════════════════════════════════════════════════════════════ */
 
 const DIGITS = "0123456789abcdefghijklmnopqrstuvwxyz";
@@ -341,7 +341,7 @@ export function parseInBase(value: string, base: number): bigint {
   const negative = body.startsWith("-");
   if (negative || body.startsWith("+")) body = body.slice(1);
 
-  // 允许 0x / 0b / 0o 前缀（只在进制匹配时剥离）
+  // Allow a 0x / 0b / 0o prefix, stripped only when it matches the base
   const lower = body.toLowerCase();
   if (base === 16 && lower.startsWith("0x")) body = body.slice(2);
   else if (base === 2 && lower.startsWith("0b")) body = body.slice(2);
@@ -430,7 +430,7 @@ export function decodeJwt(token: string): DecodedJwt {
   };
 }
 
-/** 把 JWT 时间声明（秒）格式化为本地时间 */
+/** Format a JWT time claim (seconds) in local time */
 export function formatJwtTime(seconds: number): string {
   const d = new Date(seconds * 1000);
   if (Number.isNaN(d.getTime())) return "无效时间";
@@ -471,7 +471,7 @@ export function parseQueryString(input: string): QueryRow[] {
     try {
       return parseQueryString(`?${new URL(raw).searchParams.toString()}`);
     } catch {
-      /* 交给下面的通用解析 */
+      /* fall through to the generic parser below */
     }
   }
 
@@ -512,7 +512,7 @@ export function buildQueryString(
     .join("&");
 }
 
-/** 把可能抛错的转换包成 { value, error }，供渲染层直接消费 */
+/** Wrap a throwing transform into { value, error } for direct use in render */
 export function safe<T>(fn: () => T): { value: T | null; error: string | null } {
   try {
     return { value: fn(), error: null };
@@ -522,7 +522,7 @@ export function safe<T>(fn: () => T): { value: T | null; error: string | null } 
 }
 
 /* ══════════════════════════════════════════════════════════════
-   JSON 语法高亮（输出区展示用）
+   JSON syntax highlighting (for read-only output panes)
    ══════════════════════════════════════════════════════════════ */
 
 export function escapeHtml(s: string): string {
@@ -533,7 +533,7 @@ export function escapeHtml(s: string): string {
     .replace(/"/g, "&quot;");
 }
 
-/** 给 JSON 字符串加上 span，配合 dangerouslySetInnerHTML 使用 */
+/** Wrap JSON tokens in spans; output is escaped, safe for dangerouslySetInnerHTML */
 export function highlightJson(json: string): string {
   const escaped = escapeHtml(json);
   return escaped.replace(
