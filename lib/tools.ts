@@ -358,28 +358,13 @@ export function getCategory(id: CategoryId): CategoryMeta | undefined {
   return categories.find((c) => c.id === id);
 }
 
-/** 按关键词模糊匹配工具，用于顶部搜索 */
-export function searchTools(query: string): ToolMeta[] {
+/** 工具是否命中搜索关键词（名称 / 描述 / 别名） */
+export function toolMatches(tool: ToolMeta, query: string): boolean {
   const q = query.trim().toLowerCase();
-  if (!q) return [];
-  const scored = allTools.map((t) => {
-    const name = t.name.toLowerCase();
-    let score = 0;
-    if (name === q) score = 100;
-    else if (name.startsWith(q)) score = 80;
-    else if (name.includes(q)) score = 60;
-    else if (t.keywords.some((k) => k.toLowerCase().includes(q))) score = 40;
-    else if (t.description.toLowerCase().includes(q)) score = 20;
-    return { t, score };
-  });
-  return scored
-    .filter((s) => s.score > 0)
-    .sort((a, b) => b.score - a.score)
-    .map((s) => s.t);
+  if (!q) return true;
+  return (
+    tool.name.toLowerCase().includes(q) ||
+    tool.description.toLowerCase().includes(q) ||
+    tool.keywords.some((k) => k.toLowerCase().includes(q))
+  );
 }
-
-export const totalToolCount = allTools.length;
-export const totalPlannedCount = categories.reduce((n, c) => n + c.planned.length, 0);
-
-/** 首页展示的「热门」工具 */
-export const featuredSlugs = ["base64", "jwt", "url-encode", "yaml", "csv", "markdown"];

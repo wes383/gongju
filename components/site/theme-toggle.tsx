@@ -16,7 +16,13 @@ import {
 /** 空订阅：仅用于判断是否已在客户端挂载 */
 const subscribeNoop = () => () => {};
 
-export function ThemeToggle() {
+export function ThemeToggle({
+  size = "icon-sm",
+  className,
+}: {
+  size?: React.ComponentProps<typeof Button>["size"];
+  className?: string;
+}) {
   const { resolvedTheme, setTheme, highContrast, toggleHighContrast } = useAppTheme();
   // 服务端快照为 false、客户端为 true，避免水合不一致
   const mounted = React.useSyncExternalStore(
@@ -32,9 +38,9 @@ export function ThemeToggle() {
       <DropdownMenuTrigger asChild>
         <Button
           variant="outline"
-          size="icon-sm"
+          size={size}
           aria-label="切换主题"
-          className="shrink-0"
+          className={className ?? "shrink-0"}
         >
           {isDark ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
         </Button>
