@@ -345,10 +345,10 @@ const textTools: ToolMeta[] = [
   }),
   textTool({
     slug: "text-cipher",
-    name: { zh: "简单加密 / 解密", en: "Simple Cipher" },
+    name: { zh: "ROT13 / 凯撒密码", en: "ROT13 & Caesar Cipher" },
     description: {
-      zh: "ROT13、凯撒位移、Atbash 与字符反转，可逆",
-      en: "ROT13, Caesar shift, Atbash and reversal, all reversible",
+      zh: "字符替换密码，用于解谜与趣味编码——不能用来保护数据",
+      en: "Substitution ciphers for puzzles and fun — never for protecting data",
     },
     keywords: ["rot13", "凯撒", "caesar", "atbash", "加密", "cipher"],
     icon: Lock,

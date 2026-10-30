@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { TriangleAlert } from "lucide-react";
 import { applyCipher, type CipherMode } from "@/lib/text";
 import { useCopy } from "@/components/locale-provider";
 import {
@@ -18,28 +19,32 @@ const COPY = {
     caesar: "凯撒位移",
     atbash: "Atbash",
     reverse: "字符反转",
-    encrypt: "加密",
-    decrypt: "解密",
+    encrypt: "正向",
+    decrypt: "反向",
     shift: "位移",
     plain: "原文",
     cipher: "结果",
     placeholder: "输入需要加密或解密的文本…",
     sampleText: "Hello, GongJu! 这是一段测试文本。",
-    hint: "ROT13 / Atbash / 反转都是对称的，加密即解密",
+    hint: "ROT13 / Atbash / 反转都是对称的，做两次就还原",
+    warning:
+      "这些是字符替换与移位，任何人都能还原，不能用来保护密码或隐私数据。",
   },
   en: {
     rot13: "ROT13",
     caesar: "Caesar",
     atbash: "Atbash",
     reverse: "Reverse",
-    encrypt: "Encrypt",
-    decrypt: "Decrypt",
+    encrypt: "Forward",
+    decrypt: "Reverse",
     shift: "Shift",
     plain: "Plain text",
     cipher: "Result",
     placeholder: "Text to encrypt or decrypt…",
     sampleText: "Hello, GongJu! 这是一段测试文本。",
-    hint: "ROT13, Atbash and reversal are symmetric — encrypting twice restores the text",
+    hint: "ROT13, Atbash and reversal are symmetric — applying twice restores the text",
+    warning:
+      "These are substitution ciphers. Anyone can reverse them, so never use them to protect passwords or private data.",
   },
 };
 
@@ -111,6 +116,11 @@ export function TextCipherTool() {
         inputFooter={<span>{input.length}</span>}
         outputFooter={output ? <span>{output.length}</span> : null}
       />
+
+      <p className="flex items-start gap-1.5 text-xs leading-relaxed text-foreground-subtle">
+        <TriangleAlert className="mt-0.5 h-3.5 w-3.5 shrink-0 text-orange" />
+        {t.warning}
+      </p>
     </div>
   );
 }
