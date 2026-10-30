@@ -1,16 +1,23 @@
 "use client";
 
 import * as React from "react";
-import { dump, load } from "js-yaml";
-import { highlightJson } from "@/lib/encoding";
-import { useCopy } from "@/components/locale-provider";
+import {
+  dump,
+  load,
+} from "js-yaml";
+import {
+  highlightJson,
+} from "@/lib/encoding";
+import {
+  useCopy,
+} from "@/components/locale-provider";
 import {
   DualPane,
   OptionBar,
-  PaneButton,
   Segmented,
   Stats,
   Toggle,
+  SampleButton,
 } from "@/components/tools/tool-ui";
 
 type Mode = "yaml2json" | "json2yaml";
@@ -136,12 +143,7 @@ export function YamlTool() {
         outputLabel={mode === "yaml2json" ? "JSON" : "YAML"}
         inputPlaceholder={mode === "yaml2json" ? t.yamlPlaceholder : t.jsonPlaceholder}
         inputActions={
-          <PaneButton
-            onClick={() => setInput(mode === "yaml2json" ? SAMPLE : SAMPLE_JSON)}
-            title={t.sample}
-          >
-            {t.sample}
-          </PaneButton>
+          <SampleButton onClick={() => setInput(mode === "yaml2json" ? SAMPLE : SAMPLE_JSON)} />
         }
         onClear={() => setInput("")}
         onSwap={swap}

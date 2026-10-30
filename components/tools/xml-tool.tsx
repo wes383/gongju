@@ -1,16 +1,23 @@
 "use client";
 
 import * as React from "react";
-import { XMLBuilder, XMLParser } from "fast-xml-parser";
-import { highlightJson } from "@/lib/encoding";
-import { useCopy } from "@/components/locale-provider";
+import {
+  XMLBuilder,
+  XMLParser,
+} from "fast-xml-parser";
+import {
+  highlightJson,
+} from "@/lib/encoding";
+import {
+  useCopy,
+} from "@/components/locale-provider";
 import {
   DualPane,
   OptionBar,
-  PaneButton,
   Segmented,
   Stats,
   Toggle,
+  SampleButton,
 } from "@/components/tools/tool-ui";
 
 type Mode = "xml2json" | "json2xml";
@@ -147,18 +154,13 @@ export function XmlTool() {
         outputLabel={mode === "xml2json" ? "JSON" : "XML"}
         inputPlaceholder={mode === "xml2json" ? t.xmlPlaceholder : t.jsonPlaceholder}
         inputActions={
-          <PaneButton
-            onClick={() =>
+          <SampleButton onClick={() =>
               setInput(
                 mode === "xml2json"
                   ? SAMPLE_XML(t.sampleTitle)
                   : SAMPLE_JSON(t.sampleTitle)
               )
-            }
-            title={t.sample}
-          >
-            {t.sample}
-          </PaneButton>
+            } />
         }
         onClear={() => setInput("")}
         onSwap={swap}

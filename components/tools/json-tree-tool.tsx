@@ -1,12 +1,32 @@
 "use client";
 
 import * as React from "react";
-import { ChevronRight, RotateCcw, Sparkles } from "lucide-react";
-import { countNodes, isPlainObject, JSON_SAMPLE, parseJson } from "@/lib/json";
-import { useCopy, useT } from "@/components/locale-provider";
-import { Button } from "@/components/ui/button";
-import { OptionBar, PaneButton, ErrorNote } from "@/components/tools/tool-ui";
-import { cn } from "@/lib/utils";
+import {
+  ChevronRight,
+  RotateCcw,
+} from "lucide-react";
+import {
+  countNodes,
+  isPlainObject,
+  JSON_SAMPLE,
+  parseJson,
+} from "@/lib/json";
+import {
+  useCopy,
+  useT,
+} from "@/components/locale-provider";
+import {
+  Button,
+} from "@/components/ui/button";
+import {
+  OptionBar,
+  ErrorNote,
+  SampleButton,
+  ClearButton,
+} from "@/components/tools/tool-ui";
+import {
+  cn,
+} from "@/lib/utils";
 
 const COPY = {
   zh: {
@@ -173,11 +193,8 @@ export function JsonTreeTool() {
               {t.inputLabel}
             </span>
             <div className="ml-auto flex items-center gap-1">
-              <PaneButton onClick={() => setInput(JSON_SAMPLE)} title={t.sample}>
-                <Sparkles className="h-3.5 w-3.5" />
-                <span>{t.sample}</span>
-              </PaneButton>
-              <PaneButton onClick={() => setInput("")}>{shared.clear}</PaneButton>
+              <SampleButton onClick={() => setInput(JSON_SAMPLE)} />
+              <ClearButton onClick={() => setInput("")} />
             </div>
           </header>
           <textarea

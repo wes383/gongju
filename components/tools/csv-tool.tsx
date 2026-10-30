@@ -2,15 +2,19 @@
 
 import * as React from "react";
 import Papa from "papaparse";
-import { highlightJson } from "@/lib/encoding";
-import { useCopy } from "@/components/locale-provider";
+import {
+  highlightJson,
+} from "@/lib/encoding";
+import {
+  useCopy,
+} from "@/components/locale-provider";
 import {
   DualPane,
   OptionBar,
-  PaneButton,
   Segmented,
   Stats,
   Toggle,
+  SampleButton,
 } from "@/components/tools/tool-ui";
 
 type Mode = "csv2json" | "json2csv";
@@ -18,7 +22,9 @@ type Delimiter = "auto" | "," | ";" | "\t" | "|";
 
 const COPY = {
   zh: {
-    auto: "自动",
+    auto: "自动检测",
+    autoHint: "按首行内容推断分隔符（, ; Tab |）",
+    autoHintJson: "导出时使用逗号",
     comma: "逗号",
     semicolon: "分号",
     tab: "Tab",
@@ -43,6 +49,8 @@ const COPY = {
   },
   en: {
     auto: "Auto",
+    autoHint: "Detect the delimiter from the first row",
+    autoHintJson: "Falls back to a comma when exporting",
     comma: "Comma",
     semicolon: "Semicolon",
     tab: "Tab",
@@ -141,14 +149,6 @@ export function CsvTool() {
     setMode((m) => (m === "csv2json" ? "json2csv" : "csv2json"));
   };
 
-  const delimiterLabels: Record<Delimiter, string> = {
-    auto: t.auto,
-    ",": t.comma,
-    ";": t.semicolon,
-    "\t": t.tab,
-    "|": t.pipe,
-  };
-
   return (
     <div className="flex flex-col gap-4">
       <OptionBar>
@@ -161,21 +161,23 @@ export function CsvTool() {
             { value: "json2csv", label: "JSON → CSV" },
           ]}
         />
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-medium text-foreground-muted">{t.delimiter}</span>
-          <select
-            value={delimiter}
-            onChange={(e) => setDelimiter(e.target.value as Delimiter)}
-            aria-label={t.delimiter}
-            className="h-8 rounded-md border border-border bg-surface px-2 text-xs text-foreground focus:border-border-strong focus:outline-none"
-          >
-            {(Object.keys(delimiterLabels) as Delimiter[]).map((d) => (
-              <option key={d} value={d}>
-                {delimiterLabels[d]}
-              </option>
-            ))}
-          </select>
-        </div>
+        <span className="text-xs font-medium text-foreground-muted">{t.delimiter}</span>
+        <Segmented
+          ariaLabel={t.delimiter}
+          value={delimiter}
+          onChange={setDelimiter}
+          options={[
+            {
+              value: "auto",
+              label: t.auto,
+              hint: mode === "csv2json" ? t.autoHint : t.autoHintJson,
+            },
+            { value: ",", label: t.comma },
+            { value: ";", label: t.semicolon },
+            { value: "\t", label: t.tab },
+            { value: "|", label: t.pipe },
+          ]}
+        />
         {mode === "csv2json" ? (
           <>
             <Toggle
@@ -213,18 +215,13 @@ export function CsvTool() {
         outputLabel={mode === "csv2json" ? "JSON" : "CSV"}
         inputPlaceholder={mode === "csv2json" ? t.csvPlaceholder : t.jsonPlaceholder}
         inputActions={
-          <PaneButton
-            onClick={() =>
+          <SampleButton onClick={() =>
               setInput(
                 mode === "csv2json"
                   ? SAMPLE_CSV("前端", "后端", "全栈")
                   : SAMPLE_JSON("前端", "后端")
               )
-            }
-            title={t.sample}
-          >
-            {t.sample}
-          </PaneButton>
+            } />
         }
         onClear={() => setInput("")}
         onSwap={swap}

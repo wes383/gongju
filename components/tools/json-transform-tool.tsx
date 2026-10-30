@@ -1,8 +1,10 @@
 "use client";
 
 import * as React from "react";
-import { Sparkles } from "lucide-react";
-import { highlightJson } from "@/lib/encoding";
+
+import {
+  highlightJson,
+} from "@/lib/encoding";
 import {
   dedupeArray,
   flattenJson,
@@ -12,15 +14,20 @@ import {
   sortKeysDeep,
   unflattenJson,
 } from "@/lib/json";
-import { useCopy, useT } from "@/components/locale-provider";
+import {
+  useCopy,
+  useT,
+} from "@/components/locale-provider";
 import {
   DualPane,
   OptionBar,
-  PaneButton,
   Segmented,
   Toggle,
+  SampleButton,
 } from "@/components/tools/tool-ui";
-import { Input } from "@/components/ui/input";
+import {
+  Input,
+} from "@/components/ui/input";
 
 type Operation = "sort" | "dedupe" | "flatten" | "unflatten";
 
@@ -188,10 +195,7 @@ export function JsonTransformTool() {
         inputPlaceholder={placeholder}
         outputHighlight={result.value ? highlightJson(result.value) : undefined}
         inputActions={
-          <PaneButton onClick={() => setInput(sample())} title={t.sample}>
-            <Sparkles className="h-3.5 w-3.5" />
-            <span>{t.sample}</span>
-          </PaneButton>
+          <SampleButton onClick={() => setInput(sample())} />
         }
         onClear={() => setInput("")}
         inputFooter={<span>{input.length}</span>}

@@ -2,10 +2,25 @@
 
 import * as React from "react";
 import Papa from "papaparse";
-import { Sparkles } from "lucide-react";
-import { cellToString, JSON_SAMPLE, parseJson, toTabular } from "@/lib/json";
-import { useCopy, useT } from "@/components/locale-provider";
-import { CopyButton, DualPane, OptionBar, PaneButton, Segmented, Toggle } from "@/components/tools/tool-ui";
+
+import {
+  cellToString,
+  JSON_SAMPLE,
+  parseJson,
+  toTabular,
+} from "@/lib/json";
+import {
+  useCopy,
+  useT,
+} from "@/components/locale-provider";
+import {
+  CopyButton,
+  DualPane,
+  OptionBar,
+  Segmented,
+  Toggle,
+  SampleButton,
+} from "@/components/tools/tool-ui";
 
 type Delimiter = "," | ";" | "\t" | "|";
 
@@ -113,10 +128,7 @@ export function JsonToCsvTool() {
         outputLabel={t.outputLabel}
         inputPlaceholder={t.inputPlaceholder}
         inputActions={
-          <PaneButton onClick={() => setInput(JSON_SAMPLE)} title={t.sample}>
-            <Sparkles className="h-3.5 w-3.5" />
-            <span>{t.sample}</span>
-          </PaneButton>
+          <SampleButton onClick={() => setInput(JSON_SAMPLE)} />
         }
         onClear={() => setInput("")}
         inputFooter={

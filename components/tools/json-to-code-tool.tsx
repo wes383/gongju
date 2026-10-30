@@ -1,11 +1,28 @@
 "use client";
 
 import * as React from "react";
-import { Sparkles } from "lucide-react";
-import { JSON_SAMPLE, parseJson, toGo, toJava, toPython, toTypeScript } from "@/lib/json";
-import { useCopy, useT } from "@/components/locale-provider";
-import { DualPane, OptionBar, PaneButton, Segmented } from "@/components/tools/tool-ui";
-import { Input } from "@/components/ui/input";
+
+import {
+  JSON_SAMPLE,
+  parseJson,
+  toGo,
+  toJava,
+  toPython,
+  toTypeScript,
+} from "@/lib/json";
+import {
+  useCopy,
+  useT,
+} from "@/components/locale-provider";
+import {
+  DualPane,
+  OptionBar,
+  Segmented,
+  SampleButton,
+} from "@/components/tools/tool-ui";
+import {
+  Input,
+} from "@/components/ui/input";
 
 type Target = "typescript" | "go" | "python" | "java";
 
@@ -95,10 +112,7 @@ export function JsonToCodeTool() {
         outputLabel={t.outputLabel}
         inputPlaceholder={t.inputPlaceholder}
         inputActions={
-          <PaneButton onClick={() => setInput(JSON_SAMPLE)} title={t.sample}>
-            <Sparkles className="h-3.5 w-3.5" />
-            <span>{t.sample}</span>
-          </PaneButton>
+          <SampleButton onClick={() => setInput(JSON_SAMPLE)} />
         }
         onClear={() => setInput("")}
         inputFooter={<span>{input.length}</span>}

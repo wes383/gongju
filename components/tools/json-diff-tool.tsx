@@ -1,13 +1,29 @@
 "use client";
 
 import * as React from "react";
-import { Sparkles } from "lucide-react";
-import { diffJson, JSON_SAMPLE, parseJson, type DiffEntry } from "@/lib/json";
-import { useCopy, useT } from "@/components/locale-provider";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { ErrorNote, OptionBar } from "@/components/tools/tool-ui";
-import { cn } from "@/lib/utils";
+
+import {
+  diffJson,
+  JSON_SAMPLE,
+  parseJson,
+  type DiffEntry,
+} from "@/lib/json";
+import {
+  useCopy,
+  useT,
+} from "@/components/locale-provider";
+import {
+  Badge,
+} from "@/components/ui/badge";
+
+import {
+  ErrorNote,
+  OptionBar,
+  SampleButton,
+} from "@/components/tools/tool-ui";
+import {
+  cn,
+} from "@/lib/utils";
 
 const COPY = {
   zh: {
@@ -155,19 +171,12 @@ export function JsonDiffTool() {
   return (
     <div className="flex flex-col gap-4">
       <OptionBar>
-        <Button
-          type="button"
-          variant="ghost"
-          size="xs"
-          className="gap-1.5"
+        <SampleButton
           onClick={() => {
             setLeft(JSON_SAMPLE);
             setRight(SAMPLE_RIGHT);
           }}
-        >
-          <Sparkles className="h-3.5 w-3.5" />
-          {t.sample}
-        </Button>
+        />
         {bothValid && (
           <div className="ml-auto flex flex-wrap items-center gap-1.5">
             <Badge variant="success" size="xs">

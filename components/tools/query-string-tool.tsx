@@ -1,17 +1,32 @@
 "use client";
 
 import * as React from "react";
-import { Plus, Trash2 } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+} from "lucide-react";
 import {
   buildQueryString,
   newQueryRow,
   parseQueryString,
   type QueryRow,
 } from "@/lib/encoding";
-import { Button } from "@/components/ui/button";
-import { CopyButton, OptionBar, PaneButton, Toggle } from "@/components/tools/tool-ui";
-import { useCopy } from "@/components/locale-provider";
-import { cn } from "@/lib/utils";
+import {
+  Button,
+} from "@/components/ui/button";
+import {
+  CopyButton,
+  OptionBar,
+  Toggle,
+  SampleButton,
+  ClearButton,
+} from "@/components/tools/tool-ui";
+import {
+  useCopy,
+} from "@/components/locale-provider";
+import {
+  cn,
+} from "@/lib/utils";
 
 const COPY = {
   zh: {
@@ -93,15 +108,13 @@ export function QueryStringTool() {
             URL / Query
           </span>
           <div className="ml-auto flex items-center gap-1">
-            <PaneButton onClick={() => importText(SAMPLE)}>{t.sample}</PaneButton>
-            <PaneButton
+            <SampleButton onClick={() => importText(SAMPLE)} />
+            <ClearButton
               onClick={() => {
                 setText("");
                 setRows([]);
               }}
-            >
-              {t.clear}
-            </PaneButton>
+            />
           </div>
         </header>
         <textarea

@@ -2,18 +2,24 @@
 
 import * as React from "react";
 import DOMPurify from "dompurify";
-import { marked } from "marked";
+import {
+  marked,
+} from "marked";
 import TurndownService from "turndown";
-import { safe } from "@/lib/encoding";
-import { useCopy } from "@/components/locale-provider";
+import {
+  safe,
+} from "@/lib/encoding";
+import {
+  useCopy,
+} from "@/components/locale-provider";
 import {
   CopyButton,
   DualPane,
   OptionBar,
-  PaneButton,
   Segmented,
   Stats,
   Toggle,
+  SampleButton,
 } from "@/components/tools/tool-ui";
 
 type Mode = "md2html" | "html2md";
@@ -149,12 +155,7 @@ export function MarkdownTool() {
         outputLabel={mode === "md2html" ? "HTML" : "Markdown"}
         inputPlaceholder={mode === "md2html" ? t.inputPlaceholder : t.htmlPlaceholder}
         inputActions={
-          <PaneButton
-            onClick={() => setInput(mode === "md2html" ? t.sampleMd : t.sampleHtml)}
-            title={t.sample}
-          >
-            {t.sample}
-          </PaneButton>
+          <SampleButton onClick={() => setInput(mode === "md2html" ? t.sampleMd : t.sampleHtml)} />
         }
         onClear={() => setInput("")}
         onSwap={swap}

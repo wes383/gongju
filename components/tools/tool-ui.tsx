@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Check, Copy, Eraser, Repeat, TriangleAlert } from "lucide-react";
+import { Check, Copy, Eraser, Repeat, Sparkles, TriangleAlert } from "lucide-react";
 import { toast } from "@/components/ui/toaster";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -100,6 +100,17 @@ export function ClearButton({ onClick, label }: { onClick: () => void; label?: s
   return (
     <PaneButton onClick={onClick} title={text}>
       <Eraser className="h-3.5 w-3.5" />
+      <span>{text}</span>
+    </PaneButton>
+  );
+}
+
+export function SampleButton({ onClick, label }: { onClick: () => void; label?: string }) {
+  const t = useT();
+  const text = label ?? t.sample;
+  return (
+    <PaneButton onClick={onClick} title={text}>
+      <Sparkles className="h-3.5 w-3.5" />
       <span>{text}</span>
     </PaneButton>
   );

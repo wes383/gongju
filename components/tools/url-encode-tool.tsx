@@ -1,15 +1,22 @@
 "use client";
 
 import * as React from "react";
-import { Sparkles } from "lucide-react";
-import { decodeUrl, encodeUrl, safe, type UrlEncodeMode } from "@/lib/encoding";
-import { useCopy } from "@/components/locale-provider";
+
+import {
+  decodeUrl,
+  encodeUrl,
+  safe,
+  type UrlEncodeMode,
+} from "@/lib/encoding";
+import {
+  useCopy,
+} from "@/components/locale-provider";
 import {
   DualPane,
   OptionBar,
-  PaneButton,
   Segmented,
   Stats,
+  SampleButton,
 } from "@/components/tools/tool-ui";
 
 type Mode = "encode" | "decode";
@@ -106,10 +113,7 @@ export function UrlEncodeTool() {
         outputLabel={mode === "encode" ? t.encoded : t.plain}
         inputPlaceholder={mode === "encode" ? t.inputPlaceholder : t.decodePlaceholder}
         inputActions={
-          <PaneButton onClick={() => setInput(t.sampleText)} title={t.sample}>
-            <Sparkles className="h-3.5 w-3.5" />
-            <span>{t.sample}</span>
-          </PaneButton>
+          <SampleButton onClick={() => setInput(t.sampleText)} />
         }
         onClear={() => setInput("")}
         onSwap={swap}

@@ -1,18 +1,32 @@
 "use client";
 
 import * as React from "react";
-import { Sparkles } from "lucide-react";
-import { highlightJson } from "@/lib/encoding";
-import { countNodes, isPlainObject, JSON_SAMPLE, jsonDepth, parseJson, sortKeysDeep } from "@/lib/json";
-import { useCopy, useT } from "@/components/locale-provider";
+
+import {
+  highlightJson,
+} from "@/lib/encoding";
+import {
+  countNodes,
+  isPlainObject,
+  JSON_SAMPLE,
+  jsonDepth,
+  parseJson,
+  sortKeysDeep,
+} from "@/lib/json";
+import {
+  useCopy,
+  useT,
+} from "@/components/locale-provider";
 import {
   DualPane,
   OptionBar,
-  PaneButton,
   Segmented,
   Toggle,
+  SampleButton,
 } from "@/components/tools/tool-ui";
-import { Badge } from "@/components/ui/badge";
+import {
+  Badge,
+} from "@/components/ui/badge";
 
 type Indent = "2" | "4" | "tab";
 
@@ -130,10 +144,7 @@ export function JsonFormatTool() {
         inputPlaceholder={t.inputPlaceholder}
         outputHighlight={result.value ? highlightJson(result.value) : undefined}
         inputActions={
-          <PaneButton onClick={() => setInput(JSON_SAMPLE)} title={t.sample}>
-            <Sparkles className="h-3.5 w-3.5" />
-            <span>{t.sample}</span>
-          </PaneButton>
+          <SampleButton onClick={() => setInput(JSON_SAMPLE)} />
         }
         onClear={() => setInput("")}
         inputFooter={<span>{input.length}</span>}

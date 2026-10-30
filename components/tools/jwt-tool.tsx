@@ -1,12 +1,31 @@
 "use client";
 
 import * as React from "react";
-import { Badge } from "@/components/ui/badge";
-import { CopyButton, ErrorNote, PaneButton } from "@/components/tools/tool-ui";
-import { useCopy, useLocale } from "@/components/locale-provider";
-import { translateError } from "@/lib/i18n";
-import { decodeJwt, formatJwtTime, highlightJson, safe } from "@/lib/encoding";
-import { cn } from "@/lib/utils";
+import {
+  Badge,
+} from "@/components/ui/badge";
+import {
+  CopyButton,
+  ErrorNote,
+  SampleButton,
+  ClearButton,
+} from "@/components/tools/tool-ui";
+import {
+  useCopy,
+  useLocale,
+} from "@/components/locale-provider";
+import {
+  translateError,
+} from "@/lib/i18n";
+import {
+  decodeJwt,
+  formatJwtTime,
+  highlightJson,
+  safe,
+} from "@/lib/encoding";
+import {
+  cn,
+} from "@/lib/utils";
 
 const COPY = {
   zh: {
@@ -138,12 +157,8 @@ export function JwtTool() {
             JWT
           </span>
           <div className="ml-auto flex items-center gap-1">
-            <PaneButton onClick={() => setToken(SAMPLE)} title={t.sampleTitle}>
-              {t.sample}
-            </PaneButton>
-            <PaneButton onClick={() => setToken("")} title={t.clear}>
-              {t.clear}
-            </PaneButton>
+            <SampleButton onClick={() => setToken(SAMPLE)} />
+            <ClearButton onClick={() => setToken("")} />
           </div>
         </header>
         <textarea
