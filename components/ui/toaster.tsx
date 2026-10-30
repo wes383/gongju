@@ -42,14 +42,16 @@ const sharedToastClassNames = {
    * The right gutter is reserved for the inset close button (see closeButton),
    * so long text and action buttons never run underneath it.
    *
-   * Sonner's own defaults are `padding: 16px` and a close button pinned to the
-   * top-left corner; every value below wins because Sonner wraps its rules in
-   * `:where()`, which carries zero specificity.
+   * Everything here needs `!`: Sonner ships its base rule as
+   * `[data-sonner-toast][data-styled='true']` (0-2-0) in a plain, unlayered
+   * stylesheet injected at runtime. Unlayered declarations beat anything inside
+   * Tailwind's `@layer utilities` regardless of specificity, so without
+   * `!important` Sonner's 16px padding, 8px radius and own shadow win.
    */
   toast:
-    "group bg-surface text-foreground border border-border rounded-lg shadow-pop py-3.5 pl-3.5 pr-12 font-sans",
-  title: "text-sm font-semibold",
-  description: "text-xs text-foreground-muted",
+    "group !bg-surface !text-foreground !border !border-border !rounded-lg !shadow-pop !py-3.5 !pl-3.5 !pr-12 !font-sans",
+  title: "!text-sm !font-semibold !text-foreground",
+  description: "!text-xs !text-foreground-muted",
   actionButton:
     "!bg-accent !text-accent-fg !rounded-full !h-8 !px-3 !text-xs !font-medium hover:!bg-accent-hover",
   cancelButton:
