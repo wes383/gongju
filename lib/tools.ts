@@ -4,6 +4,9 @@ import {
   Braces,
   CaseSensitive,
   Calculator,
+  CalendarClock,
+  CalendarPlus,
+  CalendarRange,
   Clock,
   Code2,
   Dices,
@@ -31,6 +34,7 @@ import {
   ShieldCheck,
   SortAsc,
   SpellCheck,
+  Timer,
   Table2,
   Terminal,
   Type,
@@ -75,6 +79,7 @@ export interface CategoryMeta {
 const tool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "encoding" });
 const jsonTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "json" });
 const textTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "text" });
+const dateTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "datetime" });
 
 const encodingTools: ToolMeta[] = [
   tool({
@@ -385,6 +390,69 @@ const textTools: ToolMeta[] = [
   }),
 ];
 
+const datetimeTools: ToolMeta[] = [
+  dateTool({
+    slug: "timestamp",
+    name: { zh: "Unix 时间戳转换", en: "Unix Timestamp Converter" },
+    description: {
+      zh: "时间戳与日期互转，秒 / 毫秒 / 微秒 / 纳秒自动识别",
+      en: "Convert timestamps to dates and back, detecting seconds, milliseconds, microseconds and nanoseconds",
+    },
+    keywords: ["timestamp", "unix", "时间戳", "秒", "毫秒", "epoch"],
+    icon: Clock,
+  }),
+  dateTool({
+    slug: "timezone",
+    name: { zh: "时区转换", en: "Time Zone Converter" },
+    description: {
+      zh: "同一时刻在不同时区的本地时间对比，自动处理夏令时",
+      en: "Compare one instant across time zones, with daylight saving handled for you",
+    },
+    keywords: ["时区", "timezone", "utc", "gmt", "换算", "夏令时"],
+    icon: Globe,
+  }),
+  dateTool({
+    slug: "countdown",
+    name: { zh: "倒计时 / 正计时", en: "Countdown & Stopwatch" },
+    description: {
+      zh: "距离某个时间点还有多久，或从某个时刻起已经过去多久",
+      en: "How long until a moment, or how long since one",
+    },
+    keywords: ["倒计时", "countdown", "计时", "timer", "正计时"],
+    icon: Timer,
+  }),
+  dateTool({
+    slug: "cron",
+    name: { zh: "Cron 表达式解析", en: "Cron Expression Parser" },
+    description: {
+      zh: "把 Cron 表达式翻译成中文描述，并算出接下来几次运行时间",
+      en: "Explain a cron expression in plain language and list the next runs",
+    },
+    keywords: ["cron", "crontab", "定时", "表达式", "schedule"],
+    icon: CalendarClock,
+  }),
+  dateTool({
+    slug: "date-add",
+    name: { zh: "日期加减", en: "Date Calculator" },
+    description: {
+      zh: "在某个日期上加减年、月、周、天或工作日",
+      en: "Add or subtract years, months, weeks, days or working days",
+    },
+    keywords: ["日期", "加减", "date", "add", "工作日", "推算"],
+    icon: CalendarPlus,
+  }),
+  dateTool({
+    slug: "date-diff",
+    name: { zh: "日期差值计算", en: "Date Difference" },
+    description: {
+      zh: "两个日期相差多久，含总天数、年月日拆分与工作日数",
+      en: "Time between two dates: total days, a calendar breakdown and working days",
+    },
+    keywords: ["差值", "间隔", "diff", "天数", "工作日", "相差"],
+    icon: CalendarRange,
+  }),
+];
+
 export const categories: CategoryMeta[] = [
   {
     id: "encoding",
@@ -424,7 +492,7 @@ export const categories: CategoryMeta[] = [
       en: "Timestamps, time zones, cron and date math",
     },
     icon: Clock,
-    tools: [],
+    tools: datetimeTools,
   },
   {
     id: "hash",
