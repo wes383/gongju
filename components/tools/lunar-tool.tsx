@@ -13,7 +13,13 @@ import { useCopy, useLocale } from "@/components/locale-provider";
 import { OptionBar, Segmented } from "@/components/tools/tool-ui";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Combobox } from "@/components/ui/combobox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 
 const COPY = {
@@ -34,8 +40,6 @@ const COPY = {
     jieqi: "节气",
     invalid: "这个农历日期不存在，换一个月或日子试试",
     invalidSolar: "请选择有效的公历日期",
-    searchMonth: "搜索月份",
-    searchDay: "搜索日期",
     empty: "选择一个日期后显示转换结果",
     note: "支持 1900–2100 年；闰月会在月份前标注「闰」。节日与节气只做展示，不作为万年历使用。",
   },
@@ -56,8 +60,6 @@ const COPY = {
     jieqi: "Solar term",
     invalid: "That lunar date does not exist — try another month or day",
     invalidSolar: "Pick a valid Gregorian date",
-    searchMonth: "Search months",
-    searchDay: "Search days",
     empty: "Pick a date to see the conversion",
     note: "Covers 1900–2100. Leap months are prefixed with 闰. Festivals and solar terms are informational only.",
   },
@@ -205,28 +207,30 @@ export function LunarTool() {
               />
               <span className="text-xs text-foreground-subtle">{t.year}</span>
             </div>
-            <Combobox
-              options={monthOptions}
-              value={String(month)}
-              onValueChange={(v) => setMonth(Number(v))}
-              placeholder={t.month}
-              searchPlaceholder={t.searchMonth}
-              emptyText={t.month}
-              aria-label={t.month}
-              size="sm"
-              className="w-32"
-            />
-            <Combobox
-              options={dayOptions}
-              value={String(day)}
-              onValueChange={(v) => setDay(Number(v))}
-              placeholder={t.day}
-              searchPlaceholder={t.searchDay}
-              emptyText={t.day}
-              aria-label={t.day}
-              size="sm"
-              className="w-32"
-            />
+            <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
+              <SelectTrigger size="md" aria-label={t.month} className="w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {monthOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={String(day)} onValueChange={(v) => setDay(Number(v))}>
+              <SelectTrigger size="md" aria-label={t.day} className="w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {dayOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <Button
               type="button"
               variant="ghost"
