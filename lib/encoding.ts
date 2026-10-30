@@ -1,3 +1,5 @@
+import { decode as decodeEntities, escape as escapeEntities } from "he";
+
 /**
  * Encoding / decoding primitives. Everything runs in the browser,
  * no server round-trip is involved.
@@ -98,108 +100,6 @@ export function decodeUrl(text: string, mode: UrlEncodeMode): string {
    HTML entities
    ══════════════════════════════════════════════════════════════ */
 
-/** Named entities for decoding; encoding only ever emits the 5 basic ones */
-const NAMED_ENTITIES: Record<string, string> = {
-  amp: "&",
-  lt: "<",
-  gt: ">",
-  quot: '"',
-  apos: "'",
-  nbsp: "\u00a0",
-  copy: "©",
-  reg: "®",
-  trade: "™",
-  hellip: "…",
-  mdash: "—",
-  ndash: "–",
-  laquo: "«",
-  raquo: "»",
-  ldquo: "“",
-  rdquo: "”",
-  lsquo: "‘",
-  rsquo: "’",
-  times: "×",
-  divide: "÷",
-  plusmn: "±",
-  deg: "°",
-  micro: "µ",
-  para: "¶",
-  sect: "§",
-  middot: "·",
-  bull: "•",
-  dagger: "†",
-  Dagger: "‡",
-  permil: "‰",
-  prime: "′",
-  Prime: "″",
-  larr: "←",
-  rarr: "→",
-  uarr: "↑",
-  darr: "↓",
-  harr: "↔",
-  rArr: "⇒",
-  lArr: "⇐",
-  hArr: "⇔",
-  infin: "∞",
-  ne: "≠",
-  le: "≤",
-  ge: "≥",
-  asymp: "≈",
-  equiv: "≡",
-  sum: "∑",
-  prod: "∏",
-  radic: "√",
-  part: "∂",
-  int: "∫",
-  isin: "∈",
-  notin: "∉",
-  cap: "∩",
-  cup: "∪",
-  euro: "€",
-  pound: "£",
-  yen: "¥",
-  cent: "¢",
-  curren: "¤",
-  sup2: "²",
-  sup3: "³",
-  frac12: "½",
-  frac14: "¼",
-  frac34: "¾",
-  iexcl: "¡",
-  iquest: "¿",
-  szlig: "ß",
-  agrave: "à",
-  aacute: "á",
-  eacute: "é",
-  egrave: "è",
-  iacute: "í",
-  oacute: "ó",
-  uacute: "ú",
-  ntilde: "ñ",
-  uuml: "ü",
-  ouml: "ö",
-  auml: "ä",
-  ccedil: "ç",
-  alpha: "α",
-  beta: "β",
-  gamma: "γ",
-  delta: "δ",
-  epsilon: "ε",
-  lambda: "λ",
-  mu: "μ",
-  pi: "π",
-  sigma: "σ",
-  omega: "ω",
-  Omega: "Ω",
-  Delta: "Δ",
-  ensp: "\u2002",
-  emsp: "\u2003",
-  thinsp: "\u2009",
-  zwnj: "\u200c",
-  zwj: "\u200d",
-  shy: "\u00ad",
-};
-
 export interface HtmlEntityOptions {
   /** Also convert non-ASCII characters to numeric entities */
   encodeNonAscii?: boolean;
@@ -207,13 +107,9 @@ export interface HtmlEntityOptions {
   hex?: boolean;
 }
 
+/** Escape the characters that are unsafe in HTML; everything else is left alone */
 export function encodeHtmlEntities(text: string, opts: HtmlEntityOptions = {}): string {
-  let out = text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
+  let out = escapeEntities(text);
 
   if (opts.encodeNonAscii) {
     out = out.replace(/[^\x00-\x7F]/g, (ch) => {
@@ -224,23 +120,9 @@ export function encodeHtmlEntities(text: string, opts: HtmlEntityOptions = {}): 
   return out;
 }
 
+/** Decode every HTML5 named entity plus decimal and hex numeric references */
 export function decodeHtmlEntities(text: string): string {
-  return text.replace(
-    /&(#\d+|#[xX][0-9a-fA-F]+|[a-zA-Z][a-zA-Z0-9]*);/g,
-    (match, body: string) => {
-      if (body.startsWith("#")) {
-        const isHex = body[1] === "x" || body[1] === "X";
-        const code = parseInt(isHex ? body.slice(2) : body.slice(1), isHex ? 16 : 10);
-        if (!Number.isFinite(code) || code < 0 || code > 0x10ffff) return match;
-        try {
-          return String.fromCodePoint(code);
-        } catch {
-          return match;
-        }
-      }
-      return NAMED_ENTITIES[body] ?? match;
-    }
-  );
+  return decodeEntities(text);
 }
 
 /* ══════════════════════════════════════════════════════════════

@@ -24,6 +24,7 @@
     "clsx": "^2.1.1",
     "dompurify": "^3.4.17",
     "fast-xml-parser": "^5.11.2",
+    "he": "^2.0.0",
     "js-yaml": "^5.5.0",
     "jsonpath-plus": "^11.2.2",
     "lucide-react": "^1.64.0",
@@ -41,6 +42,7 @@
   },
   "devDependencies": {
     "@tailwindcss/turbopack": "^4",
+    "@types/he": "^1.2.3",
     "@types/node": "^20",
     "@types/papaparse": "^5.5.2",
     "@types/react": "^19",

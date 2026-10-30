@@ -37,7 +37,7 @@ const COPY = {
     decodePlaceholder: "粘贴含 &amp; &lt; &#20013; 的文本…",
     sample: "示例",
     sampleText: `<div class="card" data-tip="提示">Tom & Jerry < 3 "引号" '单引号'</div>`,
-    note: "解码支持全部 HTML5 常用命名实体（&nbsp;、&copy;、&mdash;…）以及十进制 / 十六进制数字实体。",
+    note: "编解码使用 he，覆盖 HTML5 全部 2200+ 命名实体（&hellip;、&thetasym;、&frac34;…）以及十进制 / 十六进制数字实体。",
   },
   en: {
     encode: "Encode",
@@ -54,7 +54,7 @@ const COPY = {
     decodePlaceholder: "Paste text containing &amp; &lt; &#20013;…",
     sample: "Sample",
     sampleText: `<div class="card" data-tip="hi">Tom & Jerry < 3 "quotes" 'apostrophe'</div>`,
-    note: "Decoding covers the common HTML5 named entities (&nbsp;, &copy;, &mdash;…) plus decimal and hex numeric entities.",
+    note: "Powered by he: all 2200+ HTML5 named entities (&hellip;, &thetasym;, &frac34;…) plus decimal and hex numeric references.",
   },
 };
 
