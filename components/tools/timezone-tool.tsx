@@ -120,13 +120,6 @@ export function TimezoneTool() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-3 rounded-lg border border-border bg-surface p-3 sm:flex-row sm:items-center">
-        <Input
-          type="datetime-local"
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          aria-label={t.moment}
-          className="font-mono text-sm sm:w-60"
-        />
         <div className="flex items-center gap-2">
           <span className="text-xs text-foreground-subtle">{t.sourceZone}</span>
           <Combobox
@@ -141,6 +134,13 @@ export function TimezoneTool() {
             className="w-52"
           />
         </div>
+        <Input
+          type="datetime-local"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          aria-label={t.moment}
+          className="font-mono text-sm sm:w-60"
+        />
         <Button type="button" variant="outline" size="sm" onClick={fillNow} className="gap-1.5">
           <Clock className="h-3.5 w-3.5" />
           {t.now}
