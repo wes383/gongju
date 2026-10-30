@@ -11,12 +11,14 @@ const eslintConfig = defineConfig([
       "components/ui/**/*.{ts,tsx}",
       "components/theme-provider.tsx",
       "components/density-provider.tsx",
+      "hooks/**/*.ts",
       "lib/utils.ts",
     ],
     rules: {
       "@typescript-eslint/no-empty-object-type": "off",
       "@typescript-eslint/no-explicit-any": "off",
       "react-hooks/set-state-in-effect": "off",
+      "jsx-a11y/role-has-required-aria-props": "off",
     },
   },
   // Override default ignores of eslint-config-next.

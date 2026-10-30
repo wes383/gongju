@@ -14,6 +14,7 @@ import {
 } from "@/lib/datetime";
 import { useCopy, useLocale } from "@/components/locale-provider";
 import { CopyButton } from "@/components/tools/tool-ui";
+import { Combobox } from "@/components/ui/combobox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -29,6 +30,8 @@ const COPY = {
     prevDay: "前一日",
     local: "本地时区",
     invalid: "时间格式不正确",
+    searchZone: "搜索时区…",
+    noZone: "没有匹配的时区",
   },
   en: {
     moment: "Moment",
@@ -41,6 +44,8 @@ const COPY = {
     prevDay: "previous day",
     local: "Local zone",
     invalid: "Invalid date/time",
+    searchZone: "Search time zones…",
+    noZone: "No matching zone",
   },
 };
 
@@ -96,6 +101,17 @@ export function TimezoneTool() {
     return [...list];
   }, [targetZone, localZone]);
 
+  const zoneOptions = React.useMemo(
+    () =>
+      allZones.map((zone) => ({
+        value: zone,
+        label: zone,
+        description: instant ? offsetLabel(zoneOffsetMinutes(instant, zone)) : undefined,
+        keywords: zone.split("/").concat(zone.replace(/_/g, " ")),
+      })),
+    [allZones, instant]
+  );
+
   const fillNow = () => setValue(toDatetimeLocalValue(new Date(), sourceZone));
 
   const deltaLabel = (delta: number) =>
@@ -113,18 +129,17 @@ export function TimezoneTool() {
         />
         <div className="flex items-center gap-2">
           <span className="text-xs text-foreground-subtle">{t.sourceZone}</span>
-          <select
+          <Combobox
+            options={zoneOptions}
             value={sourceZone}
-            onChange={(e) => setSourceZone(e.target.value)}
+            onValueChange={setSourceZone}
+            placeholder={t.sourceZone}
+            searchPlaceholder={t.searchZone}
+            emptyText={t.noZone}
             aria-label={t.sourceZone}
-            className="h-9 max-w-52 rounded-md border border-border bg-surface px-2 text-xs text-foreground focus:border-border-strong focus:outline-none"
-          >
-            {allZones.map((zone) => (
-              <option key={zone} value={zone}>
-                {zone}
-              </option>
-            ))}
-          </select>
+            size="sm"
+            className="w-52"
+          />
         </div>
         <Button type="button" variant="outline" size="sm" onClick={fillNow} className="gap-1.5">
           <Clock className="h-3.5 w-3.5" />
@@ -139,18 +154,17 @@ export function TimezoneTool() {
           <div className="flex flex-col gap-3 rounded-lg border border-border bg-surface p-4">
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs text-foreground-subtle">{t.targetZone}</span>
-              <select
+              <Combobox
+                options={zoneOptions}
                 value={targetZone}
-                onChange={(e) => setTargetZone(e.target.value)}
+                onValueChange={setTargetZone}
+                placeholder={t.targetZone}
+                searchPlaceholder={t.searchZone}
+                emptyText={t.noZone}
                 aria-label={t.targetZone}
-                className="h-8 max-w-52 rounded-md border border-border bg-surface px-2 text-xs text-foreground focus:border-border-strong focus:outline-none"
-              >
-                {allZones.map((zone) => (
-                  <option key={zone} value={zone}>
-                    {zone}
-                  </option>
-                ))}
-              </select>
+                size="sm"
+                className="w-52"
+              />
               <span className="ml-auto font-mono text-[11px] text-foreground-faint">
                 {offsetLabel(zoneOffsetMinutes(instant, targetZone))}
               </span>
