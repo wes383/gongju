@@ -94,7 +94,7 @@ export const CommandList = React.forwardRef<
     <CommandPrimitive.List
       ref={ref}
       className={cn(
-        "overflow-y-auto overflow-x-hidden",
+        "scroll-panel overflow-y-auto overflow-x-hidden",
         // The list owns the horizontal inset for its rows; groups only add
         // vertical padding (see CommandGroup). Previously the two split it, and
         // an ungrouped list — the Combobox panel — ended up with half the

@@ -112,6 +112,9 @@ const SelectContent = React.forwardRef<
         >
           <SelectPrimitive.Viewport
             className={cn(
+              "scroll-panel",
+              // Radix hides the native scrollbar here; force it back on
+              "![scrollbar-width:auto]",
               compact ? "p-0.5" : "p-1",
               position === "popper" &&
                 "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]"

@@ -765,3 +765,42 @@ html.dark.high-contrast {
     }
   }
 }
+
+/**
+
+/* Scrollable popover panels (select / combobox lists).
+   The base layer sets scrollbar-width: thin on everything, which makes Chrome
+   ignore ::-webkit-scrollbar and fall back to an overlay bar that fades out
+   when idle. Unlayered so it wins over both the base layer and utilities. */
+.scroll-panel {
+  /* Both properties must stay at their initial value: Chromium only honours the
+     ::-webkit-scrollbar rules below when neither of them is customised. */
+  scrollbar-width: auto;
+  scrollbar-color: auto;
+  scrollbar-gutter: stable;
+}
+
+.scroll-panel::-webkit-scrollbar,
+[data-radix-select-viewport].scroll-panel::-webkit-scrollbar {
+  display: block;
+  width: 8px;
+  height: 8px;
+}
+
+.scroll-panel::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scroll-panel::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+.scroll-panel::-webkit-scrollbar-thumb:hover {
+  background: var(--foreground-faint);
+  background-clip: content-box;
+}
+
+
