@@ -1,26 +1,84 @@
 "use client";
 
 import * as React from "react";
-import { Search, X } from "lucide-react";
+import Link from "next/link";
+import { ArrowUpRight, ChevronRight, LayoutGrid, List, Search, X } from "lucide-react";
 import { ThemeToggle } from "@/components/site/theme-toggle";
 import { LanguageToggle } from "@/components/site/language-toggle";
 import { ToolCard } from "@/components/site/tool-card";
 import { useLocale, useT } from "@/components/locale-provider";
 import { useDocumentTitle } from "@/components/use-document-title";
-import { categories, toolMatches } from "@/lib/tools";
+import {
+  categories,
+  toolDescription,
+  toolMatches,
+  toolName,
+  type ToolMeta,
+} from "@/lib/tools";
+import { cn } from "@/lib/utils";
 
 const HOME_TITLE = {
   zh: "GongJu · 在线工具箱",
   en: "GongJu · Online Toolbox",
 };
 
+const VIEW_STORAGE_KEY = "gongju-view";
+
+type ViewMode = "grid" | "list";
+
+const useIsoLayoutEffect =
+  typeof window === "undefined" ? React.useEffect : React.useLayoutEffect;
+
+function ToolRow({ tool }: { tool: ToolMeta }) {
+  const locale = useLocale();
+  const Icon = tool.icon;
+  return (
+    <Link
+      href={`/tools/${tool.slug}`}
+      className="group flex items-center gap-3 rounded-md px-3 py-2 transition-colors duration-base ease-out hover:bg-hover-bg"
+    >
+      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-hover-bg text-foreground-muted transition-colors group-hover:text-foreground">
+        <Icon className="h-3.5 w-3.5" />
+      </span>
+      <span className="truncate text-sm font-medium text-foreground">
+        {toolName(tool, locale)}
+      </span>
+      <span className="ml-auto hidden max-w-[45%] truncate text-xs text-foreground-muted md:block">
+        {toolDescription(tool, locale)}
+      </span>
+      <ArrowUpRight className="h-3.5 w-3.5 shrink-0 text-foreground-faint opacity-0 transition-opacity group-hover:opacity-100" />
+    </Link>
+  );
+}
+
 export function ToolDirectory() {
   const [query, setQuery] = React.useState("");
+  const [view, setView] = React.useState<ViewMode>("grid");
+  const [collapsed, setCollapsed] = React.useState<string[]>([]);
   const inputRef = React.useRef<HTMLInputElement>(null);
   const locale = useLocale();
   const t = useT();
 
   useDocumentTitle(HOME_TITLE[locale]);
+
+  // Apply the stored view mode before paint so there is no flash of the other layout
+  useIsoLayoutEffect(() => {
+    try {
+      const stored = window.localStorage.getItem(VIEW_STORAGE_KEY);
+      if (stored === "list" || stored === "grid") setView(stored);
+    } catch {
+      /* localStorage unavailable */
+    }
+  }, []);
+
+  const changeView = (next: ViewMode) => {
+    setView(next);
+    try {
+      window.localStorage.setItem(VIEW_STORAGE_KEY, next);
+    } catch {
+      /* ignore */
+    }
+  };
 
   // Focus the search box on ⌘K / Ctrl+K
   React.useEffect(() => {
@@ -35,6 +93,8 @@ export function ToolDirectory() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
 
+  const searching = query.trim() !== "";
+
   const groups = React.useMemo(() => {
     const q = query.trim();
     return categories
@@ -44,6 +104,14 @@ export function ToolDirectory() {
       }))
       .filter((c) => c.tools.length > 0);
   }, [query]);
+
+  const toggleCategory = (id: string) =>
+    setCollapsed((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+
+  const viewOptions = [
+    { mode: "grid" as ViewMode, icon: LayoutGrid, label: t.view.grid },
+    { mode: "list" as ViewMode, icon: List, label: t.view.list },
+  ];
 
   return (
     <div className="mx-auto w-full max-w-[1080px] px-5 py-10 sm:py-14">
@@ -74,29 +142,75 @@ export function ToolDirectory() {
             </button>
           )}
         </div>
+
+        <div className="flex shrink-0 items-center rounded-full border border-border bg-surface p-1">
+          {viewOptions.map(({ mode, icon: Icon, label }) => (
+            <button
+              key={mode}
+              type="button"
+              onClick={() => changeView(mode)}
+              aria-label={label}
+              aria-pressed={view === mode}
+              title={label}
+              className={cn(
+                "flex h-10 w-10 items-center justify-center rounded-full transition-colors duration-base ease-out",
+                view === mode
+                  ? "bg-accent text-accent-fg"
+                  : "text-foreground-muted hover:bg-hover-bg hover:text-foreground"
+              )}
+            >
+              <Icon className="h-4 w-4" />
+            </button>
+          ))}
+        </div>
+
         <LanguageToggle size="icon" className="h-12 w-12 shrink-0" />
         <ThemeToggle size="icon" className="h-12 w-12 shrink-0" />
       </div>
 
-      <div className="mt-10 flex flex-col gap-10">
+      <div className="mt-10 flex flex-col gap-8">
         {groups.map((cat) => {
           const Icon = cat.icon;
+          // While searching everything stays open, so matches are never hidden
+          const isCollapsed = !searching && collapsed.includes(cat.id);
+
           return (
             <section key={cat.id} className="flex flex-col gap-3">
-              <div className="flex items-center gap-2">
-                <Icon className="h-4 w-4 text-foreground-subtle" />
+              <button
+                type="button"
+                onClick={() => toggleCategory(cat.id)}
+                aria-expanded={!isCollapsed}
+                className="group flex w-full items-center gap-2 rounded-md py-1 text-left"
+              >
+                <ChevronRight
+                  className={cn(
+                    "h-3.5 w-3.5 shrink-0 text-foreground-faint transition-transform duration-base",
+                    !isCollapsed && "rotate-90"
+                  )}
+                />
+                <Icon className="h-4 w-4 shrink-0 text-foreground-subtle" />
                 <h2 className="font-display text-sm font-semibold text-foreground">
                   {cat.name[locale]}
                 </h2>
                 <span className="font-mono text-[11px] text-foreground-faint">
                   {cat.tools.length}
                 </span>
-              </div>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {cat.tools.map((tool) => (
-                  <ToolCard key={tool.slug} tool={tool} />
+              </button>
+
+              {!isCollapsed &&
+                (view === "grid" ? (
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    {cat.tools.map((tool) => (
+                      <ToolCard key={tool.slug} tool={tool} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-0.5">
+                    {cat.tools.map((tool) => (
+                      <ToolRow key={tool.slug} tool={tool} />
+                    ))}
+                  </div>
                 ))}
-              </div>
             </section>
           );
         })}

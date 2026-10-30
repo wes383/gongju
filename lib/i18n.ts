@@ -47,6 +47,10 @@ export interface Dict {
   syntaxError: (line: number | null, column: number | null, message: string) => string;
   valid: string;
   invalid: string;
+  view: {
+    grid: string;
+    list: string;
+  };
   /** Keyed by the `code` carried by CodedError; {0}, {1} are placeholders */
   errors: Record<string, string>;
 }
@@ -86,6 +90,10 @@ const zh: Dict = {
     line && column ? `第 ${line} 行第 ${column} 列：${message}` : message,
   valid: "JSON 有效",
   invalid: "语法错误",
+  view: {
+    grid: "卡片视图",
+    list: "列表视图",
+  },
   errors: {
     "base64.invalidChars": "包含非法字符，这不是合法的 Base64 字符串",
     "base64.badLength": "长度不合法（Base64 长度应为 4 的倍数）",
@@ -137,6 +145,10 @@ const en: Dict = {
     line && column ? `Line ${line}, column ${column}: ${message}` : message,
   valid: "Valid JSON",
   invalid: "Syntax error",
+  view: {
+    grid: "Card view",
+    list: "List view",
+  },
   errors: {
     "base64.invalidChars": "Contains characters that are not valid Base64",
     "base64.badLength": "Invalid length: Base64 must be a multiple of 4 characters",
