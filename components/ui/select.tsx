@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import * as SelectPrimitive from "@radix-ui/react-select";
-import { Check, ChevronDown, ChevronUp } from "lucide-react";
+import { Check, ChevronDown } from "lucide-react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 import { useDensity, type Density } from "@/components/density-provider";
@@ -74,41 +74,6 @@ const SelectTrigger = React.forwardRef<
 });
 SelectTrigger.displayName = SelectPrimitive.Trigger.displayName;
 
-const SelectScrollUpButton = React.forwardRef<
-  React.ElementRef<typeof SelectPrimitive.ScrollUpButton>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.ScrollUpButton>
->(({ className, ...props }, ref) => (
-  <SelectPrimitive.ScrollUpButton
-    ref={ref}
-    className={cn(
-      "flex cursor-default items-center justify-center py-1 text-foreground-subtle",
-      className
-    )}
-    {...props}
-  >
-    <ChevronUp className="h-4 w-4" aria-hidden="true" />
-  </SelectPrimitive.ScrollUpButton>
-));
-SelectScrollUpButton.displayName = SelectPrimitive.ScrollUpButton.displayName;
-
-const SelectScrollDownButton = React.forwardRef<
-  React.ElementRef<typeof SelectPrimitive.ScrollDownButton>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.ScrollDownButton>
->(({ className, ...props }, ref) => (
-  <SelectPrimitive.ScrollDownButton
-    ref={ref}
-    className={cn(
-      "flex cursor-default items-center justify-center py-1 text-foreground-subtle",
-      className
-    )}
-    {...props}
-  >
-    <ChevronDown className="h-4 w-4" aria-hidden="true" />
-  </SelectPrimitive.ScrollDownButton>
-));
-SelectScrollDownButton.displayName =
-  SelectPrimitive.ScrollDownButton.displayName;
-
 export interface SelectContentProps
   extends React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content> {
   /** Row density applied to all items in this panel. Defaults to the surrounding density. */
@@ -145,7 +110,6 @@ const SelectContent = React.forwardRef<
           sideOffset={4}
           {...props}
         >
-          <SelectScrollUpButton />
           <SelectPrimitive.Viewport
             className={cn(
               compact ? "p-0.5" : "p-1",
@@ -155,7 +119,6 @@ const SelectContent = React.forwardRef<
           >
             {children}
           </SelectPrimitive.Viewport>
-          <SelectScrollDownButton />
         </SelectPrimitive.Content>
       </SelectDensityContext.Provider>
     </SelectPrimitive.Portal>
@@ -252,6 +215,4 @@ export {
   SelectLabel,
   SelectItem,
   SelectSeparator,
-  SelectScrollUpButton,
-  SelectScrollDownButton,
 };
