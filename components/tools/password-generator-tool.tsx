@@ -23,7 +23,7 @@ const COPY = {
     strength: "强度",
     labels: ["很弱", "弱", "中等", "强", "很强"],
     noCharset: "至少选择一种字符集",
-    note: "使用 crypto.getRandomValues 生成，不用 Math.random；密码只在本机生成，不会上传。",
+    note: "使用 crypto.getRandomValues 生成；密码只在本机生成，不会上传。",
   },
   en: {
     length: "Length",
@@ -38,7 +38,7 @@ const COPY = {
     strength: "Strength",
     labels: ["Very weak", "Weak", "Fair", "Strong", "Very strong"],
     noCharset: "Pick at least one character set",
-    note: "Generated with crypto.getRandomValues, never Math.random. Passwords stay on your machine.",
+    note: "Generated with crypto.getRandomValues. Passwords stay on your machine.",
   },
 };
 
