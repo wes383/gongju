@@ -415,8 +415,8 @@ const datetimeTools: ToolMeta[] = [
     slug: "countdown",
     name: { zh: "倒计时 / 正计时", en: "Countdown & Stopwatch" },
     description: {
-      zh: "距离某个时间点还有多久，或从某个时刻起已经过去多久",
-      en: "How long until a moment, or how long since one",
+      zh: "看看距离某个时间点还有多久，或用秒表从零开始计时",
+      en: "See how long is left until a moment, or run a stopwatch from zero",
     },
     keywords: ["倒计时", "countdown", "计时", "timer", "正计时"],
     icon: Timer,
