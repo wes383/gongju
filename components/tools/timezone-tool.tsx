@@ -125,7 +125,7 @@ export function TimezoneTool() {
           value={value}
           onChange={(e) => setValue(e.target.value)}
           aria-label={t.moment}
-          className="font-mono text-sm sm:w-56"
+          className="font-mono text-sm sm:w-60"
         />
         <div className="flex items-center gap-2">
           <span className="text-xs text-foreground-subtle">{t.sourceZone}</span>

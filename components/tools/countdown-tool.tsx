@@ -120,7 +120,7 @@ export function CountdownTool() {
           value={value}
           onChange={(e) => setValue(e.target.value)}
           aria-label={mode === "countdown" ? t.target : t.start}
-          className="w-56 font-mono text-sm"
+          className="w-60 font-mono text-sm"
         />
         <div className="ml-auto flex flex-wrap items-center gap-1.5">
           <Button type="button" variant="ghost" size="xs" onClick={() => setRelative(0)}>

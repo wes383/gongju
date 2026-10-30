@@ -114,7 +114,7 @@ export function DateAddTool() {
           value={value}
           onChange={(e) => setValue(e.target.value)}
           aria-label={t.base}
-          className="w-56 font-mono text-sm"
+          className="w-60 font-mono text-sm"
         />
         <span className="text-xs font-medium text-foreground-muted">{t.amount}</span>
         <Input
