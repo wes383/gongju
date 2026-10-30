@@ -5,6 +5,7 @@ import {
   CaseSensitive,
   Calculator,
   CalendarClock,
+  CalendarDays,
   CalendarPlus,
   CalendarRange,
   Clock,
@@ -450,6 +451,16 @@ const datetimeTools: ToolMeta[] = [
     },
     keywords: ["差值", "间隔", "diff", "天数", "工作日", "相差"],
     icon: CalendarRange,
+  }),
+  dateTool({
+    slug: "lunar",
+    name: { zh: "农历 / 公历转换", en: "Lunar ↔ Gregorian" },
+    description: {
+      zh: "公历与农历互转，附干支、生肖与当日节气",
+      en: "Convert between Gregorian and Chinese lunar dates, with stem-branch, zodiac and solar terms",
+    },
+    keywords: ["农历", "阴历", "公历", "阳历", "生肖", "干支", "节气", "lunar", "chinese calendar"],
+    icon: CalendarDays,
   }),
 ];
 
