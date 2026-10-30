@@ -113,6 +113,30 @@ export function ToolDirectory() {
     { mode: "list" as ViewMode, icon: List, label: t.view.list },
   ];
 
+  // Sits at the right edge of the first category row
+  const viewToggle = (
+    <div className="flex shrink-0 items-center rounded-full border border-border bg-surface p-0.5">
+      {viewOptions.map(({ mode, icon: Icon, label }) => (
+        <button
+          key={mode}
+          type="button"
+          onClick={() => changeView(mode)}
+          aria-label={label}
+          aria-pressed={view === mode}
+          title={label}
+          className={cn(
+            "flex h-7 w-7 items-center justify-center rounded-full transition-colors duration-base ease-out",
+            view === mode
+              ? "bg-accent text-accent-fg"
+              : "text-foreground-muted hover:bg-hover-bg hover:text-foreground"
+          )}
+        >
+          <Icon className="h-3.5 w-3.5" />
+        </button>
+      ))}
+    </div>
+  );
+
   return (
     <div className="mx-auto w-full max-w-[1080px] px-5 py-10 sm:py-14">
       <div className="flex items-center gap-3">
@@ -143,59 +167,41 @@ export function ToolDirectory() {
           )}
         </div>
 
-        <div className="flex shrink-0 items-center rounded-full border border-border bg-surface p-1">
-          {viewOptions.map(({ mode, icon: Icon, label }) => (
-            <button
-              key={mode}
-              type="button"
-              onClick={() => changeView(mode)}
-              aria-label={label}
-              aria-pressed={view === mode}
-              title={label}
-              className={cn(
-                "flex h-10 w-10 items-center justify-center rounded-full transition-colors duration-base ease-out",
-                view === mode
-                  ? "bg-accent text-accent-fg"
-                  : "text-foreground-muted hover:bg-hover-bg hover:text-foreground"
-              )}
-            >
-              <Icon className="h-4 w-4" />
-            </button>
-          ))}
-        </div>
-
         <LanguageToggle size="icon" className="h-12 w-12 shrink-0" />
         <ThemeToggle size="icon" className="h-12 w-12 shrink-0" />
       </div>
 
-      <div className="mt-10 flex flex-col gap-8">
-        {groups.map((cat) => {
+      <div className="mt-8 flex flex-col gap-8">
+        {groups.map((cat, index) => {
           const Icon = cat.icon;
           // While searching everything stays open, so matches are never hidden
           const isCollapsed = !searching && collapsed.includes(cat.id);
 
           return (
             <section key={cat.id} className="flex flex-col gap-3">
-              <button
-                type="button"
-                onClick={() => toggleCategory(cat.id)}
-                aria-expanded={!isCollapsed}
-                className="group flex w-full items-center gap-2 rounded-md py-1 text-left"
-              >
-                <ChevronRight
-                  className={cn(
-                    "h-3.5 w-3.5 shrink-0 text-foreground-faint transition-transform duration-base",
-                    !isCollapsed && "rotate-90"
-                  )}
-                />
-                <Icon className="h-4 w-4 shrink-0 text-foreground-subtle" />
-                <h2 className="font-display text-sm font-semibold text-foreground">
-                  {cat.name[locale]}
-                </h2>
-                <span className="font-mono text-[11px] text-foreground-faint">
-                  {cat.tools.length}
-                </span>
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => toggleCategory(cat.id)}
+                  aria-expanded={!isCollapsed}
+                  className="group flex flex-1 items-center gap-2 rounded-md py-1 text-left"
+                >
+                  <ChevronRight
+                    className={cn(
+                      "h-3.5 w-3.5 shrink-0 text-foreground-faint transition-transform duration-base",
+                      !isCollapsed && "rotate-90"
+                    )}
+                  />
+                  <Icon className="h-4 w-4 shrink-0 text-foreground-subtle" />
+                  <h2 className="font-display text-sm font-semibold text-foreground">
+                    {cat.name[locale]}
+                  </h2>
+                  <span className="font-mono text-[11px] text-foreground-faint">
+                    {cat.tools.length}
+                  </span>
+                </button>
+                {index === 0 && viewToggle}
+              </div>
 
               {!isCollapsed &&
                 (view === "grid" ? (
