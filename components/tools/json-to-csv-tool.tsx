@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Papa from "papaparse";
+import { Download } from "lucide-react";
 
 import {
   cellToString,
@@ -13,6 +14,8 @@ import {
   useCopy,
   useT,
 } from "@/components/locale-provider";
+import { Button } from "@/components/ui/button";
+import { toast } from "@/components/ui/toaster";
 import {
   CopyButton,
   DualPane,
@@ -44,6 +47,9 @@ const COPY = {
     previewEmpty: "解析出数据后在这里预览表格",
     onlyFirst: (n: number) => `仅显示前 ${n} 行`,
     notArray: "提示：顶层不是数组时，会按单行处理",
+    exportExcel: "导出 Excel",
+    exporting: "导出中…",
+    exportFailed: "导出失败，请重试",
   },
   en: {
     delimiter: "Delimiter",
@@ -64,10 +70,22 @@ const COPY = {
     previewEmpty: "Parsed rows appear here as a table",
     onlyFirst: (n: number) => `Showing the first ${n} rows`,
     notArray: "Note: a non-array top level is treated as a single row",
+    exportExcel: "Export Excel",
+    exporting: "Exporting…",
+    exportFailed: "Export failed, please try again",
   },
 };
 
 const MAX_PREVIEW = 50;
+
+/** Excel cells keep numbers and booleans typed; everything else becomes text */
+function excelCell(value: unknown): string | number | boolean | null {
+  if (value === null || value === undefined) return null;
+  if (typeof value === "number" || typeof value === "boolean" || typeof value === "string") {
+    return value;
+  }
+  return JSON.stringify(value);
+}
 
 export function JsonToCsvTool() {
   const t = useCopy(COPY);
@@ -99,6 +117,26 @@ export function JsonToCsvTool() {
       : null;
 
   const previewRows = table ? table.rows.slice(0, MAX_PREVIEW) : [];
+
+  const [exporting, setExporting] = React.useState(false);
+
+  const exportExcel = async () => {
+    if (!table || table.rows.length === 0) return;
+    setExporting(true);
+    try {
+      // Loaded on demand: the writer is only needed when exporting
+      const { default: writeXlsxFile } = await import("write-excel-file/browser");
+      const data = [
+        table.columns,
+        ...table.rows.map((row) => table.columns.map((col) => excelCell(row[col]))),
+      ];
+      await writeXlsxFile(data).toFile("gongju.xlsx");
+    } catch {
+      toast.error(t.exportFailed);
+    } finally {
+      setExporting(false);
+    }
+  };
 
   return (
     <div className="flex flex-col gap-4">
@@ -160,7 +198,18 @@ export function JsonToCsvTool() {
               {t.onlyFirst(MAX_PREVIEW)}
             </span>
           )}
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-1">
+            <Button
+              type="button"
+              variant="ghost"
+              size="xs"
+              onClick={exportExcel}
+              disabled={exporting || !csv}
+              className="gap-1.5"
+            >
+              <Download className="h-3.5 w-3.5" />
+              {exporting ? t.exporting : t.exportExcel}
+            </Button>
             <CopyButton value={csv} label={shared.copy} />
           </div>
         </header>
