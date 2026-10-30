@@ -2,11 +2,14 @@ import type { LucideIcon } from "lucide-react";
 import {
   Binary,
   Braces,
+  CaseSensitive,
   Calculator,
   Clock,
   Code2,
   Dices,
+  Eraser,
   FileCode2,
+  FileDiff,
   FileJson,
   GitCompare,
   FileText,
@@ -18,13 +21,19 @@ import {
   ListTree,
   Link2,
   ListFilter,
+  Lock,
   Palette,
+  Pilcrow,
   QrCode,
+  Regex,
   Ruler,
   Search,
   ShieldCheck,
+  SortAsc,
+  SpellCheck,
   Table2,
   Terminal,
+  Type,
   Wand2,
 } from "lucide-react";
 import type { Locale } from "@/lib/i18n";
@@ -65,6 +74,7 @@ export interface CategoryMeta {
 
 const tool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "encoding" });
 const jsonTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "json" });
+const textTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "text" });
 
 const encodingTools: ToolMeta[] = [
   tool({
@@ -262,6 +272,109 @@ const jsonTools: ToolMeta[] = [
   }),
 ];
 
+const textTools: ToolMeta[] = [
+  textTool({
+    slug: "text-stats",
+    name: { zh: "文本统计", en: "Text Statistics" },
+    description: {
+      zh: "字符、字数、行数、段落、字节数与阅读时长",
+      en: "Characters, words, lines, paragraphs, bytes and reading time",
+    },
+    keywords: ["统计", "字数", "字符", "行数", "count", "word count", "stats"],
+    icon: Type,
+  }),
+  textTool({
+    slug: "text-case",
+    name: { zh: "大小写 / 命名转换", en: "Case & Naming Converter" },
+    description: {
+      zh: "全大写、全小写、首字母大写，以及驼峰、下划线、中划线等命名风格",
+      en: "Upper, lower, title case plus camel, snake, kebab and other naming styles",
+    },
+    keywords: ["大小写", "camel", "snake", "kebab", "pascal", "命名", "case"],
+    icon: CaseSensitive,
+  }),
+  textTool({
+    slug: "text-diff",
+    name: { zh: "文本差异对比", en: "Text Diff" },
+    description: {
+      zh: "逐行对比两段文本，标出新增、删除的行",
+      en: "Compare two texts line by line and mark added and removed lines",
+    },
+    keywords: ["diff", "对比", "差异", "compare", "文本"],
+    icon: FileDiff,
+  }),
+  textTool({
+    slug: "text-clean",
+    name: { zh: "文本清理", en: "Text Cleanup" },
+    description: {
+      zh: "去除空行、重复行、行首尾空格与多余空格",
+      en: "Remove empty lines, duplicates, leading/trailing and repeated spaces",
+    },
+    keywords: ["清理", "去空行", "去重", "空格", "clean", "trim"],
+    icon: Eraser,
+  }),
+  textTool({
+    slug: "text-sort",
+    name: { zh: "文本排序 / 去重", en: "Text Sort & Dedupe" },
+    description: {
+      zh: "按字母、长度或数字排序，可同时去重",
+      en: "Sort lines alphabetically, by length or numerically, with optional dedupe",
+    },
+    keywords: ["排序", "sort", "去重", "dedupe", "行"],
+    icon: SortAsc,
+  }),
+  textTool({
+    slug: "lorem-ipsum",
+    name: { zh: "Lorem Ipsum 生成器", en: "Lorem Ipsum Generator" },
+    description: {
+      zh: "生成中英文占位文本，按段落、句子或单词",
+      en: "Generate placeholder text in Chinese or Latin, by paragraph, sentence or word",
+    },
+    keywords: ["lorem", "ipsum", "占位", "假文", "placeholder"],
+    icon: Pilcrow,
+  }),
+  textTool({
+    slug: "regex-tester",
+    name: { zh: "正则表达式测试", en: "Regex Tester" },
+    description: {
+      zh: "实时高亮匹配结果，查看捕获组并测试替换",
+      en: "Highlight matches live, inspect capture groups and test replacements",
+    },
+    keywords: ["regex", "正则", "匹配", "match", "替换", "replace"],
+    icon: Regex,
+  }),
+  textTool({
+    slug: "text-cipher",
+    name: { zh: "简单加密 / 解密", en: "Simple Cipher" },
+    description: {
+      zh: "ROT13、凯撒位移、Atbash 与字符反转，可逆",
+      en: "ROT13, Caesar shift, Atbash and reversal, all reversible",
+    },
+    keywords: ["rot13", "凯撒", "caesar", "atbash", "加密", "cipher"],
+    icon: Lock,
+  }),
+  textTool({
+    slug: "zh-convert",
+    name: { zh: "简繁体转换", en: "Simplified ↔ Traditional" },
+    description: {
+      zh: "简体与繁体（台湾 / 香港）互转，支持词语级转换",
+      en: "Convert between Simplified and Traditional Chinese (Taiwan / Hong Kong)",
+    },
+    keywords: ["简体", "繁体", "简繁", "opencc", "traditional", "simplified"],
+    icon: Languages,
+  }),
+  textTool({
+    slug: "pinyin",
+    name: { zh: "汉字转拼音", en: "Chinese to Pinyin" },
+    description: {
+      zh: "带声调或不带声调，支持首字母与多种分隔方式",
+      en: "Pinyin with or without tones, initials only or custom separators",
+    },
+    keywords: ["拼音", "pinyin", "声调", "首字母", "汉字"],
+    icon: SpellCheck,
+  }),
+];
+
 export const categories: CategoryMeta[] = [
   {
     id: "encoding",
@@ -291,7 +404,7 @@ export const categories: CategoryMeta[] = [
       en: "Counting, case conversion, dedupe, diff and regex testing",
     },
     icon: FileText,
-    tools: [],
+    tools: textTools,
   },
   {
     id: "datetime",
