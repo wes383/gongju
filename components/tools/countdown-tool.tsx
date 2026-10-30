@@ -1,77 +1,59 @@
 "use client";
 
 import * as React from "react";
-import { Flag, Pause, Play, RotateCcw, Timer } from "lucide-react";
-import { formatDuration, toDatetimeLocalValue } from "@/lib/datetime";
+import { Flag, Pause, Play, RotateCcw } from "lucide-react";
 import { useCopy } from "@/components/locale-provider";
 import { OptionBar, Segmented } from "@/components/tools/tool-ui";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 
 const COPY = {
   zh: {
     countdown: "倒计时",
     stopwatch: "秒表",
-    countdownHint: "选一个未来的时间，看看还有多久",
+    countdownHint: "设定时长后点开始，可以随时暂停",
     stopwatchHint: "从 0 开始计时，可以暂停和分段",
-    target: "目标时间",
-    now: "现在",
-    plus5: "5 分钟",
-    plus30: "30 分钟",
-    plusHour: "1 小时",
-    plusDay: "1 天",
-    tomorrow9: "明天 9:00",
-    days: "天",
-    overdue: "目标时间已经过了，已过去",
-    totalSeconds: "总秒数",
-    totalMinutes: "总分钟",
-    totalHours: "总小时",
-    totalDays: "总天数",
-    choose: "选择一个目标时间",
+    duration: "时长",
+    hours: "时",
+    minutes: "分",
+    seconds: "秒",
     start: "开始",
     pause: "暂停",
     resume: "继续",
     reset: "重置",
+    finished: "时间到",
     lap: "计次",
     lapIndex: "第",
     lapTimes: "计次记录",
     split: "分段",
     total: "累计",
     noLap: "还没有计次记录",
+    countdownNote: "倒计时结束会停在 0 并提示，切到后台再回来会按真实时间校正。",
     stopwatchNote: "计时精度 0.01 秒，切换标签或刷新页面会重置。",
-    countdownNote: "每秒刷新一次，页面切到后台再回来会自动校正。",
   },
   en: {
     countdown: "Countdown",
     stopwatch: "Stopwatch",
-    countdownHint: "Pick a future moment and see how long is left",
+    countdownHint: "Set a duration, hit start, and pause whenever you like",
     stopwatchHint: "Counts up from zero, with pause and lap",
-    target: "Target time",
-    now: "Now",
-    plus5: "5 min",
-    plus30: "30 min",
-    plusHour: "1 hour",
-    plusDay: "1 day",
-    tomorrow9: "Tomorrow 9:00",
-    days: "days",
-    overdue: "The target has passed — elapsed",
-    totalSeconds: "Total seconds",
-    totalMinutes: "Total minutes",
-    totalHours: "Total hours",
-    totalDays: "Total days",
-    choose: "Pick a target time",
+    duration: "Duration",
+    hours: "h",
+    minutes: "m",
+    seconds: "s",
     start: "Start",
     pause: "Pause",
     resume: "Resume",
     reset: "Reset",
+    finished: "Time's up",
     lap: "Lap",
     lapIndex: "Lap",
     lapTimes: "Laps",
     split: "Split",
     total: "Total",
     noLap: "No laps recorded yet",
+    countdownNote:
+      "When it hits zero it stops and shows a notice; switching tabs is corrected against the real clock.",
     stopwatchNote: "Precision is 0.01s. Switching tabs or reloading resets it.",
-    countdownNote: "Refreshes every second and re-syncs when the tab wakes up.",
   },
 };
 
@@ -96,91 +78,152 @@ function formatLap(ms: number) {
   return t.h > 0 ? `${t.h}:${t.m}:${t.s}.${t.cs}` : `${t.m}:${t.s}.${t.cs}`;
 }
 
+function splitCountdown(ms: number) {
+  const total = Math.ceil(ms / 1000);
+  return {
+    h: Math.floor(total / 3600),
+    m: pad(Math.floor(total / 60) % 60),
+    s: pad(total % 60),
+  };
+}
+
+const PRESETS = [60_000, 300_000, 600_000, 1_500_000, 3_600_000];
+
+function Colon() {
+  return <span className="text-2xl text-foreground-subtle">:</span>;
+}
+
+/** Inline editable segment: looks like the big display, behaves like an input */
+function TimeField({
+  value,
+  max,
+  label,
+  onChange,
+}: {
+  value: number;
+  max: number;
+  label: string;
+  onChange: (value: number) => void;
+}) {
+  return (
+    <input
+      type="number"
+      inputMode="numeric"
+      min={0}
+      max={max}
+      value={String(value).padStart(2, "0")}
+      onChange={(e) => onChange(Number(e.target.value))}
+      onFocus={(e) => e.currentTarget.select()}
+      aria-label={label}
+      className="w-[2.1ch] rounded-md bg-transparent text-center font-display text-6xl font-semibold tabular-nums text-foreground outline-none transition-colors [appearance:textfield] hover:bg-hover-bg focus:bg-hover-bg focus:text-accent [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+    />
+  );
+}
+
 export function CountdownTool() {
   const t = useCopy(COPY);
   const [mode, setMode] = React.useState<Mode>("countdown");
 
   /* ── countdown ───────────────────────────────────────────── */
-  const [value, setValue] = React.useState("");
-  const [now, setNow] = React.useState<number | null>(null);
+  const [durationMs, setDurationMs] = React.useState(300_000);
+  const [remainingMs, setRemainingMs] = React.useState(300_000);
+  const [running, setRunning] = React.useState(false);
+  const [finished, setFinished] = React.useState(false);
+  const endAt = React.useRef(0);
 
   React.useEffect(() => {
-    if (mode !== "countdown") return;
-    const tick = () => setNow(Date.now());
-    const id = window.setTimeout(tick, 0);
-    const interval = window.setInterval(tick, 1000);
-    const onVisible = () => {
-      if (document.visibilityState === "visible") tick();
+    if (!running) return;
+    const tick = () => {
+      const left = endAt.current - performance.now();
+      if (left <= 0) {
+        setRemainingMs(0);
+        setRunning(false);
+        setFinished(true);
+        return;
+      }
+      setRemainingMs(left);
     };
-    document.addEventListener("visibilitychange", onVisible);
-    return () => {
-      window.clearTimeout(id);
-      window.clearInterval(interval);
-      document.removeEventListener("visibilitychange", onVisible);
+    const id = window.setInterval(tick, 100);
+    return () => window.clearInterval(id);
+  }, [running]);
+
+  const applyDuration = (ms: number) => {
+    const next = Math.max(0, Math.min(ms, 99 * 3_600_000));
+    setDurationMs(next);
+    setRemainingMs(next);
+    setFinished(false);
+    setRunning(false);
+  };
+
+  const toggleCountdown = () => {
+    if (running) {
+      setRunning(false);
+      return;
+    }
+    if (remainingMs <= 0) return;
+    endAt.current = performance.now() + remainingMs;
+    setFinished(false);
+    setRunning(true);
+  };
+
+  const resetCountdown = () => {
+    setRunning(false);
+    setFinished(false);
+    setRemainingMs(durationMs);
+  };
+
+  const countdown = splitCountdown(remainingMs);
+  // Only the untouched duration is editable; once started, show the read-out
+  const editing = !running && remainingMs === durationMs;
+  const progress =
+    durationMs > 0 ? Math.min(1, Math.max(0, 1 - remainingMs / durationMs)) : 0;
+
+  const durationParts = {
+    h: Math.floor(durationMs / 3_600_000),
+    m: Math.floor(durationMs / 60_000) % 60,
+    s: Math.floor(durationMs / 1000) % 60,
+  };
+
+  const setPart = (part: "h" | "m" | "s", value: number) => {
+    const clamped = Math.max(0, Math.min(part === "h" ? 99 : 59, value || 0));
+    const next = {
+      ...durationParts,
+      [part]: clamped,
     };
-  }, [mode]);
-
-  React.useEffect(() => {
-    if (value) return;
-    const id = window.setTimeout(() => {
-      setValue(toDatetimeLocalValue(new Date(Date.now() + 3600_000)));
-    }, 0);
-    return () => window.clearTimeout(id);
-  }, [value]);
-
-  const target = React.useMemo(() => {
-    const date = new Date(value);
-    return Number.isNaN(date.getTime()) ? null : date.getTime();
-  }, [value]);
-
-  const delta = target !== null && now !== null ? target - now : null;
-  const remaining = delta !== null ? Math.max(0, delta) : null;
-  const overdue = delta !== null && delta <= 0;
-  const countdown = remaining !== null ? formatDuration(remaining) : null;
-
-  const setRelative = (offsetMs: number) =>
-    setValue(toDatetimeLocalValue(new Date(Date.now() + offsetMs)));
-
-  const setTomorrow9 = () => {
-    const date = new Date();
-    date.setDate(date.getDate() + 1);
-    date.setHours(9, 0, 0, 0);
-    setValue(toDatetimeLocalValue(date));
+    applyDuration(next.h * 3_600_000 + next.m * 60_000 + next.s * 1000);
   };
 
   /* ── stopwatch ───────────────────────────────────────────── */
-  const [running, setRunning] = React.useState(false);
+  const [watchRunning, setWatchRunning] = React.useState(false);
   const [elapsed, setElapsed] = React.useState(0);
   const [laps, setLaps] = React.useState<number[]>([]);
   const startedAt = React.useRef(0);
   const accumulated = React.useRef(0);
 
   React.useEffect(() => {
-    if (!running) return;
+    if (!watchRunning) return;
     const tick = () => setElapsed(accumulated.current + (performance.now() - startedAt.current));
     const id = window.setInterval(tick, 31);
     return () => window.clearInterval(id);
-  }, [running]);
+  }, [watchRunning]);
 
-  const startOrPause = () => {
-    if (running) {
+  const startOrPauseWatch = () => {
+    if (watchRunning) {
       accumulated.current = elapsed;
-      setRunning(false);
+      setWatchRunning(false);
       return;
     }
     startedAt.current = performance.now();
-    setRunning(true);
+    setWatchRunning(true);
   };
 
-  const reset = () => {
+  const resetWatch = () => {
     accumulated.current = 0;
     startedAt.current = 0;
     setElapsed(0);
-    setRunning(false);
+    setWatchRunning(false);
     setLaps([]);
   };
-
-  const recordLap = () => setLaps((prev) => [elapsed, ...prev]);
 
   const watch = splitStopwatch(elapsed);
 
@@ -199,42 +242,43 @@ export function CountdownTool() {
 
         {mode === "countdown" ? (
           <>
-            <span className="text-xs text-foreground-muted">{t.target}</span>
-            <Input
-              type="datetime-local"
-              value={value}
-              onChange={(e) => setValue(e.target.value)}
-              aria-label={t.target}
-              className="w-60 font-mono text-sm"
-            />
-            <div className="flex flex-wrap items-center gap-1.5">
-              <Button type="button" variant="ghost" size="xs" onClick={() => setRelative(0)}>
-                {t.now}
-              </Button>
-              <Button type="button" variant="ghost" size="xs" onClick={() => setRelative(300_000)}>
-                {t.plus5}
+            <span className="text-xs text-foreground-muted">{t.duration}</span>
+            <div className="flex flex-wrap items-center gap-1">
+              {PRESETS.map((ms) => (
+                <Button
+                  key={ms}
+                  type="button"
+                  variant="ghost"
+                  size="xs"
+                  onClick={() => applyDuration(ms)}
+                  disabled={running}
+                >
+                  {ms >= 3_600_000 ? `${ms / 3_600_000} ${t.hours}` : `${ms / 60_000} ${t.minutes}`}
+                </Button>
+              ))}
+            </div>
+            <div className="ml-auto flex items-center gap-1.5">
+              <Button
+                type="button"
+                variant={running ? "outline" : "default"}
+                size="sm"
+                onClick={toggleCountdown}
+                disabled={!running && remainingMs <= 0}
+                className="gap-1.5"
+              >
+                {running ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5" />}
+                {running ? t.pause : remainingMs < durationMs ? t.resume : t.start}
               </Button>
               <Button
                 type="button"
                 variant="ghost"
-                size="xs"
-                onClick={() => setRelative(1_800_000)}
+                size="sm"
+                onClick={resetCountdown}
+                disabled={running || remainingMs === durationMs}
+                className="gap-1.5"
               >
-                {t.plus30}
-              </Button>
-              <Button type="button" variant="ghost" size="xs" onClick={() => setRelative(3600_000)}>
-                {t.plusHour}
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="xs"
-                onClick={() => setRelative(86_400_000)}
-              >
-                {t.plusDay}
-              </Button>
-              <Button type="button" variant="ghost" size="xs" onClick={setTomorrow9}>
-                {t.tomorrow9}
+                <RotateCcw className="h-3.5 w-3.5" />
+                {t.reset}
               </Button>
             </div>
           </>
@@ -242,19 +286,19 @@ export function CountdownTool() {
           <div className="ml-auto flex flex-wrap items-center gap-1.5">
             <Button
               type="button"
-              variant={running ? "outline" : "default"}
+              variant={watchRunning ? "outline" : "default"}
               size="sm"
-              onClick={startOrPause}
+              onClick={startOrPauseWatch}
               className="gap-1.5"
             >
-              {running ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5" />}
-              {running ? t.pause : elapsed > 0 ? t.resume : t.start}
+              {watchRunning ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5" />}
+              {watchRunning ? t.pause : elapsed > 0 ? t.resume : t.start}
             </Button>
             <Button
               type="button"
               variant="ghost"
               size="sm"
-              onClick={recordLap}
+              onClick={() => setLaps((prev) => [elapsed, ...prev])}
               disabled={elapsed === 0}
               className="gap-1.5"
             >
@@ -265,7 +309,7 @@ export function CountdownTool() {
               type="button"
               variant="ghost"
               size="sm"
-              onClick={reset}
+              onClick={resetWatch}
               disabled={elapsed === 0}
               className="gap-1.5"
             >
@@ -281,42 +325,57 @@ export function CountdownTool() {
       </p>
 
       {mode === "countdown" ? (
-        <div className="flex flex-col items-center gap-4 rounded-lg border border-border bg-surface px-6 py-12">
-          {countdown ? (
-            <>
-              <div className="flex items-baseline gap-2 font-display tabular-nums text-foreground">
-                <span className="text-5xl font-semibold">{countdown.days}</span>
-                <span className="text-sm text-foreground-subtle">{t.days}</span>
-                <span className="ml-2 text-5xl font-semibold">
-                  {countdown.hh}:{countdown.mm}:{countdown.ss}
-                </span>
-              </div>
-              {overdue && (
-                <span className="text-sm text-orange-fg">
-                  {t.overdue} {formatDuration(Math.abs(delta ?? 0)).days} {t.days}
-                </span>
-              )}
-              <div className="mt-2 flex flex-wrap justify-center gap-x-6 gap-y-1 font-mono text-[11px] text-foreground-faint">
-                <span>
-                  {t.totalSeconds} {Math.floor((remaining ?? 0) / 1000).toLocaleString()}
-                </span>
-                <span>
-                  {t.totalMinutes} {Math.floor((remaining ?? 0) / 60_000).toLocaleString()}
-                </span>
-                <span>
-                  {t.totalHours} {Math.floor((remaining ?? 0) / 3_600_000).toLocaleString()}
-                </span>
-                <span>
-                  {t.totalDays} {Math.floor((remaining ?? 0) / 86_400_000).toLocaleString()}
-                </span>
-              </div>
-            </>
+        <div className="flex flex-col items-center gap-6 rounded-lg border border-border bg-surface px-6 py-14">
+          {editing ? (
+            <div className="flex items-baseline gap-1 font-display tabular-nums text-foreground">
+              <TimeField
+                value={durationParts.h}
+                max={99}
+                label={t.hours}
+                onChange={(v) => setPart("h", v)}
+              />
+              <Colon />
+              <TimeField
+                value={durationParts.m}
+                max={59}
+                label={t.minutes}
+                onChange={(v) => setPart("m", v)}
+              />
+              <Colon />
+              <TimeField
+                value={durationParts.s}
+                max={59}
+                label={t.seconds}
+                onChange={(v) => setPart("s", v)}
+              />
+            </div>
           ) : (
-            <div className="flex items-center gap-2 text-sm text-foreground-subtle">
-              <Timer className="h-4 w-4" />
-              {t.choose}
+            <div
+              className={cn(
+                "flex items-baseline gap-1 font-display tabular-nums",
+                finished ? "text-accent" : "text-foreground"
+              )}
+            >
+              {countdown.h > 0 && (
+                <>
+                  <span className="text-6xl font-semibold">{countdown.h}</span>
+                  <span className="mr-2 text-2xl text-foreground-subtle">:</span>
+                </>
+              )}
+              <span className="text-6xl font-semibold">{countdown.m}</span>
+              <span className="text-2xl text-foreground-subtle">:</span>
+              <span className="text-6xl font-semibold">{countdown.s}</span>
             </div>
           )}
+
+          <div className="h-1 w-full max-w-md overflow-hidden rounded-full bg-hover-bg">
+            <div
+              className="h-full rounded-full bg-accent transition-[width] duration-200 ease-linear"
+              style={{ width: `${progress * 100}%` }}
+            />
+          </div>
+
+          {finished && <span className="text-sm font-medium text-accent">{t.finished}</span>}
         </div>
       ) : (
         <div className="flex flex-col gap-4">

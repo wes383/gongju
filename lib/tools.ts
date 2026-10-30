@@ -413,7 +413,7 @@ const datetimeTools: ToolMeta[] = [
   }),
   dateTool({
     slug: "countdown",
-    name: { zh: "倒计时 / 正计时", en: "Countdown & Stopwatch" },
+    name: { zh: "倒计时 / 秒表", en: "Countdown & Stopwatch" },
     description: {
       zh: "看看距离某个时间点还有多久，或用秒表从零开始计时",
       en: "See how long is left until a moment, or run a stopwatch from zero",
