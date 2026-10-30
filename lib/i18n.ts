@@ -107,6 +107,9 @@ const zh: Dict = {
     "jwt.tooMany": "JWT 最多三段（Header.Payload.Signature），当前段数过多",
     "jwt.base64": "{0} 段不是合法的 Base64URL 编码",
     "jwt.json": "{0} 段不是合法的 JSON",
+    "crypto.unavailable": "当前环境不支持 Web Crypto，请用 https 或 localhost 打开",
+    "crypto.badFormat": "密文格式不正确，请确认是本站生成的密文",
+    "crypto.badPassword": "解密失败：密码错误，或密文已被篡改",
   },
 };
 
@@ -162,6 +165,9 @@ const en: Dict = {
     "jwt.tooMany": "A JWT has at most three segments (Header.Payload.Signature)",
     "jwt.base64": "The {0} segment is not valid Base64URL",
     "jwt.json": "The {0} segment is not valid JSON",
+    "crypto.unavailable": "Web Crypto is unavailable here — open the site over https or localhost",
+    "crypto.badFormat": "Unrecognized ciphertext: make sure it was produced by this tool",
+    "crypto.badPassword": "Decryption failed: wrong password or the ciphertext was modified",
   },
 };
 

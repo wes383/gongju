@@ -252,10 +252,10 @@ const jsonTools: ToolMeta[] = [
   }),
   jsonTool({
     slug: "json-to-csv",
-    name: { zh: "JSON 转 CSV", en: "JSON to CSV" },
+    name: { zh: "JSON 转 CSV / Excel", en: "JSON to CSV / Excel" },
     description: {
-      zh: "把 JSON 数组转成 CSV，嵌套字段可扁平化",
-      en: "Turn a JSON array into CSV, with nested fields flattened",
+      zh: "把 JSON 数组转成 CSV 或导出 xlsx，嵌套字段可扁平化",
+      en: "Turn a JSON array into CSV or export xlsx, with nested fields flattened",
     },
     keywords: ["json", "csv", "excel", "表格", "导出"],
     icon: Table2,
@@ -351,6 +351,16 @@ const textTools: ToolMeta[] = [
       en: "Substitution ciphers for puzzles and fun — never for protecting data",
     },
     keywords: ["rot13", "凯撒", "caesar", "atbash", "加密", "cipher"],
+    icon: Lock,
+  }),
+  textTool({
+    slug: "text-encrypt",
+    name: { zh: "AES-GCM 加密 / 解密", en: "AES-GCM Encrypt / Decrypt" },
+    description: {
+      zh: "用密码加密文本，密钥由 PBKDF2 派生，密文自带盐与 IV",
+      en: "Password-based encryption with a PBKDF2-derived key; salt and IV travel with the ciphertext",
+    },
+    keywords: ["aes", "gcm", "加密", "解密", "encrypt", "decrypt", "pbkdf2"],
     icon: Lock,
   }),
   textTool({
