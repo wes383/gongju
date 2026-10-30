@@ -261,23 +261,44 @@ export function diffLines(left: string, right: string): LineDiff[] {
    Lorem Ipsum
    ══════════════════════════════════════════════════════════════ */
 
-const LATIN_WORDS = [
-  "lorem", "ipsum", "dolor", "sit", "amet", "consectetur", "adipiscing", "elit",
-  "sed", "do", "eiusmod", "tempor", "incididunt", "ut", "labore", "et", "dolore",
-  "magna", "aliqua", "enim", "ad", "minim", "veniam", "quis", "nostrud",
-  "exercitation", "ullamco", "laboris", "nisi", "aliquip", "ex", "ea", "commodo",
-  "consequat", "duis", "aute", "irure", "in", "reprehenderit", "voluptate",
-  "velit", "esse", "cillum", "eu", "fugiat", "nulla", "pariatur", "excepteur",
-  "sint", "occaecat", "cupidatat", "non", "proident", "sunt", "culpa", "qui",
-  "officia", "deserunt", "mollit", "anim", "id", "est", "laborum",
-];
+/** Classic Lorem Ipsum corpus; the unique words are extracted once at module load */
+const LATIN_CORPUS =
+  'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. ' +
+  'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. ' +
+  'Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. ' +
+  'Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. ' +
+  'Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, ' +
+  'eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. ' +
+  'Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos ' +
+  'qui ratione voluptatem sequi nesciunt. Neque porro quisquam est qui dolorem ipsum quia dolor sit amet, consectetur, ' +
+  'adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem. ' +
+  'At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti ' +
+  'quos dolores et quas molestias excepturi sint occaecati cupiditate non provident, similique sunt in culpa qui officia ' +
+  'deserunt mollitia animi, id est laborum et dolorum fuga.';
+
+const LATIN_WORDS = [...new Set(LATIN_CORPUS.toLowerCase().match(/[a-z]+/g) ?? [])];
 
 const ZH_PHRASES = [
-  "我们需要", "在这个项目中", "通过简单的配置", "可以快速完成", "文本处理",
-  "以及格式转换", "同时保持", "良好的可读性", "对于开发者来说", "这非常实用",
-  "在实际使用中", "建议先检查", "输入内容的格式", "然后再进行", "下一步操作",
-  "如果遇到问题", "可以查看", "页面下方的说明", "所有计算", "都在本地完成",
-  "不会上传到服务器", "数据安全", "始终是第一位的",
+  "此外", "因此", "同时", "例如", "总之", "换句话说", "在此基础上", "需要注意的是",
+  "一般情况下", "从实际效果看", "相比之下", "进一步来说", "不过", "另外", "具体而言",
+  "这个功能的设计", "页面的整体布局", "文本的排版方式", "数据结构的组织", "接口的调用顺序",
+  "参数的默认取值", "错误提示的措辞", "加载状态的表现", "交互反馈的时机", "字段命名的习惯",
+  "建议先检查输入内容", "再决定是否继续", "可以适当调整顺序", "尽量避免重复操作",
+  "把常用的选项放在显眼位置", "让重要信息优先出现", "减少不必要的跳转", "保持操作路径清晰",
+  "在动手之前先确认需求", "把复杂问题拆成小步骤", "逐步验证每一步的结果", "及时记录遇到的问题",
+  "在移动端浏览时", "在网络不稳定的情况下", "当数据量较大时", "面对多语言内容时",
+  "如果需要长期维护", "对于团队协作来说", "在版本迭代过程中", "遇到兼容性问题时",
+  "整体体验会更加流畅", "阅读起来也更轻松", "维护成本会明显降低", "出错概率随之减少",
+  "用户不需要额外的学习成本", "大部分场景都能覆盖", "细节上还有优化空间", "效果比预期更好",
+  "这部分内容仅用于占位", "可以根据实际需要替换", "不影响最终呈现效果", "调整时注意保持一致性",
+  "把注意力放在主要内容上", "次要信息可以适当弱化", "留白同样重要", "节奏感来自合理的分组",
+  "先跑通再优化", "不要在细节上过度纠结", "优先保证可用性", "再考虑视觉上的打磨",
+  "把结论放在开头", "论据紧随其后", "段落之间保持呼吸感", "标题层级不要跳级",
+  "列表适合并列内容", "表格适合对比数据", "引用用来强调出处", "代码块保留原始格式",
+  "输入框给出示例值", "按钮文案用动词开头", "错误提示说明下一步", "空状态提供入口",
+  "第一次使用需要引导", "熟练之后可以隐藏提示", "默认值要足够合理", "高频操作尽量少点击",
+  "颜色不要超过三种", "字号差异要明显", "行高影响可读性", "对齐方式保持一致",
+  "动画服务于理解", "过渡不要打断思路", "加载超过一秒需要反馈", "失败要给出重试方式",
 ];
 
 function pick<T>(list: T[]): T {
@@ -291,19 +312,37 @@ export interface LoremOptions {
   startWithLorem: boolean;
 }
 
+/** 6-16 words, with an occasional comma so long sentences read naturally */
+function latinSentence(): string {
+  const length = 6 + Math.floor(Math.random() * 11);
+  const words = Array.from({ length }, () => pick(LATIN_WORDS));
+
+  if (length > 9 && Math.random() < 0.6) {
+    const commaAt = 2 + Math.floor(Math.random() * (length - 4));
+    words[commaAt] = words[commaAt] + ',';
+  }
+
+  const text = words.join(' ');
+  return text.charAt(0).toUpperCase() + text.slice(1) + '.';
+}
+
+/** 2-5 phrases; two short ones in a row are joined with a comma-like pause */
+function zhSentence(): string {
+  const count = 2 + Math.floor(Math.random() * 4);
+  const parts = Array.from({ length: count }, () => pick(ZH_PHRASES));
+
+  let body = parts[0];
+  for (let i = 1; i < parts.length; i++) {
+    const pause = parts[i].length <= 4 && parts[i - 1].length <= 4 ? "、" : "，";
+    body += pause + parts[i];
+  }
+  return body + "。";
+}
+
 export function generateLorem(opts: LoremOptions): string {
   const { language, unit, count, startWithLorem } = opts;
   const total = Math.min(Math.max(count, 1), 100);
-
-  const sentence = (): string => {
-    if (language === "zh") {
-      const parts = Array.from({ length: 3 + Math.floor(Math.random() * 3) }, () => pick(ZH_PHRASES));
-      return `${parts.join("，")}。`;
-    }
-    const words = Array.from({ length: 8 + Math.floor(Math.random() * 8) }, () => pick(LATIN_WORDS));
-    const text = words.join(" ");
-    return `${text.charAt(0).toUpperCase()}${text.slice(1)}.`;
-  };
+  const sentence = language === "zh" ? zhSentence : latinSentence;
 
   if (unit === "words") {
     const words =
@@ -311,7 +350,7 @@ export function generateLorem(opts: LoremOptions): string {
         ? Array.from({ length: total }, () => pick(ZH_PHRASES))
         : Array.from({ length: total }, () => pick(LATIN_WORDS));
     const joined = language === "zh" ? words.join("") : words.join(" ");
-    return startWithLorem && language === "latin" ? `Lorem ipsum ${joined}` : joined;
+    return startWithLorem && language === "latin" ? "Lorem ipsum " + joined : joined;
   }
 
   if (unit === "sentences") {
@@ -322,17 +361,18 @@ export function generateLorem(opts: LoremOptions): string {
     return language === "zh" ? list.join("") : list.join(" ");
   }
 
-  const paragraphs = Array.from({ length: total }, () =>
-    Array.from({ length: 3 + Math.floor(Math.random() * 3) }, sentence).join(
-      language === "zh" ? "" : " "
-    )
-  );
+  const paragraphs = Array.from({ length: total }, () => {
+    const sentences = 3 + Math.floor(Math.random() * 3);
+    return Array.from({ length: sentences }, sentence).join(language === "zh" ? "" : " ");
+  });
+
   if (startWithLorem && language === "latin") {
-    paragraphs[0] = `Lorem ipsum dolor sit amet, consectetur adipiscing elit. ${paragraphs[0]}`;
+    paragraphs[0] =
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. " + paragraphs[0];
   }
+
   return paragraphs.join("\n\n");
 }
-
 /* ══════════════════════════════════════════════════════════════
    Simple ciphers
    ══════════════════════════════════════════════════════════════ */
