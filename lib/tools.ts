@@ -17,6 +17,7 @@ import {
   FileJson,
   GitCompare,
   FileText,
+  Fingerprint,
   Globe,
   Hash,
   Image as ImageIcon,
@@ -81,6 +82,7 @@ const tool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "en
 const jsonTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "json" });
 const textTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "text" });
 const dateTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "datetime" });
+const hashTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "hash" });
 
 const encodingTools: ToolMeta[] = [
   tool({
@@ -464,6 +466,69 @@ const datetimeTools: ToolMeta[] = [
   }),
 ];
 
+const hashTools: ToolMeta[] = [
+  hashTool({
+    slug: "hash",
+    name: { zh: "哈希生成", en: "Hash Generator" },
+    description: {
+      zh: "MD5、SHA-1、SHA-2、SHA-3 摘要，一次算出多种算法",
+      en: "MD5, SHA-1, SHA-2 and SHA-3 digests, several algorithms at once",
+    },
+    keywords: ["hash", "md5", "sha1", "sha256", "sha512", "sha3", "摘要", "哈希"],
+    icon: Hash,
+  }),
+  hashTool({
+    slug: "hmac",
+    name: { zh: "HMAC 计算", en: "HMAC Calculator" },
+    description: {
+      zh: "用密钥对消息签名，支持 SHA-1 / 256 / 384 / 512",
+      en: "Sign a message with a secret key using SHA-1, 256, 384 or 512",
+    },
+    keywords: ["hmac", "签名", "signature", "密钥", "sha256"],
+    icon: KeyRound,
+  }),
+  hashTool({
+    slug: "password-generator",
+    name: { zh: "密码生成器", en: "Password Generator" },
+    description: {
+      zh: "密码学安全随机数生成密码，可配置长度与字符集",
+      en: "Cryptographically random passwords with configurable length and character sets",
+    },
+    keywords: ["密码", "password", "生成", "随机", "强密码"],
+    icon: Lock,
+  }),
+  hashTool({
+    slug: "uuid",
+    name: { zh: "UUID 生成", en: "UUID Generator" },
+    description: {
+      zh: "批量生成 UUID v4 与 v7，可去连字符、转大写",
+      en: "Batch-generate UUID v4 and v7, with optional hyphens and casing",
+    },
+    keywords: ["uuid", "guid", "v4", "v7", "唯一标识"],
+    icon: Fingerprint,
+  }),
+  hashTool({
+    slug: "random-string",
+    name: { zh: "随机字符串 / NanoID / ULID", en: "Random String, NanoID & ULID" },
+    description: {
+      zh: "按自定义字符集生成随机串，或生成 NanoID、ULID",
+      en: "Random strings from your own alphabet, plus NanoID and ULID",
+    },
+    keywords: ["随机", "random", "nanoid", "ulid", "token", "令牌"],
+    icon: Dices,
+  }),
+  hashTool({
+    slug: "password-strength",
+    name: { zh: "密码强度检测", en: "Password Strength" },
+    description: {
+      zh: "估算熵与破解时间，指出常见密码、重复与键盘序列等弱点",
+      en: "Estimate entropy and crack time, and flag common passwords, repeats and keyboard runs",
+    },
+    keywords: ["强度", "strength", "密码", "安全", "熵"],
+    icon: ShieldCheck,
+  }),
+];
+
 export const categories: CategoryMeta[] = [
   {
     id: "encoding",
@@ -513,7 +578,7 @@ export const categories: CategoryMeta[] = [
       en: "Digests, HMAC, random strings and password strength",
     },
     icon: ShieldCheck,
-    tools: [],
+    tools: hashTools,
   },
   {
     id: "image",
