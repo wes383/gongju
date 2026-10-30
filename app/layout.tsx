@@ -43,6 +43,9 @@ export const metadata: Metadata = {
   description:
     "纯浏览器端运行的开发者工具箱：编码解码、格式化、转换、加密、时间日期等常用工具，数据不出本机。",
   keywords: ["在线工具", "开发者工具", "编码解码", "格式化", "转换器"],
+  // Empty data URL: no favicon is shipped, and this stops the browser from
+  // requesting /favicon.ico and logging a 404 on every load.
+  icons: { icon: "data:," },
 };
 
 export const viewport: Viewport = {
