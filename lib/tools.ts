@@ -8,20 +8,24 @@ import {
   Dices,
   FileCode2,
   FileJson,
+  GitCompare,
   FileText,
   Globe,
   Hash,
   Image as ImageIcon,
   KeyRound,
   Languages,
+  ListTree,
   Link2,
   ListFilter,
   Palette,
   QrCode,
   Ruler,
+  Search,
   ShieldCheck,
   Table2,
   Terminal,
+  Wand2,
 } from "lucide-react";
 import type { Locale } from "@/lib/i18n";
 
@@ -60,6 +64,7 @@ export interface CategoryMeta {
 }
 
 const tool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "encoding" });
+const jsonTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "json" });
 
 const encodingTools: ToolMeta[] = [
   tool({
@@ -184,6 +189,79 @@ const encodingTools: ToolMeta[] = [
   }),
 ];
 
+const jsonTools: ToolMeta[] = [
+  jsonTool({
+    slug: "json-format",
+    name: { zh: "JSON 格式化 / 校验", en: "JSON Formatter & Validator" },
+    description: {
+      zh: "格式化、压缩、校验，语法错误精确到行列",
+      en: "Format, minify and validate, with the exact line and column of syntax errors",
+    },
+    keywords: ["json", "format", "beautify", "minify", "validate", "格式化", "压缩", "校验"],
+    icon: Braces,
+  }),
+  jsonTool({
+    slug: "json-tree",
+    name: { zh: "JSON 树形视图", en: "JSON Tree Viewer" },
+    description: {
+      zh: "折叠展开浏览结构，适合查看嵌套很深的 JSON",
+      en: "Browse the structure with collapsible nodes, ideal for deeply nested data",
+    },
+    keywords: ["json", "tree", "viewer", "树形", "折叠", "展开"],
+    icon: ListTree,
+  }),
+  jsonTool({
+    slug: "json-path",
+    name: { zh: "JSONPath 查询", en: "JSONPath Query" },
+    description: {
+      zh: "用 JSONPath 表达式从 JSON 中提取数据",
+      en: "Extract values from JSON with JSONPath expressions",
+    },
+    keywords: ["jsonpath", "json", "query", "查询", "提取", "过滤"],
+    icon: Search,
+  }),
+  jsonTool({
+    slug: "json-diff",
+    name: { zh: "JSON 差异对比", en: "JSON Diff" },
+    description: {
+      zh: "对比两份 JSON，列出新增、删除与修改的字段",
+      en: "Compare two documents and list added, removed and changed fields",
+    },
+    keywords: ["json", "diff", "compare", "对比", "差异"],
+    icon: GitCompare,
+  }),
+  jsonTool({
+    slug: "json-to-code",
+    name: { zh: "JSON 转类型定义", en: "JSON to Types" },
+    description: {
+      zh: "根据 JSON 生成 TypeScript / Go / Python / Java 类型",
+      en: "Generate TypeScript, Go, Python or Java types from JSON",
+    },
+    keywords: ["json", "typescript", "go", "python", "java", "interface", "类型"],
+    icon: FileCode2,
+  }),
+  jsonTool({
+    slug: "json-to-csv",
+    name: { zh: "JSON 转 CSV", en: "JSON to CSV" },
+    description: {
+      zh: "把 JSON 数组转成 CSV，嵌套字段可扁平化",
+      en: "Turn a JSON array into CSV, with nested fields flattened",
+    },
+    keywords: ["json", "csv", "excel", "表格", "导出"],
+    icon: Table2,
+  }),
+  jsonTool({
+    slug: "json-transform",
+    name: { zh: "JSON 排序 / 去重 / 扁平化", en: "JSON Transform" },
+    description: {
+      zh: "按 key 排序、数组去重、对象扁平化与还原",
+      en: "Sort keys, dedupe arrays, flatten objects and reverse it",
+    },
+    keywords: ["json", "sort", "dedupe", "flatten", "排序", "去重", "扁平化"],
+    icon: Wand2,
+  }),
+];
+
 export const categories: CategoryMeta[] = [
   {
     id: "encoding",
@@ -203,7 +281,7 @@ export const categories: CategoryMeta[] = [
       en: "Format, validate, diff, browse and generate types from JSON",
     },
     icon: Braces,
-    tools: [],
+    tools: jsonTools,
   },
   {
     id: "text",

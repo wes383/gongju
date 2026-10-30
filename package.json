@@ -25,6 +25,7 @@
     "dompurify": "^3.4.17",
     "fast-xml-parser": "^5.11.2",
     "js-yaml": "^5.5.0",
+    "jsonpath-plus": "^11.2.2",
     "lucide-react": "^1.64.0",
     "marked": "^18.1.2",
     "next": "16.4.3",
