@@ -139,14 +139,14 @@ export function HashTool() {
             return (
               <div
                 key={algorithm.value}
-                className="flex items-start gap-3 border-b border-border px-4 py-2.5 last:border-b-0"
+                className="flex items-center gap-3 border-b border-border px-4 py-2.5 last:border-b-0"
               >
-                <div className="flex w-24 shrink-0 items-center gap-1.5 pt-0.5">
-                  <span className="font-mono text-[11px] text-foreground-muted">
+                <div className="flex w-32 shrink-0 items-center gap-1.5">
+                  <span className="whitespace-nowrap font-mono text-[11px] text-foreground-muted">
                     {algorithm.label}
                   </span>
                   {algorithm.legacy && (
-                    <Badge variant="warning" size="xs">
+                    <Badge variant="warning" size="xs" className="whitespace-nowrap">
                       {t.legacy}
                     </Badge>
                   )}
