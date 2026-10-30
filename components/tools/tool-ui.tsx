@@ -1,8 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Check, Copy, Eraser, Repeat, Sparkles, TriangleAlert } from "lucide-react";
-import { toast } from "@/components/ui/toaster";
+import { Check, Copy, Eraser, Repeat, Sparkles, TriangleAlert, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useLocale, useT } from "@/components/locale-provider";
@@ -23,7 +22,7 @@ export function CopyButton({
   disabled?: boolean;
 }) {
   const t = useT();
-  const [copied, setCopied] = React.useState(false);
+  const [status, setStatus] = React.useState<"idle" | "copied" | "failed">("idle");
   const timer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const text = label ?? t.copy;
 
@@ -37,13 +36,12 @@ export function CopyButton({
     if (!value) return;
     try {
       await navigator.clipboard.writeText(value);
-      setCopied(true);
-      toast.success(t.copySuccess);
-      if (timer.current) clearTimeout(timer.current);
-      timer.current = setTimeout(() => setCopied(false), 1500);
+      setStatus("copied");
     } catch {
-      toast.error(t.copyError);
+      setStatus("failed");
     }
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => setStatus("idle"), 1500);
   };
 
   const iconOnly = size.startsWith("icon");
@@ -56,14 +54,18 @@ export function CopyButton({
       onClick={handleCopy}
       disabled={disabled || !value}
       className={cn("gap-1.5", className)}
-      aria-label={text}
+      aria-label={status === "failed" ? t.copyError : status === "copied" ? t.copied : text}
     >
-      {copied ? (
+      {status === "copied" ? (
         <Check className="h-3.5 w-3.5 text-green" />
+      ) : status === "failed" ? (
+        <X className="h-3.5 w-3.5 text-red" />
       ) : (
         <Copy className="h-3.5 w-3.5" />
       )}
-      {!iconOnly && <span>{copied ? t.copied : text}</span>}
+      {!iconOnly && (
+        <span>{status === "failed" ? t.copyError : status === "copied" ? t.copied : text}</span>
+      )}
     </Button>
   );
 }

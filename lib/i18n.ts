@@ -19,7 +19,6 @@ export interface Dict {
   backHome: string;
   copy: string;
   copied: string;
-  copySuccess: string;
   copyError: string;
   clear: string;
   swap: string;
@@ -62,7 +61,6 @@ const zh: Dict = {
   backHome: "返回主页",
   copy: "复制",
   copied: "已复制",
-  copySuccess: "已复制到剪贴板",
   copyError: "复制失败，请手动选择文本",
   clear: "清空",
   swap: "交换",
@@ -120,7 +118,6 @@ const en: Dict = {
   backHome: "Back to home",
   copy: "Copy",
   copied: "Copied",
-  copySuccess: "Copied to clipboard",
   copyError: "Copy failed, please select the text manually",
   clear: "Clear",
   swap: "Swap",

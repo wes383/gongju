@@ -15,10 +15,10 @@ import {
   useT,
 } from "@/components/locale-provider";
 import { Button } from "@/components/ui/button";
-import { toast } from "@/components/ui/toaster";
 import {
   CopyButton,
   DualPane,
+  ErrorNote,
   OptionBar,
   Segmented,
   Toggle,
@@ -119,10 +119,12 @@ export function JsonToCsvTool() {
   const previewRows = table ? table.rows.slice(0, MAX_PREVIEW) : [];
 
   const [exporting, setExporting] = React.useState(false);
+  const [exportError, setExportError] = React.useState<string | null>(null);
 
   const exportExcel = async () => {
     if (!table || table.rows.length === 0) return;
     setExporting(true);
+    setExportError(null);
     try {
       // Loaded on demand: the writer is only needed when exporting
       const { default: writeXlsxFile } = await import("write-excel-file/browser");
@@ -132,7 +134,7 @@ export function JsonToCsvTool() {
       ];
       await writeXlsxFile(data).toFile("gongju.xlsx");
     } catch {
-      toast.error(t.exportFailed);
+      setExportError(t.exportFailed);
     } finally {
       setExporting(false);
     }
@@ -187,6 +189,8 @@ export function JsonToCsvTool() {
           ) : null
         }
       />
+
+      {exportError && <ErrorNote>{exportError}</ErrorNote>}
 
       <div className="overflow-hidden rounded-lg border border-border bg-surface">
         <header className="flex h-10 items-center gap-2 border-b border-border px-3">

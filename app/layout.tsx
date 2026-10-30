@@ -3,7 +3,6 @@ import { Inter, JetBrains_Mono, Noto_Sans_SC, Plus_Jakarta_Sans } from "next/fon
 import { ThemeProvider } from "@/components/theme-provider";
 import { LocaleProvider } from "@/components/locale-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { Toaster } from "@/components/ui/toaster";
 import "./globals.css";
 
 const inter = Inter({
@@ -67,10 +66,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-screen font-sans antialiased">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <LocaleProvider>
-            <TooltipProvider delayDuration={300}>
-              {children}
-              <Toaster />
-            </TooltipProvider>
+            <TooltipProvider delayDuration={300}>{children}</TooltipProvider>
           </LocaleProvider>
         </ThemeProvider>
       </body>
