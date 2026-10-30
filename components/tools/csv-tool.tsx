@@ -11,14 +11,15 @@ import {
 import {
   DualPane,
   OptionBar,
+  SampleButton,
   Segmented,
   Stats,
   Toggle,
-  SampleButton,
+  WarningNote,
 } from "@/components/tools/tool-ui";
 
 type Mode = "csv2json" | "json2csv";
-type Delimiter = "auto" | "," | ";" | "\t" | "|";
+type Delimiter = "auto" | "," | ";" | "\t" | " " | "|";
 
 const COPY = {
   zh: {
@@ -28,6 +29,7 @@ const COPY = {
     comma: "逗号",
     semicolon: "分号",
     tab: "Tab",
+    space: "空格",
     pipe: "竖线",
     delimiter: "分隔符",
     header: "首行为表头",
@@ -45,7 +47,9 @@ const COPY = {
     emptyArray: "数组为空，没有可导出的数据",
     rowLabel: (row: number) => `（第 ${row} 行）`,
     note: "使用 Papa Parse，能正确处理引号、字段内换行与转义双引号。",
-    noteAuto: " 分隔符设为「自动」时会根据首行内容推断。",
+    noteAuto: " 分隔符设为「自动检测」时会根据首行内容推断。",
+    autoWarning:
+      "无法自动识别分隔符，已按逗号解析。如果每行只有一列，试试选「空格」或「Tab」。",
   },
   en: {
     auto: "Auto",
@@ -54,6 +58,7 @@ const COPY = {
     comma: "Comma",
     semicolon: "Semicolon",
     tab: "Tab",
+    space: "Space",
     pipe: "Pipe",
     delimiter: "Delimiter",
     header: "First row is header",
@@ -72,6 +77,8 @@ const COPY = {
     rowLabel: (row: number) => ` (row ${row})`,
     note: "Powered by Papa Parse, so quotes, embedded newlines and escaped quotes are handled correctly.",
     noteAuto: " With the delimiter set to Auto it is inferred from the first row.",
+    autoWarning:
+      "Could not detect the delimiter, so the input was parsed with a comma. If every row ends up as a single column, try Space or Tab.",
   },
 };
 
@@ -100,7 +107,9 @@ export function CsvTool() {
   const [indent, setIndent] = React.useState(2);
 
   const result = React.useMemo(() => {
-    if (!input.trim()) return { value: "", error: null as string | null };
+    if (!input.trim()) {
+      return { value: "", error: null as string | null, warning: null as string | null };
+    }
 
     try {
       if (mode === "csv2json") {
@@ -111,36 +120,45 @@ export function CsvTool() {
           delimiter: delimiter === "auto" ? undefined : delimiter,
         });
 
-        const fatal = parsed.errors.find(
-          (e) => e.type === "Quotes" || e.code === "UndetectableDelimiter"
-        );
-        if (fatal) {
+        const quoteError = parsed.errors.find((e) => e.type === "Quotes");
+        if (quoteError) {
           return {
             value: "",
-            error: `${fatal.message}${
-              typeof fatal.row === "number" ? t.rowLabel(fatal.row + 1) : ""
+            error: `${quoteError.message}${
+              typeof quoteError.row === "number" ? t.rowLabel(quoteError.row + 1) : ""
             }`,
+            warning: null,
           };
         }
         if (parsed.data.length === 0) {
-          return { value: "", error: t.emptyRows };
+          return { value: "", error: t.emptyRows, warning: null };
         }
-        return { value: JSON.stringify(parsed.data, null, indent), error: null };
+        // Papa still returns usable rows here, it just fell back to a comma
+        const autoFailed = parsed.errors.some((e) => e.code === "UndetectableDelimiter");
+        return {
+          value: JSON.stringify(parsed.data, null, indent),
+          error: null,
+          warning: autoFailed ? t.autoWarning : null,
+        };
       }
 
       const parsed = JSON.parse(input);
       if (!Array.isArray(parsed)) {
-        return { value: "", error: t.notArray };
+        return { value: "", error: t.notArray, warning: null };
       }
-      if (parsed.length === 0) return { value: "", error: t.emptyArray };
+      if (parsed.length === 0) return { value: "", error: t.emptyArray, warning: null };
 
       const csv = Papa.unparse(parsed, {
         delimiter: delimiter === "auto" ? "," : delimiter,
         header: true,
       });
-      return { value: csv, error: null };
+      return { value: csv, error: null, warning: null };
     } catch (e) {
-      return { value: "", error: e instanceof Error ? e.message : String(e) };
+      return {
+        value: "",
+        error: e instanceof Error ? e.message : String(e),
+        warning: null,
+      };
     }
   }, [input, mode, delimiter, header, dynamicTyping, indent, t]);
 
@@ -175,6 +193,7 @@ export function CsvTool() {
             { value: ",", label: t.comma },
             { value: ";", label: t.semicolon },
             { value: "\t", label: t.tab },
+            { value: " ", label: t.space },
             { value: "|", label: t.pipe },
           ]}
         />
@@ -205,6 +224,8 @@ export function CsvTool() {
           />
         )}
       </OptionBar>
+
+      {result.warning && <WarningNote>{result.warning}</WarningNote>}
 
       <DualPane
         input={input}

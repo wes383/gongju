@@ -135,6 +135,16 @@ export function ErrorNote({ children }: { children: React.ReactNode }) {
   );
 }
 
+/** Non-blocking counterpart of ErrorNote: the result is still usable */
+export function WarningNote({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex items-start gap-2 rounded-md border border-orange-border bg-orange-soft px-3 py-2 text-xs leading-relaxed text-orange-fg">
+      <TriangleAlert className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+      <span className="break-words">{children}</span>
+    </div>
+  );
+}
+
 export function Pane({
   label,
   actions,
