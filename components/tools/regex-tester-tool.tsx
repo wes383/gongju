@@ -4,7 +4,7 @@ import * as React from "react";
 import { useCopy } from "@/components/locale-provider";
 import { CopyButton, ErrorNote, SampleButton } from "@/components/tools/tool-ui";
 import { Input } from "@/components/ui/input";
-import { runRegex } from "@/lib/text";
+import type { RegexResult } from "@/lib/text";
 import { cn } from "@/lib/utils";
 
 const COPY = {
@@ -27,6 +27,7 @@ const COPY = {
     sampleText: "联系 alice@example.com 或 bob@test.com 获取更多信息。",
     sampleReplace: "[$1 at $2]",
     empty: "输入正则和文本后开始匹配",
+    timeout: "匹配超时：正则可能存在灾难性回溯，请简化表达式或缩短文本",
   },
   en: {
     pattern: "Pattern",
@@ -47,10 +48,21 @@ const COPY = {
     sampleText: "Contact alice@example.com or bob@test.com for details.",
     sampleReplace: "[$1 at $2]",
     empty: "Enter a pattern and some text to start",
+    timeout: "Timed out: the pattern may backtrack catastrophically — simplify it or shorten the text",
   },
 };
 
 const FLAGS = ["g", "i", "m", "s", "u"];
+
+/** Give up on a pattern after this long — likely catastrophic backtracking */
+const TIMEOUT_MS = 1000;
+
+interface WorkerReply {
+  id: number;
+  ok: boolean;
+  result?: RegexResult;
+  error?: string;
+}
 
 export function RegexTesterTool() {
   const t = useCopy(COPY);
@@ -64,23 +76,83 @@ export function RegexTesterTool() {
       prev.includes(flag) ? prev.replace(flag, "") : [...prev, flag].sort().join("")
     );
 
-  const result = React.useMemo(() => {
-    if (!pattern) {
-      return { ok: true as const, matches: [], highlighted: "", replaced: "", error: null };
+  const workerRef = React.useRef<Worker | null>(null);
+  const timerRef = React.useRef<number | null>(null);
+  const idRef = React.useRef(0);
+  const [state, setState] = React.useState<{
+    status: "idle" | "running" | "done" | "timeout" | "error";
+    result: RegexResult | null;
+    error: string | null;
+  }>({ status: "idle", result: null, error: null });
+
+  const getWorker = React.useCallback(() => {
+    if (!workerRef.current) {
+      workerRef.current = new Worker(new URL("./regex-worker.ts", import.meta.url));
     }
-    try {
-      const r = runRegex(pattern, flags, input, replacement);
-      return { ok: true as const, ...r, error: null };
-    } catch (e) {
-      return {
-        ok: false as const,
-        matches: [],
-        highlighted: "",
-        replaced: "",
-        error: e instanceof Error ? e.message : String(e),
+    return workerRef.current;
+  }, []);
+
+  React.useEffect(() => {
+    return () => {
+      workerRef.current?.terminate();
+      workerRef.current = null;
+      if (timerRef.current) window.clearTimeout(timerRef.current);
+    };
+  }, []);
+
+  // Matching runs in a worker: a pathological pattern is killed after a timeout
+  // instead of freezing the page.
+  React.useEffect(() => {
+    if (!pattern) return;
+
+    const handle = window.setTimeout(() => {
+      const worker = getWorker();
+      const id = ++idRef.current;
+
+      const onMessage = (event: MessageEvent<WorkerReply>) => {
+        if (event.data.id !== id) return;
+        worker.removeEventListener("message", onMessage);
+        if (timerRef.current) {
+          window.clearTimeout(timerRef.current);
+          timerRef.current = null;
+        }
+        if (event.data.ok && event.data.result) {
+          setState({ status: "done", result: event.data.result, error: null });
+        } else {
+          setState({ status: "error", result: null, error: event.data.error ?? "" });
+        }
       };
+      worker.addEventListener("message", onMessage);
+
+      timerRef.current = window.setTimeout(() => {
+        worker.removeEventListener("message", onMessage);
+        worker.terminate();
+        workerRef.current = null;
+        setState({ status: "timeout", result: null, error: null });
+      }, TIMEOUT_MS);
+
+      worker.postMessage({ id, pattern, flags, input, replacement });
+    }, 120);
+
+    return () => window.clearTimeout(handle);
+  }, [pattern, flags, input, replacement, getWorker]);
+
+  const result = React.useMemo(() => {
+    const empty = {
+      ok: true,
+      matches: [] as RegexResult["matches"],
+      highlighted: "",
+      replaced: "",
+      error: null as string | null,
+    };
+    if (!pattern) return empty;
+    if (state.status === "timeout") return { ...empty, ok: false, error: t.timeout };
+    if (state.status === "error") {
+      return { ...empty, ok: false, error: state.error ?? t.timeout };
     }
-  }, [pattern, flags, input, replacement]);
+    if (state.result) return { ...state.result, ok: true, error: null as string | null };
+    return empty;
+  }, [pattern, state, t]);
 
   return (
     <div className="flex flex-col gap-4">
