@@ -36,8 +36,14 @@ for (const group of catalog.groups) {
   };
 
   if (group.template) {
-    const file = join(root, "gitignore", `${group.template}.gitignore`);
-    if (existsSync(file)) {
+    // A bare name is looked up at the repo root first, then under Global/.
+    const candidates = group.template.includes("/")
+      ? [group.template]
+      : [group.template, `Global/${group.template}`];
+    const file = candidates
+      .map((name) => join(root, "gitignore", `${name}.gitignore`))
+      .find((path) => existsSync(path));
+    if (file) {
       for (const line of cleanTemplate(readFileSync(file, "utf8"))) push(line);
     } else {
       missing.push(`${group.id} -> ${group.template}`);

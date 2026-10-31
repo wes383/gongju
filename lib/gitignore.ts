@@ -18,7 +18,8 @@ export type IgnoreCategoryId =
   | "build"
   | "devops"
   | "project"
-  | "general";
+  | "general"
+  | "other";
 
 export interface IgnoreCategory {
   id: IgnoreCategoryId;
@@ -55,6 +56,7 @@ export const IGNORE_CATEGORIES: IgnoreCategory[] = [
   { id: "devops", label: { zh: "DevOps 与基础设施", en: "DevOps & Infrastructure" } },
   { id: "project", label: { zh: "项目类型", en: "Project Types" } },
   { id: "general", label: { zh: "通用规则", en: "General Rules" } },
+  { id: "other", label: { zh: "其它模板", en: "Other templates" } },
 ];
 
 export const IGNORE_GROUPS: IgnoreGroup[] = (catalog.groups as unknown as CatalogGroup[]).map(

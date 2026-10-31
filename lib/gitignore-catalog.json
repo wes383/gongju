@@ -4,130 +4,208 @@
       "id": "node",
       "category": "language",
       "template": "Node",
-      "label": { "zh": "JavaScript / Node.js", "en": "JavaScript / Node.js" }
+      "label": {
+        "zh": "JavaScript / Node.js",
+        "en": "JavaScript / Node.js"
+      }
     },
     {
       "id": "typescript",
       "category": "language",
-      "patterns": ["*.tsbuildinfo", ".tsbuildinfo"],
-      "label": { "zh": "TypeScript", "en": "TypeScript" }
+      "patterns": [
+        "*.tsbuildinfo",
+        ".tsbuildinfo"
+      ],
+      "label": {
+        "zh": "TypeScript",
+        "en": "TypeScript"
+      }
     },
     {
       "id": "python",
       "category": "language",
       "template": "Python",
-      "label": { "zh": "Python", "en": "Python" }
+      "label": {
+        "zh": "Python",
+        "en": "Python"
+      }
     },
     {
       "id": "java",
       "category": "language",
       "template": "Java",
-      "patterns": ["target/", "hs_err_pid*", "replay_pid*"],
-      "label": { "zh": "Java", "en": "Java" }
+      "patterns": [
+        "target/",
+        "hs_err_pid*",
+        "replay_pid*"
+      ],
+      "label": {
+        "zh": "Java",
+        "en": "Java"
+      }
     },
     {
       "id": "go",
       "category": "language",
       "template": "Go",
-      "label": { "zh": "Go", "en": "Go" }
+      "label": {
+        "zh": "Go",
+        "en": "Go"
+      }
     },
     {
       "id": "rust",
       "category": "language",
       "template": "Rust",
-      "label": { "zh": "Rust", "en": "Rust" }
+      "label": {
+        "zh": "Rust",
+        "en": "Rust"
+      }
     },
     {
       "id": "cpp",
       "category": "language",
       "template": "C++",
-      "label": { "zh": "C / C++", "en": "C / C++" }
+      "label": {
+        "zh": "C / C++",
+        "en": "C / C++"
+      }
     },
     {
       "id": "csharp",
       "category": "language",
       "template": "Dotnet",
-      "label": { "zh": "C# / .NET", "en": "C# / .NET" }
+      "label": {
+        "zh": "C# / .NET",
+        "en": "C# / .NET"
+      }
     },
     {
       "id": "php",
       "category": "language",
       "template": "Composer",
-      "patterns": ["storage/*.key", ".phpunit.result.cache", ".php-cs-fixer.cache"],
-      "label": { "zh": "PHP", "en": "PHP" }
+      "patterns": [
+        "storage/*.key",
+        ".phpunit.result.cache",
+        ".php-cs-fixer.cache"
+      ],
+      "label": {
+        "zh": "PHP",
+        "en": "PHP"
+      }
     },
     {
       "id": "ruby",
       "category": "language",
       "template": "Ruby",
-      "label": { "zh": "Ruby", "en": "Ruby" }
+      "label": {
+        "zh": "Ruby",
+        "en": "Ruby"
+      }
     },
     {
       "id": "swift",
       "category": "language",
       "template": "Swift",
-      "label": { "zh": "Swift", "en": "Swift" }
+      "label": {
+        "zh": "Swift",
+        "en": "Swift"
+      }
     },
     {
       "id": "kotlin",
       "category": "language",
       "template": "Kotlin",
-      "label": { "zh": "Kotlin", "en": "Kotlin" }
+      "label": {
+        "zh": "Kotlin",
+        "en": "Kotlin"
+      }
     },
     {
       "id": "dart",
       "category": "language",
       "template": "Dart",
-      "label": { "zh": "Dart", "en": "Dart" }
+      "label": {
+        "zh": "Dart",
+        "en": "Dart"
+      }
     },
     {
       "id": "r",
       "category": "language",
       "template": "R",
-      "label": { "zh": "R", "en": "R" }
+      "label": {
+        "zh": "R",
+        "en": "R"
+      }
     },
     {
       "id": "julia",
       "category": "language",
       "template": "Julia",
-      "label": { "zh": "Julia", "en": "Julia" }
+      "label": {
+        "zh": "Julia",
+        "en": "Julia"
+      }
     },
     {
       "id": "elixir",
       "category": "language",
       "template": "Elixir",
-      "label": { "zh": "Elixir / Erlang", "en": "Elixir / Erlang" }
+      "label": {
+        "zh": "Elixir / Erlang",
+        "en": "Elixir / Erlang"
+      }
     },
     {
       "id": "scala",
       "category": "language",
       "template": "Scala",
-      "label": { "zh": "Scala", "en": "Scala" }
+      "label": {
+        "zh": "Scala",
+        "en": "Scala"
+      }
     },
     {
       "id": "perl",
       "category": "language",
       "template": "Perl",
-      "label": { "zh": "Perl", "en": "Perl" }
+      "label": {
+        "zh": "Perl",
+        "en": "Perl"
+      }
     },
     {
       "id": "lua",
       "category": "language",
       "template": "Lua",
-      "label": { "zh": "Lua", "en": "Lua" }
+      "label": {
+        "zh": "Lua",
+        "en": "Lua"
+      }
     },
-
     {
       "id": "next",
       "category": "framework",
       "template": "Nextjs",
-      "label": { "zh": "Next.js", "en": "Next.js" }
+      "label": {
+        "zh": "Next.js",
+        "en": "Next.js"
+      }
     },
     {
       "id": "vite",
       "category": "framework",
-      "patterns": ["dist/", "dist-ssr/", ".vite/", "*.local"],
-      "label": { "zh": "Vite", "en": "Vite" }
+      "patterns": [
+        "dist/",
+        "dist-ssr/",
+        ".vite/",
+        "*.local"
+      ],
+      "label": {
+        "zh": "Vite",
+        "en": "Vite"
+      }
     },
     {
       "id": "react-native",
@@ -142,261 +220,2114 @@
         "*.jks",
         "*.keystore"
       ],
-      "label": { "zh": "React Native / Expo", "en": "React Native / Expo" }
+      "label": {
+        "zh": "React Native / Expo",
+        "en": "React Native / Expo"
+      }
     },
     {
       "id": "android",
       "category": "framework",
       "template": "Android",
-      "label": { "zh": "Android", "en": "Android" }
+      "label": {
+        "zh": "Android",
+        "en": "Android"
+      }
     },
     {
       "id": "flutter",
       "category": "framework",
       "template": "Flutter",
-      "label": { "zh": "Flutter", "en": "Flutter" }
+      "label": {
+        "zh": "Flutter",
+        "en": "Flutter"
+      }
     },
     {
       "id": "frontend",
       "category": "framework",
-      "template": "Angular",
-      "patterns": [".svelte-kit/", ".nuxt/", ".astro/", ".output/", "storybook-static/"],
-      "label": { "zh": "其它前端框架", "en": "Other frontend" }
+      "patterns": [
+        ".svelte-kit/",
+        ".nuxt/",
+        ".astro/",
+        ".output/",
+        "storybook-static/"
+      ],
+      "label": {
+        "zh": "其它前端框架",
+        "en": "Other frontend"
+      }
     },
-
     {
       "id": "vscode",
       "category": "ide",
       "template": "Global/VisualStudioCode",
-      "label": { "zh": "VS Code", "en": "VS Code" }
+      "label": {
+        "zh": "VS Code",
+        "en": "VS Code"
+      }
     },
     {
       "id": "jetbrains",
       "category": "ide",
       "template": "Global/JetBrains",
-      "label": { "zh": "JetBrains", "en": "JetBrains" }
+      "label": {
+        "zh": "JetBrains",
+        "en": "JetBrains"
+      }
     },
     {
       "id": "visualstudio",
       "category": "ide",
       "template": "VisualStudio",
-      "label": { "zh": "Visual Studio", "en": "Visual Studio" }
+      "label": {
+        "zh": "Visual Studio",
+        "en": "Visual Studio"
+      }
     },
     {
       "id": "eclipse",
       "category": "ide",
       "template": "Global/Eclipse",
-      "label": { "zh": "Eclipse", "en": "Eclipse" }
+      "label": {
+        "zh": "Eclipse",
+        "en": "Eclipse"
+      }
     },
     {
       "id": "xcode",
       "category": "ide",
       "template": "Global/Xcode",
-      "label": { "zh": "Xcode", "en": "Xcode" }
+      "label": {
+        "zh": "Xcode",
+        "en": "Xcode"
+      }
     },
     {
       "id": "vim",
       "category": "ide",
       "template": "Global/Vim",
-      "label": { "zh": "Vim", "en": "Vim" }
+      "label": {
+        "zh": "Vim",
+        "en": "Vim"
+      }
     },
     {
       "id": "emacs",
       "category": "ide",
       "template": "Global/Emacs",
-      "label": { "zh": "Emacs", "en": "Emacs" }
+      "label": {
+        "zh": "Emacs",
+        "en": "Emacs"
+      }
     },
     {
       "id": "sublime",
       "category": "ide",
       "template": "Global/SublimeText",
-      "label": { "zh": "Sublime Text", "en": "Sublime Text" }
+      "label": {
+        "zh": "Sublime Text",
+        "en": "Sublime Text"
+      }
     },
     {
       "id": "zed",
       "category": "ide",
       "template": "Global/Zed",
-      "label": { "zh": "Zed", "en": "Zed" }
+      "label": {
+        "zh": "Zed",
+        "en": "Zed"
+      }
     },
     {
       "id": "cursor",
       "category": "ide",
       "template": "Global/Cursor",
-      "label": { "zh": "Cursor", "en": "Cursor" }
+      "label": {
+        "zh": "Cursor",
+        "en": "Cursor"
+      }
     },
-
     {
       "id": "macos",
       "category": "os",
       "template": "Global/macOS",
-      "label": { "zh": "macOS", "en": "macOS" }
+      "label": {
+        "zh": "macOS",
+        "en": "macOS"
+      }
     },
     {
       "id": "windows",
       "category": "os",
       "template": "Global/Windows",
-      "label": { "zh": "Windows", "en": "Windows" }
+      "label": {
+        "zh": "Windows",
+        "en": "Windows"
+      }
     },
     {
       "id": "linux",
       "category": "os",
       "template": "Global/Linux",
-      "label": { "zh": "Linux", "en": "Linux" }
+      "label": {
+        "zh": "Linux",
+        "en": "Linux"
+      }
     },
-
     {
       "id": "maven",
       "category": "build",
       "template": "Maven",
-      "label": { "zh": "Maven", "en": "Maven" }
+      "label": {
+        "zh": "Maven",
+        "en": "Maven"
+      }
     },
     {
       "id": "gradle",
       "category": "build",
       "template": "Gradle",
-      "label": { "zh": "Gradle", "en": "Gradle" }
+      "label": {
+        "zh": "Gradle",
+        "en": "Gradle"
+      }
     },
     {
       "id": "cmake",
       "category": "build",
       "template": "CMake",
-      "label": { "zh": "CMake", "en": "CMake" }
+      "label": {
+        "zh": "CMake",
+        "en": "CMake"
+      }
     },
     {
       "id": "webpack",
       "category": "build",
-      "patterns": ["dist/", ".cache-loader/"],
-      "label": { "zh": "Webpack", "en": "Webpack" }
+      "patterns": [
+        "dist/",
+        ".cache-loader/"
+      ],
+      "label": {
+        "zh": "Webpack",
+        "en": "Webpack"
+      }
     },
-
     {
       "id": "terraform",
       "category": "devops",
       "template": "Terraform",
-      "label": { "zh": "Terraform", "en": "Terraform" }
+      "label": {
+        "zh": "Terraform",
+        "en": "Terraform"
+      }
     },
     {
       "id": "serverless",
       "category": "devops",
-      "patterns": [".serverless/", ".serverless_plugins/", ".aws-sam/"],
-      "label": { "zh": "Serverless", "en": "Serverless" }
+      "patterns": [
+        ".serverless/",
+        ".serverless_plugins/",
+        ".aws-sam/"
+      ],
+      "label": {
+        "zh": "Serverless",
+        "en": "Serverless"
+      }
     },
     {
       "id": "ansible",
       "category": "devops",
       "template": "Global/Ansible",
-      "label": { "zh": "Ansible", "en": "Ansible" }
+      "label": {
+        "zh": "Ansible",
+        "en": "Ansible"
+      }
     },
     {
       "id": "packer",
       "category": "devops",
       "template": "Packer",
-      "label": { "zh": "Packer", "en": "Packer" }
+      "label": {
+        "zh": "Packer",
+        "en": "Packer"
+      }
     },
     {
       "id": "helm",
       "category": "devops",
-      "patterns": ["charts/*.tgz"],
-      "label": { "zh": "Helm", "en": "Helm" }
+      "patterns": [
+        "charts/*.tgz"
+      ],
+      "label": {
+        "zh": "Helm",
+        "en": "Helm"
+      }
     },
-
     {
       "id": "jupyter",
       "category": "project",
-      "patterns": [".ipynb_checkpoints/", "*.nbconvert.ipynb", ".virtual_documents/"],
-      "label": { "zh": "Jupyter", "en": "Jupyter" }
+      "patterns": [
+        ".ipynb_checkpoints/",
+        "*.nbconvert.ipynb",
+        ".virtual_documents/"
+      ],
+      "label": {
+        "zh": "Jupyter",
+        "en": "Jupyter"
+      }
     },
     {
       "id": "unity",
       "category": "project",
       "template": "Unity",
-      "label": { "zh": "Unity", "en": "Unity" }
+      "label": {
+        "zh": "Unity",
+        "en": "Unity"
+      }
     },
     {
       "id": "unreal",
       "category": "project",
       "template": "UnrealEngine",
-      "label": { "zh": "Unreal Engine", "en": "Unreal Engine" }
+      "label": {
+        "zh": "Unreal Engine",
+        "en": "Unreal Engine"
+      }
     },
     {
       "id": "godot",
       "category": "project",
       "template": "Godot",
-      "label": { "zh": "Godot", "en": "Godot" }
+      "label": {
+        "zh": "Godot",
+        "en": "Godot"
+      }
     },
     {
       "id": "hugo",
       "category": "project",
-      "patterns": ["public/", "resources/_gen/", ".hugo_build.lock"],
-      "label": { "zh": "Hugo", "en": "Hugo" }
+      "patterns": [
+        "public/",
+        "resources/_gen/",
+        ".hugo_build.lock"
+      ],
+      "label": {
+        "zh": "Hugo",
+        "en": "Hugo"
+      }
     },
     {
       "id": "jekyll",
       "category": "project",
       "template": "Jekyll",
-      "label": { "zh": "Jekyll", "en": "Jekyll" }
+      "label": {
+        "zh": "Jekyll",
+        "en": "Jekyll"
+      }
     },
     {
       "id": "wordpress",
       "category": "project",
       "template": "WordPress",
-      "label": { "zh": "WordPress", "en": "WordPress" }
+      "label": {
+        "zh": "WordPress",
+        "en": "WordPress"
+      }
     },
     {
       "id": "latex",
       "category": "project",
       "template": "TeX",
-      "label": { "zh": "LaTeX", "en": "LaTeX" }
+      "label": {
+        "zh": "LaTeX",
+        "en": "LaTeX"
+      }
     },
-
     {
       "id": "dotenv",
       "category": "general",
-      "patterns": [".env*", "!.env.example", "!.env.sample", "!.env.template"],
-      "label": { "zh": "环境变量", "en": "Env files" }
+      "patterns": [
+        ".env*",
+        "!.env.example",
+        "!.env.sample",
+        "!.env.template"
+      ],
+      "label": {
+        "zh": "环境变量",
+        "en": "Env files"
+      }
     },
     {
       "id": "secrets",
       "category": "general",
-      "patterns": ["*.pem", "*.key", "*.p12", "*.pfx", "id_rsa", "id_ed25519"],
-      "label": { "zh": "密钥文件", "en": "Key files" }
+      "patterns": [
+        "*.pem",
+        "*.key",
+        "*.p12",
+        "*.pfx",
+        "id_rsa",
+        "id_ed25519"
+      ],
+      "label": {
+        "zh": "密钥文件",
+        "en": "Key files"
+      }
     },
     {
       "id": "logs",
       "category": "general",
-      "patterns": ["logs/", "*.log", "*.pid", "*.seed"],
-      "label": { "zh": "日志", "en": "Logs" }
+      "patterns": [
+        "logs/",
+        "*.log",
+        "*.pid",
+        "*.seed"
+      ],
+      "label": {
+        "zh": "日志",
+        "en": "Logs"
+      }
     },
     {
       "id": "cache",
       "category": "general",
-      "patterns": [".cache/", ".turbo/", ".parcel-cache/", ".eslintcache", ".stylelintcache"],
-      "label": { "zh": "构建缓存", "en": "Build cache" }
+      "patterns": [
+        ".cache/",
+        ".turbo/",
+        ".parcel-cache/",
+        ".eslintcache",
+        ".stylelintcache"
+      ],
+      "label": {
+        "zh": "构建缓存",
+        "en": "Build cache"
+      }
     },
     {
       "id": "coverage",
       "category": "general",
-      "patterns": ["coverage/", ".nyc_output/", "*.lcov", "junit.xml"],
-      "label": { "zh": "测试覆盖率", "en": "Coverage" }
+      "patterns": [
+        "coverage/",
+        ".nyc_output/",
+        "*.lcov",
+        "junit.xml"
+      ],
+      "label": {
+        "zh": "测试覆盖率",
+        "en": "Coverage"
+      }
     },
     {
       "id": "database",
       "category": "general",
-      "patterns": ["*.sqlite", "*.sqlite3", "*.db", "*.db-journal", "*.sqlite-wal", "dump.rdb"],
-      "label": { "zh": "本地数据库", "en": "Local database" }
+      "patterns": [
+        "*.sqlite",
+        "*.sqlite3",
+        "*.db",
+        "*.db-journal",
+        "*.sqlite-wal",
+        "dump.rdb"
+      ],
+      "label": {
+        "zh": "本地数据库",
+        "en": "Local database"
+      }
     },
     {
       "id": "temp",
       "category": "general",
       "template": "Global/Backup",
-      "patterns": [".history/"],
-      "label": { "zh": "临时文件", "en": "Temp files" }
+      "patterns": [
+        ".history/"
+      ],
+      "label": {
+        "zh": "临时文件",
+        "en": "Temp files"
+      }
     },
     {
       "id": "archives",
       "category": "general",
       "template": "Global/Archives",
-      "label": { "zh": "压缩包", "en": "Archives" }
+      "label": {
+        "zh": "压缩包",
+        "en": "Archives"
+      }
+    },
+    {
+      "id": "c",
+      "category": "language",
+      "template": "C",
+      "label": {
+        "zh": "C",
+        "en": "C"
+      }
+    },
+    {
+      "id": "clojure",
+      "category": "language",
+      "template": "Clojure",
+      "label": {
+        "zh": "Clojure",
+        "en": "Clojure"
+      }
+    },
+    {
+      "id": "haskell",
+      "category": "language",
+      "template": "Haskell",
+      "label": {
+        "zh": "Haskell",
+        "en": "Haskell"
+      }
+    },
+    {
+      "id": "ocaml",
+      "category": "language",
+      "template": "OCaml",
+      "label": {
+        "zh": "OCaml",
+        "en": "OCaml"
+      }
+    },
+    {
+      "id": "erlang",
+      "category": "language",
+      "template": "Erlang",
+      "label": {
+        "zh": "Erlang",
+        "en": "Erlang"
+      }
+    },
+    {
+      "id": "elm",
+      "category": "language",
+      "template": "Elm",
+      "label": {
+        "zh": "Elm",
+        "en": "Elm"
+      }
+    },
+    {
+      "id": "zig",
+      "category": "language",
+      "template": "Zig",
+      "label": {
+        "zh": "Zig",
+        "en": "Zig"
+      }
+    },
+    {
+      "id": "nim",
+      "category": "language",
+      "template": "Nim",
+      "label": {
+        "zh": "Nim",
+        "en": "Nim"
+      }
+    },
+    {
+      "id": "d",
+      "category": "language",
+      "template": "D",
+      "label": {
+        "zh": "D",
+        "en": "D"
+      }
+    },
+    {
+      "id": "fortran",
+      "category": "language",
+      "template": "Fortran",
+      "label": {
+        "zh": "Fortran",
+        "en": "Fortran"
+      }
+    },
+    {
+      "id": "matlab",
+      "category": "language",
+      "template": "Global/MATLAB",
+      "label": {
+        "zh": "MATLAB",
+        "en": "MATLAB"
+      }
+    },
+    {
+      "id": "solidity",
+      "category": "language",
+      "template": "Solidity-Remix",
+      "label": {
+        "zh": "Solidity",
+        "en": "Solidity"
+      }
+    },
+    {
+      "id": "gleam",
+      "category": "language",
+      "template": "Gleam",
+      "label": {
+        "zh": "Gleam",
+        "en": "Gleam"
+      }
+    },
+    {
+      "id": "luau",
+      "category": "language",
+      "template": "Luau",
+      "label": {
+        "zh": "Luau",
+        "en": "Luau"
+      }
+    },
+    {
+      "id": "nestjs",
+      "category": "framework",
+      "template": "Nestjs",
+      "label": {
+        "zh": "NestJS",
+        "en": "NestJS"
+      }
+    },
+    {
+      "id": "laravel",
+      "category": "framework",
+      "template": "Laravel",
+      "label": {
+        "zh": "Laravel",
+        "en": "Laravel"
+      }
+    },
+    {
+      "id": "rails",
+      "category": "framework",
+      "template": "Rails",
+      "label": {
+        "zh": "Rails",
+        "en": "Rails"
+      }
+    },
+    {
+      "id": "angular",
+      "category": "framework",
+      "template": "Angular",
+      "label": {
+        "zh": "Angular",
+        "en": "Angular"
+      }
+    },
+    {
+      "id": "symfony",
+      "category": "framework",
+      "template": "Symfony",
+      "label": {
+        "zh": "Symfony",
+        "en": "Symfony"
+      }
+    },
+    {
+      "id": "qt",
+      "category": "framework",
+      "template": "Qt",
+      "label": {
+        "zh": "Qt",
+        "en": "Qt"
+      }
+    },
+    {
+      "id": "sass",
+      "category": "framework",
+      "template": "Sass",
+      "label": {
+        "zh": "Sass",
+        "en": "Sass"
+      }
+    },
+    {
+      "id": "firebase",
+      "category": "framework",
+      "template": "Firebase",
+      "label": {
+        "zh": "Firebase",
+        "en": "Firebase"
+      }
+    },
+    {
+      "id": "github-pages",
+      "category": "framework",
+      "template": "GitHubPages",
+      "label": {
+        "zh": "GitHub Pages",
+        "en": "GitHub Pages"
+      }
+    },
+    {
+      "id": "objective-c",
+      "category": "framework",
+      "template": "Objective-C",
+      "label": {
+        "zh": "Objective-C",
+        "en": "Objective-C"
+      }
+    },
+    {
+      "id": "deno",
+      "category": "framework",
+      "template": "Deno",
+      "label": {
+        "zh": "Deno",
+        "en": "Deno"
+      }
+    },
+    {
+      "id": "bun",
+      "category": "framework",
+      "template": "bun",
+      "label": {
+        "zh": "Bun",
+        "en": "Bun"
+      }
+    },
+    {
+      "id": "netbeans",
+      "category": "ide",
+      "template": "Global/NetBeans",
+      "label": {
+        "zh": "NetBeans",
+        "en": "NetBeans"
+      }
+    },
+    {
+      "id": "textmate",
+      "category": "ide",
+      "template": "Global/TextMate",
+      "label": {
+        "zh": "TextMate",
+        "en": "TextMate"
+      }
+    },
+    {
+      "id": "kate",
+      "category": "ide",
+      "template": "Global/Kate",
+      "label": {
+        "zh": "Kate",
+        "en": "Kate"
+      }
+    },
+    {
+      "id": "codekit",
+      "category": "ide",
+      "template": "Global/CodeKit",
+      "label": {
+        "zh": "CodeKit",
+        "en": "CodeKit"
+      }
+    },
+    {
+      "id": "metals",
+      "category": "ide",
+      "template": "Global/Metals",
+      "label": {
+        "zh": "Metals",
+        "en": "Metals"
+      }
+    },
+    {
+      "id": "nix",
+      "category": "build",
+      "template": "Nix",
+      "label": {
+        "zh": "Nix",
+        "en": "Nix"
+      }
+    },
+    {
+      "id": "autotools",
+      "category": "build",
+      "template": "Autotools",
+      "label": {
+        "zh": "Autotools",
+        "en": "Autotools"
+      }
+    },
+    {
+      "id": "scons",
+      "category": "build",
+      "template": "SCons",
+      "label": {
+        "zh": "SCons",
+        "en": "SCons"
+      }
+    },
+    {
+      "id": "vagrant",
+      "category": "build",
+      "template": "Vagrant",
+      "label": {
+        "zh": "Vagrant",
+        "en": "Vagrant"
+      }
+    },
+    {
+      "id": "mise",
+      "category": "build",
+      "template": "mise",
+      "label": {
+        "zh": "mise",
+        "en": "mise"
+      }
+    },
+    {
+      "id": "ninja",
+      "category": "build",
+      "template": "Global/Ninja",
+      "label": {
+        "zh": "Ninja",
+        "en": "Ninja"
+      }
+    },
+    {
+      "id": "sbt",
+      "category": "build",
+      "template": "Global/SBT",
+      "label": {
+        "zh": "sbt",
+        "en": "sbt"
+      }
+    },
+    {
+      "id": "diff",
+      "category": "general",
+      "template": "Global/Diff",
+      "label": {
+        "zh": "Diff / Patch",
+        "en": "Diff / Patch"
+      }
+    },
+    {
+      "id": "gpg",
+      "category": "general",
+      "template": "Global/GPG",
+      "label": {
+        "zh": "GPG",
+        "en": "GPG"
+      }
+    },
+    {
+      "id": "tags",
+      "category": "general",
+      "template": "Global/Tags",
+      "label": {
+        "zh": "Tags",
+        "en": "Tags"
+      }
+    },
+    {
+      "id": "virtualenv",
+      "category": "general",
+      "template": "Global/VirtualEnv",
+      "label": {
+        "zh": "VirtualEnv",
+        "en": "VirtualEnv"
+      }
+    },
+    {
+      "id": "dropbox",
+      "category": "general",
+      "template": "Global/Dropbox",
+      "label": {
+        "zh": "Dropbox",
+        "en": "Dropbox"
+      }
+    },
+    {
+      "id": "actionscript",
+      "category": "other",
+      "template": "Actionscript",
+      "label": {
+        "zh": "Actionscript",
+        "en": "Actionscript"
+      }
+    },
+    {
+      "id": "ada",
+      "category": "other",
+      "template": "Ada",
+      "label": {
+        "zh": "Ada",
+        "en": "Ada"
+      }
+    },
+    {
+      "id": "adventuregamestudio",
+      "category": "other",
+      "template": "AdventureGameStudio",
+      "label": {
+        "zh": "AdventureGameStudio",
+        "en": "AdventureGameStudio"
+      }
+    },
+    {
+      "id": "agda",
+      "category": "other",
+      "template": "Agda",
+      "label": {
+        "zh": "Agda",
+        "en": "Agda"
+      }
+    },
+    {
+      "id": "appengine",
+      "category": "other",
+      "template": "AppEngine",
+      "label": {
+        "zh": "AppEngine",
+        "en": "AppEngine"
+      }
+    },
+    {
+      "id": "appceleratortitanium",
+      "category": "other",
+      "template": "AppceleratorTitanium",
+      "label": {
+        "zh": "AppceleratorTitanium",
+        "en": "AppceleratorTitanium"
+      }
+    },
+    {
+      "id": "archlinuxpackages",
+      "category": "other",
+      "template": "ArchLinuxPackages",
+      "label": {
+        "zh": "ArchLinuxPackages",
+        "en": "ArchLinuxPackages"
+      }
+    },
+    {
+      "id": "ballerina",
+      "category": "other",
+      "template": "Ballerina",
+      "label": {
+        "zh": "Ballerina",
+        "en": "Ballerina"
+      }
+    },
+    {
+      "id": "cfwheels",
+      "category": "other",
+      "template": "CFWheels",
+      "label": {
+        "zh": "CFWheels",
+        "en": "CFWheels"
+      }
+    },
+    {
+      "id": "cuda",
+      "category": "other",
+      "template": "CUDA",
+      "label": {
+        "zh": "CUDA",
+        "en": "CUDA"
+      }
+    },
+    {
+      "id": "cakephp",
+      "category": "other",
+      "template": "CakePHP",
+      "label": {
+        "zh": "CakePHP",
+        "en": "CakePHP"
+      }
+    },
+    {
+      "id": "chefcookbook",
+      "category": "other",
+      "template": "ChefCookbook",
+      "label": {
+        "zh": "ChefCookbook",
+        "en": "ChefCookbook"
+      }
+    },
+    {
+      "id": "codeigniter",
+      "category": "other",
+      "template": "CodeIgniter",
+      "label": {
+        "zh": "CodeIgniter",
+        "en": "CodeIgniter"
+      }
+    },
+    {
+      "id": "commonlisp",
+      "category": "other",
+      "template": "CommonLisp",
+      "label": {
+        "zh": "CommonLisp",
+        "en": "CommonLisp"
+      }
+    },
+    {
+      "id": "concrete5",
+      "category": "other",
+      "template": "Concrete5",
+      "label": {
+        "zh": "Concrete5",
+        "en": "Concrete5"
+      }
+    },
+    {
+      "id": "coq",
+      "category": "other",
+      "template": "Coq",
+      "label": {
+        "zh": "Coq",
+        "en": "Coq"
+      }
+    },
+    {
+      "id": "craftcms",
+      "category": "other",
+      "template": "CraftCMS",
+      "label": {
+        "zh": "CraftCMS",
+        "en": "CraftCMS"
+      }
+    },
+    {
+      "id": "dm",
+      "category": "other",
+      "template": "DM",
+      "label": {
+        "zh": "DM",
+        "en": "DM"
+      }
+    },
+    {
+      "id": "delphi",
+      "category": "other",
+      "template": "Delphi",
+      "label": {
+        "zh": "Delphi",
+        "en": "Delphi"
+      }
+    },
+    {
+      "id": "drupal",
+      "category": "other",
+      "template": "Drupal",
+      "label": {
+        "zh": "Drupal",
+        "en": "Drupal"
+      }
+    },
+    {
+      "id": "episerver",
+      "category": "other",
+      "template": "EPiServer",
+      "label": {
+        "zh": "EPiServer",
+        "en": "EPiServer"
+      }
+    },
+    {
+      "id": "eagle",
+      "category": "other",
+      "template": "Eagle",
+      "label": {
+        "zh": "Eagle",
+        "en": "Eagle"
+      }
+    },
+    {
+      "id": "elisp",
+      "category": "other",
+      "template": "Elisp",
+      "label": {
+        "zh": "Elisp",
+        "en": "Elisp"
+      }
+    },
+    {
+      "id": "expressionengine",
+      "category": "other",
+      "template": "ExpressionEngine",
+      "label": {
+        "zh": "ExpressionEngine",
+        "en": "ExpressionEngine"
+      }
+    },
+    {
+      "id": "extjs",
+      "category": "other",
+      "template": "ExtJs",
+      "label": {
+        "zh": "ExtJs",
+        "en": "ExtJs"
+      }
+    },
+    {
+      "id": "flaxengine",
+      "category": "other",
+      "template": "FlaxEngine",
+      "label": {
+        "zh": "FlaxEngine",
+        "en": "FlaxEngine"
+      }
+    },
+    {
+      "id": "forcedotcom",
+      "category": "other",
+      "template": "ForceDotCom",
+      "label": {
+        "zh": "ForceDotCom",
+        "en": "ForceDotCom"
+      }
+    },
+    {
+      "id": "fuelphp",
+      "category": "other",
+      "template": "FuelPHP",
+      "label": {
+        "zh": "FuelPHP",
+        "en": "FuelPHP"
+      }
+    },
+    {
+      "id": "gwt",
+      "category": "other",
+      "template": "GWT",
+      "label": {
+        "zh": "GWT",
+        "en": "GWT"
+      }
+    },
+    {
+      "id": "gcov",
+      "category": "other",
+      "template": "Gcov",
+      "label": {
+        "zh": "Gcov",
+        "en": "Gcov"
+      }
+    },
+    {
+      "id": "gitbook",
+      "category": "other",
+      "template": "GitBook",
+      "label": {
+        "zh": "GitBook",
+        "en": "GitBook"
+      }
+    },
+    {
+      "id": "grails",
+      "category": "other",
+      "template": "Grails",
+      "label": {
+        "zh": "Grails",
+        "en": "Grails"
+      }
+    },
+    {
+      "id": "hip",
+      "category": "other",
+      "template": "HIP",
+      "label": {
+        "zh": "HIP",
+        "en": "HIP"
+      }
+    },
+    {
+      "id": "haxe",
+      "category": "other",
+      "template": "Haxe",
+      "label": {
+        "zh": "Haxe",
+        "en": "Haxe"
+      }
+    },
+    {
+      "id": "iar",
+      "category": "other",
+      "template": "IAR",
+      "label": {
+        "zh": "IAR",
+        "en": "IAR"
+      }
+    },
+    {
+      "id": "igorpro",
+      "category": "other",
+      "template": "IGORPro",
+      "label": {
+        "zh": "IGORPro",
+        "en": "IGORPro"
+      }
+    },
+    {
+      "id": "idris",
+      "category": "other",
+      "template": "Idris",
+      "label": {
+        "zh": "Idris",
+        "en": "Idris"
+      }
+    },
+    {
+      "id": "jboss",
+      "category": "other",
+      "template": "JBoss",
+      "label": {
+        "zh": "JBoss",
+        "en": "JBoss"
+      }
+    },
+    {
+      "id": "joomla",
+      "category": "other",
+      "template": "Joomla",
+      "label": {
+        "zh": "Joomla",
+        "en": "Joomla"
+      }
+    },
+    {
+      "id": "katalon",
+      "category": "other",
+      "template": "Katalon",
+      "label": {
+        "zh": "Katalon",
+        "en": "Katalon"
+      }
+    },
+    {
+      "id": "kicad",
+      "category": "other",
+      "template": "KiCad",
+      "label": {
+        "zh": "KiCad",
+        "en": "KiCad"
+      }
+    },
+    {
+      "id": "kohana",
+      "category": "other",
+      "template": "Kohana",
+      "label": {
+        "zh": "Kohana",
+        "en": "Kohana"
+      }
+    },
+    {
+      "id": "labview",
+      "category": "other",
+      "template": "LabVIEW",
+      "label": {
+        "zh": "LabVIEW",
+        "en": "LabVIEW"
+      }
+    },
+    {
+      "id": "langchain",
+      "category": "other",
+      "template": "LangChain",
+      "label": {
+        "zh": "LangChain",
+        "en": "LangChain"
+      }
+    },
+    {
+      "id": "lasal",
+      "category": "other",
+      "template": "Lasal",
+      "label": {
+        "zh": "Lasal",
+        "en": "Lasal"
+      }
+    },
+    {
+      "id": "lean",
+      "category": "other",
+      "template": "Lean",
+      "label": {
+        "zh": "Lean",
+        "en": "Lean"
+      }
+    },
+    {
+      "id": "leiningen",
+      "category": "other",
+      "template": "Leiningen",
+      "label": {
+        "zh": "Leiningen",
+        "en": "Leiningen"
+      }
+    },
+    {
+      "id": "lemonstand",
+      "category": "other",
+      "template": "LemonStand",
+      "label": {
+        "zh": "LemonStand",
+        "en": "LemonStand"
+      }
+    },
+    {
+      "id": "lilypond",
+      "category": "other",
+      "template": "Lilypond",
+      "label": {
+        "zh": "Lilypond",
+        "en": "Lilypond"
+      }
+    },
+    {
+      "id": "lithium",
+      "category": "other",
+      "template": "Lithium",
+      "label": {
+        "zh": "Lithium",
+        "en": "Lithium"
+      }
+    },
+    {
+      "id": "magento",
+      "category": "other",
+      "template": "Magento",
+      "label": {
+        "zh": "Magento",
+        "en": "Magento"
+      }
+    },
+    {
+      "id": "mercury",
+      "category": "other",
+      "template": "Mercury",
+      "label": {
+        "zh": "Mercury",
+        "en": "Mercury"
+      }
+    },
+    {
+      "id": "metaprogrammingsystem",
+      "category": "other",
+      "template": "MetaProgrammingSystem",
+      "label": {
+        "zh": "MetaProgrammingSystem",
+        "en": "MetaProgrammingSystem"
+      }
+    },
+    {
+      "id": "modelsim",
+      "category": "other",
+      "template": "ModelSim",
+      "label": {
+        "zh": "ModelSim",
+        "en": "ModelSim"
+      }
+    },
+    {
+      "id": "modelica",
+      "category": "other",
+      "template": "Modelica",
+      "label": {
+        "zh": "Modelica",
+        "en": "Modelica"
+      }
+    },
+    {
+      "id": "moonbit",
+      "category": "other",
+      "template": "MoonBit",
+      "label": {
+        "zh": "MoonBit",
+        "en": "MoonBit"
+      }
+    },
+    {
+      "id": "nanoc",
+      "category": "other",
+      "template": "Nanoc",
+      "label": {
+        "zh": "Nanoc",
+        "en": "Nanoc"
+      }
+    },
+    {
+      "id": "opa",
+      "category": "other",
+      "template": "Opa",
+      "label": {
+        "zh": "Opa",
+        "en": "Opa"
+      }
+    },
+    {
+      "id": "opencart",
+      "category": "other",
+      "template": "OpenCart",
+      "label": {
+        "zh": "OpenCart",
+        "en": "OpenCart"
+      }
+    },
+    {
+      "id": "oracleforms",
+      "category": "other",
+      "template": "OracleForms",
+      "label": {
+        "zh": "OracleForms",
+        "en": "OracleForms"
+      }
+    },
+    {
+      "id": "phalcon",
+      "category": "other",
+      "template": "Phalcon",
+      "label": {
+        "zh": "Phalcon",
+        "en": "Phalcon"
+      }
+    },
+    {
+      "id": "playframework",
+      "category": "other",
+      "template": "PlayFramework",
+      "label": {
+        "zh": "PlayFramework",
+        "en": "PlayFramework"
+      }
+    },
+    {
+      "id": "plone",
+      "category": "other",
+      "template": "Plone",
+      "label": {
+        "zh": "Plone",
+        "en": "Plone"
+      }
+    },
+    {
+      "id": "prestashop",
+      "category": "other",
+      "template": "Prestashop",
+      "label": {
+        "zh": "Prestashop",
+        "en": "Prestashop"
+      }
+    },
+    {
+      "id": "processing",
+      "category": "other",
+      "template": "Processing",
+      "label": {
+        "zh": "Processing",
+        "en": "Processing"
+      }
+    },
+    {
+      "id": "purescript",
+      "category": "other",
+      "template": "PureScript",
+      "label": {
+        "zh": "PureScript",
+        "en": "PureScript"
+      }
+    },
+    {
+      "id": "qooxdoo",
+      "category": "other",
+      "template": "Qooxdoo",
+      "label": {
+        "zh": "Qooxdoo",
+        "en": "Qooxdoo"
+      }
+    },
+    {
+      "id": "ros",
+      "category": "other",
+      "template": "ROS",
+      "label": {
+        "zh": "ROS",
+        "en": "ROS"
+      }
+    },
+    {
+      "id": "racket",
+      "category": "other",
+      "template": "Racket",
+      "label": {
+        "zh": "Racket",
+        "en": "Racket"
+      }
+    },
+    {
+      "id": "raku",
+      "category": "other",
+      "template": "Raku",
+      "label": {
+        "zh": "Raku",
+        "en": "Raku"
+      }
+    },
+    {
+      "id": "rescript",
+      "category": "other",
+      "template": "ReScript",
+      "label": {
+        "zh": "ReScript",
+        "en": "ReScript"
+      }
+    },
+    {
+      "id": "rhodesrhomobile",
+      "category": "other",
+      "template": "RhodesRhomobile",
+      "label": {
+        "zh": "RhodesRhomobile",
+        "en": "RhodesRhomobile"
+      }
+    },
+    {
+      "id": "ssdt-sqlproj",
+      "category": "other",
+      "template": "SSDT-sqlproj",
+      "label": {
+        "zh": "SSDT-sqlproj",
+        "en": "SSDT-sqlproj"
+      }
+    },
+    {
+      "id": "salesforce",
+      "category": "other",
+      "template": "Salesforce",
+      "label": {
+        "zh": "Salesforce",
+        "en": "Salesforce"
+      }
+    },
+    {
+      "id": "scheme",
+      "category": "other",
+      "template": "Scheme",
+      "label": {
+        "zh": "Scheme",
+        "en": "Scheme"
+      }
+    },
+    {
+      "id": "sdcc",
+      "category": "other",
+      "template": "Sdcc",
+      "label": {
+        "zh": "Sdcc",
+        "en": "Sdcc"
+      }
+    },
+    {
+      "id": "seamgen",
+      "category": "other",
+      "template": "SeamGen",
+      "label": {
+        "zh": "SeamGen",
+        "en": "SeamGen"
+      }
+    },
+    {
+      "id": "sketchup",
+      "category": "other",
+      "template": "SketchUp",
+      "label": {
+        "zh": "SketchUp",
+        "en": "SketchUp"
+      }
+    },
+    {
+      "id": "smalltalk",
+      "category": "other",
+      "template": "Smalltalk",
+      "label": {
+        "zh": "Smalltalk",
+        "en": "Smalltalk"
+      }
+    },
+    {
+      "id": "solidworks",
+      "category": "other",
+      "template": "SolidWorks",
+      "label": {
+        "zh": "SolidWorks",
+        "en": "SolidWorks"
+      }
+    },
+    {
+      "id": "sugarcrm",
+      "category": "other",
+      "template": "SugarCRM",
+      "label": {
+        "zh": "SugarCRM",
+        "en": "SugarCRM"
+      }
+    },
+    {
+      "id": "symphonycms",
+      "category": "other",
+      "template": "SymphonyCMS",
+      "label": {
+        "zh": "SymphonyCMS",
+        "en": "SymphonyCMS"
+      }
+    },
+    {
+      "id": "testcomplete",
+      "category": "other",
+      "template": "TestComplete",
+      "label": {
+        "zh": "TestComplete",
+        "en": "TestComplete"
+      }
+    },
+    {
+      "id": "textpattern",
+      "category": "other",
+      "template": "Textpattern",
+      "label": {
+        "zh": "Textpattern",
+        "en": "Textpattern"
+      }
+    },
+    {
+      "id": "turbogears2",
+      "category": "other",
+      "template": "TurboGears2",
+      "label": {
+        "zh": "TurboGears2",
+        "en": "TurboGears2"
+      }
+    },
+    {
+      "id": "twincat3",
+      "category": "other",
+      "template": "TwinCAT3",
+      "label": {
+        "zh": "TwinCAT3",
+        "en": "TwinCAT3"
+      }
+    },
+    {
+      "id": "typo3",
+      "category": "other",
+      "template": "Typo3",
+      "label": {
+        "zh": "Typo3",
+        "en": "Typo3"
+      }
+    },
+    {
+      "id": "vba",
+      "category": "other",
+      "template": "VBA",
+      "label": {
+        "zh": "VBA",
+        "en": "VBA"
+      }
+    },
+    {
+      "id": "waf",
+      "category": "other",
+      "template": "Waf",
+      "label": {
+        "zh": "Waf",
+        "en": "Waf"
+      }
+    },
+    {
+      "id": "xojo",
+      "category": "other",
+      "template": "Xojo",
+      "label": {
+        "zh": "Xojo",
+        "en": "Xojo"
+      }
+    },
+    {
+      "id": "yeoman",
+      "category": "other",
+      "template": "Yeoman",
+      "label": {
+        "zh": "Yeoman",
+        "en": "Yeoman"
+      }
+    },
+    {
+      "id": "yii",
+      "category": "other",
+      "template": "Yii",
+      "label": {
+        "zh": "Yii",
+        "en": "Yii"
+      }
+    },
+    {
+      "id": "zendframework",
+      "category": "other",
+      "template": "ZendFramework",
+      "label": {
+        "zh": "ZendFramework",
+        "en": "ZendFramework"
+      }
+    },
+    {
+      "id": "zephir",
+      "category": "other",
+      "template": "Zephir",
+      "label": {
+        "zh": "Zephir",
+        "en": "Zephir"
+      }
+    },
+    {
+      "id": "global-al",
+      "category": "other",
+      "template": "Global/AL",
+      "label": {
+        "zh": "AL",
+        "en": "AL"
+      }
+    },
+    {
+      "id": "global-agents",
+      "category": "other",
+      "template": "Global/Agents",
+      "label": {
+        "zh": "Agents",
+        "en": "Agents"
+      }
+    },
+    {
+      "id": "global-anjuta",
+      "category": "other",
+      "template": "Global/Anjuta",
+      "label": {
+        "zh": "Anjuta",
+        "en": "Anjuta"
+      }
+    },
+    {
+      "id": "global-bazaar",
+      "category": "other",
+      "template": "Global/Bazaar",
+      "label": {
+        "zh": "Bazaar",
+        "en": "Bazaar"
+      }
+    },
+    {
+      "id": "global-bricxcc",
+      "category": "other",
+      "template": "Global/BricxCC",
+      "label": {
+        "zh": "BricxCC",
+        "en": "BricxCC"
+      }
+    },
+    {
+      "id": "global-cvs",
+      "category": "other",
+      "template": "Global/CVS",
+      "label": {
+        "zh": "CVS",
+        "en": "CVS"
+      }
+    },
+    {
+      "id": "global-calabash",
+      "category": "other",
+      "template": "Global/Calabash",
+      "label": {
+        "zh": "Calabash",
+        "en": "Calabash"
+      }
+    },
+    {
+      "id": "global-cloud9",
+      "category": "other",
+      "template": "Global/Cloud9",
+      "label": {
+        "zh": "Cloud9",
+        "en": "Cloud9"
+      }
+    },
+    {
+      "id": "global-darteditor",
+      "category": "other",
+      "template": "Global/DartEditor",
+      "label": {
+        "zh": "DartEditor",
+        "en": "DartEditor"
+      }
+    },
+    {
+      "id": "global-dreamweaver",
+      "category": "other",
+      "template": "Global/Dreamweaver",
+      "label": {
+        "zh": "Dreamweaver",
+        "en": "Dreamweaver"
+      }
+    },
+    {
+      "id": "global-eiffelstudio",
+      "category": "other",
+      "template": "Global/EiffelStudio",
+      "label": {
+        "zh": "EiffelStudio",
+        "en": "EiffelStudio"
+      }
+    },
+    {
+      "id": "global-ensime",
+      "category": "other",
+      "template": "Global/Ensime",
+      "label": {
+        "zh": "Ensime",
+        "en": "Ensime"
+      }
+    },
+    {
+      "id": "global-espresso",
+      "category": "other",
+      "template": "Global/Espresso",
+      "label": {
+        "zh": "Espresso",
+        "en": "Espresso"
+      }
+    },
+    {
+      "id": "global-flexbuilder",
+      "category": "other",
+      "template": "Global/FlexBuilder",
+      "label": {
+        "zh": "FlexBuilder",
+        "en": "FlexBuilder"
+      }
+    },
+    {
+      "id": "global-images",
+      "category": "other",
+      "template": "Global/Images",
+      "label": {
+        "zh": "Images",
+        "en": "Images"
+      }
+    },
+    {
+      "id": "global-jdeveloper",
+      "category": "other",
+      "template": "Global/JDeveloper",
+      "label": {
+        "zh": "JDeveloper",
+        "en": "JDeveloper"
+      }
+    },
+    {
+      "id": "global-jenv",
+      "category": "other",
+      "template": "Global/JEnv",
+      "label": {
+        "zh": "JEnv",
+        "en": "JEnv"
+      }
+    },
+    {
+      "id": "global-kdevelop4",
+      "category": "other",
+      "template": "Global/KDevelop4",
+      "label": {
+        "zh": "KDevelop4",
+        "en": "KDevelop4"
+      }
+    },
+    {
+      "id": "global-lazarus",
+      "category": "other",
+      "template": "Global/Lazarus",
+      "label": {
+        "zh": "Lazarus",
+        "en": "Lazarus"
+      }
+    },
+    {
+      "id": "global-lefthook",
+      "category": "other",
+      "template": "Global/Lefthook",
+      "label": {
+        "zh": "Lefthook",
+        "en": "Lefthook"
+      }
+    },
+    {
+      "id": "global-libreoffice",
+      "category": "other",
+      "template": "Global/LibreOffice",
+      "label": {
+        "zh": "LibreOffice",
+        "en": "LibreOffice"
+      }
+    },
+    {
+      "id": "global-lyx",
+      "category": "other",
+      "template": "Global/LyX",
+      "label": {
+        "zh": "LyX",
+        "en": "LyX"
+      }
+    },
+    {
+      "id": "global-matlab",
+      "category": "other",
+      "template": "Global/MATLAB",
+      "label": {
+        "zh": "MATLAB",
+        "en": "MATLAB"
+      }
+    },
+    {
+      "id": "global-mercurial",
+      "category": "other",
+      "template": "Global/Mercurial",
+      "label": {
+        "zh": "Mercurial",
+        "en": "Mercurial"
+      }
+    },
+    {
+      "id": "global-microsoftoffice",
+      "category": "other",
+      "template": "Global/MicrosoftOffice",
+      "label": {
+        "zh": "MicrosoftOffice",
+        "en": "MicrosoftOffice"
+      }
+    },
+    {
+      "id": "global-momentics",
+      "category": "other",
+      "template": "Global/Momentics",
+      "label": {
+        "zh": "Momentics",
+        "en": "Momentics"
+      }
+    },
+    {
+      "id": "global-monodevelop",
+      "category": "other",
+      "template": "Global/MonoDevelop",
+      "label": {
+        "zh": "MonoDevelop",
+        "en": "MonoDevelop"
+      }
+    },
+    {
+      "id": "global-notepadpp",
+      "category": "other",
+      "template": "Global/NotepadPP",
+      "label": {
+        "zh": "NotepadPP",
+        "en": "NotepadPP"
+      }
+    },
+    {
+      "id": "global-octave",
+      "category": "other",
+      "template": "Global/Octave",
+      "label": {
+        "zh": "Octave",
+        "en": "Octave"
+      }
+    },
+    {
+      "id": "global-ohmyopenagent",
+      "category": "other",
+      "template": "Global/OhMyOpenAgent",
+      "label": {
+        "zh": "OhMyOpenAgent",
+        "en": "OhMyOpenAgent"
+      }
+    },
+    {
+      "id": "global-otto",
+      "category": "other",
+      "template": "Global/Otto",
+      "label": {
+        "zh": "Otto",
+        "en": "Otto"
+      }
+    },
+    {
+      "id": "global-psoccreator",
+      "category": "other",
+      "template": "Global/PSoCCreator",
+      "label": {
+        "zh": "PSoCCreator",
+        "en": "PSoCCreator"
+      }
+    },
+    {
+      "id": "global-patch",
+      "category": "other",
+      "template": "Global/Patch",
+      "label": {
+        "zh": "Patch",
+        "en": "Patch"
+      }
+    },
+    {
+      "id": "global-platformio",
+      "category": "other",
+      "template": "Global/PlatformIO",
+      "label": {
+        "zh": "PlatformIO",
+        "en": "PlatformIO"
+      }
+    },
+    {
+      "id": "global-putty",
+      "category": "other",
+      "template": "Global/PuTTY",
+      "label": {
+        "zh": "PuTTY",
+        "en": "PuTTY"
+      }
+    },
+    {
+      "id": "global-redcar",
+      "category": "other",
+      "template": "Global/Redcar",
+      "label": {
+        "zh": "Redcar",
+        "en": "Redcar"
+      }
+    },
+    {
+      "id": "global-redis",
+      "category": "other",
+      "template": "Global/Redis",
+      "label": {
+        "zh": "Redis",
+        "en": "Redis"
+      }
+    },
+    {
+      "id": "global-stm32cubeide",
+      "category": "other",
+      "template": "Global/STM32CubeIDE",
+      "label": {
+        "zh": "STM32CubeIDE",
+        "en": "STM32CubeIDE"
+      }
+    },
+    {
+      "id": "global-svn",
+      "category": "other",
+      "template": "Global/SVN",
+      "label": {
+        "zh": "SVN",
+        "en": "SVN"
+      }
+    },
+    {
+      "id": "global-slickedit",
+      "category": "other",
+      "template": "Global/SlickEdit",
+      "label": {
+        "zh": "SlickEdit",
+        "en": "SlickEdit"
+      }
+    },
+    {
+      "id": "global-stata",
+      "category": "other",
+      "template": "Global/Stata",
+      "label": {
+        "zh": "Stata",
+        "en": "Stata"
+      }
+    },
+    {
+      "id": "global-syncthing",
+      "category": "other",
+      "template": "Global/Syncthing",
+      "label": {
+        "zh": "Syncthing",
+        "en": "Syncthing"
+      }
+    },
+    {
+      "id": "global-synopsysvcs",
+      "category": "other",
+      "template": "Global/SynopsysVCS",
+      "label": {
+        "zh": "SynopsysVCS",
+        "en": "SynopsysVCS"
+      }
+    },
+    {
+      "id": "global-tortoisegit",
+      "category": "other",
+      "template": "Global/TortoiseGit",
+      "label": {
+        "zh": "TortoiseGit",
+        "en": "TortoiseGit"
+      }
+    },
+    {
+      "id": "global-vagrant",
+      "category": "other",
+      "template": "Global/Vagrant",
+      "label": {
+        "zh": "Vagrant",
+        "en": "Vagrant"
+      }
+    },
+    {
+      "id": "global-virtuoso",
+      "category": "other",
+      "template": "Global/Virtuoso",
+      "label": {
+        "zh": "Virtuoso",
+        "en": "Virtuoso"
+      }
+    },
+    {
+      "id": "global-webmethods",
+      "category": "other",
+      "template": "Global/WebMethods",
+      "label": {
+        "zh": "WebMethods",
+        "en": "WebMethods"
+      }
+    },
+    {
+      "id": "global-xilinxise",
+      "category": "other",
+      "template": "Global/XilinxISE",
+      "label": {
+        "zh": "XilinxISE",
+        "en": "XilinxISE"
+      }
+    },
+    {
+      "id": "global-mise",
+      "category": "other",
+      "template": "Global/mise",
+      "label": {
+        "zh": "mise",
+        "en": "mise"
+      }
     }
   ]
 }

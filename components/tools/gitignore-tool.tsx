@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Download } from "lucide-react";
+import { ChevronDown, Download } from "lucide-react";
 import { CopyButton, OutputArea, Pane } from "@/components/tools/tool-ui";
 import { useCopy, useLocale } from "@/components/locale-provider";
 import { Button } from "@/components/ui/button";
@@ -33,7 +33,7 @@ const COPY = {
     custom: "补充规则",
     customPlaceholder: "每行一条，例如 public/uploads/ 或 *.psd",
     lines: "行",
-    note: "规则取自 github/gitignore 官方模板（CC0）：语言、框架、项目类型各自一份模板，编辑器、操作系统与通用工具放在 Global 分类，本地再补充模板缺失的规则。选中的分类按组拼接并去重，`!` 开头的例外规则保留，补充规则追加在末尾。",
+    note: "规则取自 github/gitignore 官方模板（CC0）：语言、框架、项目类型各自一份模板，编辑器、操作系统与通用工具放在 Global 分类，本地再补充模板缺失的规则。冷门语言与专用工具的模板收在「其它模板」里，展开即可选用。选中的分类按组拼接并去重，`!` 开头的例外规则保留，补充规则追加在末尾。",
   },
   en: {
     presets: "Presets",
@@ -49,7 +49,7 @@ const COPY = {
     custom: "Extra rules",
     customPlaceholder: "One per line, e.g. public/uploads/ or *.psd",
     lines: "lines",
-    note: "Patterns come from the official github/gitignore templates (CC0): one file per language, framework or project type, with editors, operating systems and tools under Global; a few rules are added locally where upstream has no template. Selected groups are merged and de-duplicated, `!` exceptions are kept and extra rules are appended verbatim.",
+    note: "Patterns come from the official github/gitignore templates (CC0): one file per language, framework or project type, with editors, operating systems and tools under Global; a few rules are added locally where upstream has no template. Niche languages and dedicated tools live under “Other templates”, one click to unfold. Selected groups are merged and de-duplicated, `!` exceptions are kept and extra rules are appended verbatim.",
   },
 };
 
@@ -62,6 +62,7 @@ export function GitignoreTool() {
   const [selected, setSelected] = React.useState<string[]>(DEFAULT_IGNORE);
   const [query, setQuery] = React.useState("");
   const [extra, setExtra] = React.useState("");
+  const [showOther, setShowOther] = React.useState(false);
 
   const output = React.useMemo(
     () => buildGitignore(selected, locale, extra),
@@ -82,6 +83,11 @@ export function GitignoreTool() {
     category,
     groups: visible.filter((group) => group.category === category.id),
   })).filter((section) => section.groups.length > 0);
+
+  // The "other templates" bucket holds ~140 niche upstream files. It stays
+  // folded until asked for, and opens automatically while searching.
+  const openOther = showOther || keyword.length > 0;
+  const selectable = openOther ? visible : visible.filter((group) => group.category !== "other");
 
   const toggle = (id: string) =>
     setSelected((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
@@ -136,7 +142,7 @@ export function GitignoreTool() {
                 size="xs"
                 onClick={() =>
                   setSelected((prev) =>
-                    Array.from(new Set([...prev, ...visible.map((group) => group.id)]))
+                    Array.from(new Set([...prev, ...selectable.map((group) => group.id)]))
                   )
                 }
                 className="text-foreground-muted"
@@ -160,22 +166,44 @@ export function GitignoreTool() {
               {sections.map(({ category, groups }) => {
                 const ids = groups.map((group) => group.id);
                 const allSelected = ids.every((id) => selected.includes(id));
+                const isOther = category.id === "other";
+                const open = isOther ? openOther : true;
                 return (
                   <div key={category.id} className="flex flex-col gap-1.5">
                     <div className="flex items-center gap-2">
-                      <span className="text-[11px] font-medium uppercase tracking-wide text-foreground-subtle">
-                        {categoryLabel(category, locale)}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => toggleSection(ids, allSelected)}
-                        className="text-[11px] text-foreground-faint transition-colors hover:text-foreground-muted"
-                      >
-                        {allSelected ? t.groupNone : t.groupAll}
-                      </button>
+                      {isOther ? (
+                        <button
+                          type="button"
+                          aria-expanded={open}
+                          onClick={() => setShowOther((prev) => !prev)}
+                          className="inline-flex items-center gap-1 text-[11px] font-medium uppercase tracking-wide text-foreground-subtle transition-colors hover:text-foreground-muted"
+                        >
+                          <ChevronDown
+                            className={cn(
+                              "h-3 w-3 transition-transform duration-base",
+                              !open && "-rotate-90"
+                            )}
+                          />
+                          {categoryLabel(category, locale)}
+                          <span className="text-foreground-faint">{groups.length}</span>
+                        </button>
+                      ) : (
+                        <>
+                          <span className="text-[11px] font-medium uppercase tracking-wide text-foreground-subtle">
+                            {categoryLabel(category, locale)}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => toggleSection(ids, allSelected)}
+                            className="text-[11px] text-foreground-faint transition-colors hover:text-foreground-muted"
+                          >
+                            {allSelected ? t.groupNone : t.groupAll}
+                          </button>
+                        </>
+                      )}
                       <span className="h-px flex-1 bg-border" />
                     </div>
-                    <div className="flex flex-wrap gap-1.5">
+                    <div className={cn("flex-wrap gap-1.5", open ? "flex" : "hidden")}>
                       {groups.map((group) => {
                         const active = selected.includes(group.id);
                         return (
