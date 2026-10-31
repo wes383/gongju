@@ -11,6 +11,7 @@ import {
   CalendarRange,
   Clock,
   Code2,
+  CreditCard,
   Dices,
   Eraser,
   FileCode2,
@@ -1374,6 +1375,16 @@ const miscTools: ToolMeta[] = [
     },
     keywords: ["notes", "记事本", "笔记", "notepad", "memo", "便签"],
     icon: NotebookPen,
+  }),
+  miscTool({
+    slug: "card-luhn",
+    name: { zh: "银行卡号校验", en: "Card Number Check" },
+    description: {
+      zh: "用 Luhn 算法校验银行卡号，识别卡组织并查看逐位计算过程",
+      en: "Validate card numbers with the Luhn algorithm, detect the issuer and see the per-digit math",
+    },
+    keywords: ["card", "credit", "luhn", "银行卡", "信用卡", "校验", "卡号", "mod10"],
+    icon: CreditCard,
   }),
 ];
 
