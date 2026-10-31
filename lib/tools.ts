@@ -86,6 +86,14 @@ import {
   ClipboardList,
   Dice5,
   Keyboard,
+  Sheet,
+  FileJson2,
+  Sparkles,
+  TableProperties,
+  FileTerminal,
+  Ban,
+  PenTool,
+  AppWindow,
   FileArchive,
   FolderArchive,
   Quote,
@@ -381,6 +389,36 @@ const jsonTools: ToolMeta[] = [
     },
     keywords: ["json", "sort", "dedupe", "flatten", "排序", "去重", "扁平化"],
     icon: Wand2,
+  }),
+  jsonTool({
+    slug: "csv-table",
+    name: { zh: "CSV 表格查看 / 编辑", en: "CSV Table Viewer" },
+    description: {
+      zh: "以表格查看并编辑 CSV / TSV，支持列统计与导出",
+      en: "View and edit CSV / TSV as a table, with column stats and export",
+    },
+    keywords: ["csv", "tsv", "表格", "查看", "编辑", "table", "excel"],
+    icon: Sheet,
+  }),
+  jsonTool({
+    slug: "json-schema",
+    name: { zh: "JSON Schema 校验 / 生成", en: "JSON Schema Validate / Generate" },
+    description: {
+      zh: "从 JSON 样例生成 Schema，或按 Schema 校验数据",
+      en: "Generate a schema from a sample, or validate data against one",
+    },
+    keywords: ["json schema", "校验", "validate", "schema", "生成", "ajv"],
+    icon: FileJson2,
+  }),
+  jsonTool({
+    slug: "json-mock",
+    name: { zh: "JSON Mock 数据生成", en: "JSON Mock Generator" },
+    description: {
+      zh: "按 Schema 批量生成模拟数据，可下载 JSON",
+      en: "Generate mock rows from a schema and download them as JSON",
+    },
+    keywords: ["mock", "模拟数据", "假数据", "测试数据", "fake", "seed"],
+    icon: Sparkles,
   }),
 ];
 
@@ -794,6 +832,26 @@ const imageTools: ToolMeta[] = [
     keywords: ["圆角", "边框", "frame", "圆角图片", "阴影", "留白"],
     icon: Frame,
   }),
+  imageTool({
+    slug: "svg",
+    name: { zh: "SVG 优化 / 转 PNG", en: "SVG Optimise / PNG" },
+    description: {
+      zh: "去掉注释与冗余数值，并导出 PNG",
+      en: "Strip comments and verbose numbers, then export PNG",
+    },
+    keywords: ["svg", "优化", "压缩", "png", "optimize", "转换"],
+    icon: PenTool,
+  }),
+  imageTool({
+    slug: "favicon",
+    name: { zh: "Favicon 生成器", en: "Favicon Generator" },
+    description: {
+      zh: "从一张图片生成多尺寸 favicon 与 .ico",
+      en: "Generate every favicon size plus .ico from one image",
+    },
+    keywords: ["favicon", "ico", "图标", "icon", "apple-touch-icon"],
+    icon: AppWindow,
+  }),
 ];
 
 const colorTools: ToolMeta[] = [
@@ -1033,6 +1091,26 @@ const devTools: ToolMeta[] = [
     keywords: ["device", "屏幕", "分辨率", "视口", "dpr", "ua", "设备"],
     icon: Laptop,
   }),
+  devTool({
+    slug: "sql-generate",
+    name: { zh: "SQL 生成器", en: "SQL Generator" },
+    description: {
+      zh: "把 CSV 转成 CREATE TABLE 与 INSERT 语句",
+      en: "Turn CSV into CREATE TABLE and INSERT statements",
+    },
+    keywords: ["sql", "insert", "create table", "建表", "导出", "mysql"],
+    icon: TableProperties,
+  }),
+  devTool({
+    slug: "gitignore",
+    name: { zh: ".gitignore 生成器", en: ".gitignore Generator" },
+    description: {
+      zh: "按语言、编辑器、系统组合生成 .gitignore",
+      en: "Compose a .gitignore from language, editor and OS blocks",
+    },
+    keywords: ["gitignore", "git", "忽略", "ignore", "模板"],
+    icon: Ban,
+  }),
 ];
 
 const networkTools: ToolMeta[] = [
@@ -1065,6 +1143,16 @@ const networkTools: ToolMeta[] = [
     },
     keywords: ["header", "请求头", "响应头", "cors", "curl", "http"],
     icon: Rows3,
+  }),
+  netTool({
+    slug: "curl-to-code",
+    name: { zh: "cURL 转代码", en: "cURL to Code" },
+    description: {
+      zh: "把 curl 命令转成 fetch、axios、Python 或 Go 代码",
+      en: "Turn a curl command into fetch, axios, Python or Go code",
+    },
+    keywords: ["curl", "fetch", "axios", "python", "go", "请求"],
+    icon: FileTerminal,
   }),
 ];
 
@@ -1303,8 +1391,8 @@ export const categories: CategoryMeta[] = [
     id: "image",
     name: { zh: "图片处理", en: "Images" },
     description: {
-      zh: "压缩、转换、裁剪、水印、取色",
-      en: "Compress, convert, crop, watermark and pick colors",
+      zh: "压缩、转换、SVG 优化、图标生成与取色",
+      en: "Compress, convert, optimise SVG, generate icons and pick colors",
     },
     icon: ImageIcon,
     tools: imageTools,
@@ -1373,8 +1461,8 @@ export const categories: CategoryMeta[] = [
     id: "json",
     name: { zh: "JSON / 数据格式", en: "JSON / Data" },
     description: {
-      zh: "格式化、校验、对比、树形浏览与类型生成",
-      en: "Format, validate, diff, browse and generate types from JSON",
+      zh: "格式化、Schema 校验、Mock 数据、表格视图与类型生成",
+      en: "Format, validate schemas, mock data, table views and type generation",
     },
     icon: Braces,
     tools: jsonTools,
@@ -1393,8 +1481,8 @@ export const categories: CategoryMeta[] = [
     id: "dev",
     name: { zh: "开发者 / 代码", en: "Developer / Code" },
     description: {
-      zh: "SQL、代码格式化、状态码、UA 解析",
-      en: "SQL, code formatting, status codes and user-agent parsing",
+      zh: "SQL、代码格式化、状态码、UA 解析与 .gitignore",
+      en: "SQL, code formatting, status codes, user-agent parsing and .gitignore",
     },
     icon: Terminal,
     tools: devTools,
@@ -1403,8 +1491,8 @@ export const categories: CategoryMeta[] = [
     id: "network",
     name: { zh: "网络 / URL", en: "Network / URL" },
     description: {
-      zh: "URL 结构解析、IP 校验、Header 生成",
-      en: "URL structure, IP validation and header builders",
+      zh: "URL 解析、IP 校验、Header 生成与 cURL 转代码",
+      en: "URL structure, IP validation, header builders and cURL to code",
     },
     icon: Globe,
     tools: networkTools,

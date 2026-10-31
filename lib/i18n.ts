@@ -146,6 +146,8 @@ const zh: Dict = {
     "zip.invalid": "无法读取这个 ZIP，文件可能已损坏或不是标准格式",
     "zip.empty": "这个压缩包里没有文件",
     "pdfText.empty": "这个 PDF 里没有可提取的文字，可能是扫描件",
+    "csv.empty": "没有解析到可用的表格内容，检查一下分隔符或首行",
+    "csv.readFailed": "这个文件读不出来，换一个 CSV / TSV 试试",
   },
 };
 
@@ -234,6 +236,8 @@ const en: Dict = {
     "zip.invalid": "Cannot read this ZIP — the file may be corrupt or in another format",
     "zip.empty": "This archive contains no files",
     "pdfText.empty": "No selectable text in this PDF — it is probably a scan",
+    "csv.empty": "Nothing tabular was parsed — check the delimiter or the first row",
+    "csv.readFailed": "This file cannot be read — try another CSV / TSV",
   },
 };
 
