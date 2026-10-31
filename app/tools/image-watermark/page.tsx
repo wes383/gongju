@@ -5,7 +5,7 @@ import { ToolFrame } from "@/components/tools/tool-frame";
 import { ImageWatermarkTool } from "@/components/tools/image-watermark-tool";
 
 // Only the watermark tool draws with these, so they are loaded with this route
-// instead of the root layout. Latin first, CJK as the fallback for 汉字.
+// instead of the root layout. Latin first, CJK glyphs as the fallback.
 const playfair = Playfair_Display({
   subsets: ["latin"],
   variable: "--font-playfair",

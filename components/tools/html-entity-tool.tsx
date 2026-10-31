@@ -5,8 +5,8 @@ import * as React from "react";
 import {
   decodeHtmlEntities,
   encodeHtmlEntities,
-  safe,
 } from "@/lib/encoding";
+import { safe } from "@/lib/errors";
 import {
   useCopy,
 } from "@/components/locale-provider";

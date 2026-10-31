@@ -36,7 +36,7 @@ const COPY = {
     inset: "Inset",
     preview: "Preview",
     css: "CSS",
-    sample: "Shadow preview 阴影",
+    sample: "Shadow preview",
     note: "Box shadows support inset; text shadows have no spread. A larger blur softens the edge, while spread grows the shadow itself.",
   },
 };

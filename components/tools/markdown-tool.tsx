@@ -7,8 +7,8 @@ import {
 } from "marked";
 import TurndownService from "turndown";
 import {
-  safe,
 } from "@/lib/encoding";
+import { safe } from "@/lib/errors";
 import {
   useCopy,
 } from "@/components/locale-provider";

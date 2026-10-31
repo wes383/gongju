@@ -294,7 +294,7 @@ export function relativeTime(date: Date, now: Date, locale: string): string {
   return rtf.format(Math.round(diffSeconds / 31_536_000), "year");
 }
 
-/** "3 天 04:12:09" style breakdown for countdowns */
+/** "3d 04:12:09" style breakdown for countdowns */
 export function formatDuration(ms: number): { days: number; hh: string; mm: string; ss: string } {
   const total = Math.max(0, Math.floor(ms / 1000));
   return {

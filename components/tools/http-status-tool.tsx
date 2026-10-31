@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useCopy } from "@/components/locale-provider";
+import { useCopy, useLocale } from "@/components/locale-provider";
 import { Input } from "@/components/ui/input";
 import { CopyButton } from "@/components/tools/tool-ui";
 import { HTTP_STATUS, STATUS_CLASSES } from "@/lib/http-status";
@@ -26,6 +26,7 @@ const COPY = {
 
 export function HttpStatusTool() {
   const t = useCopy(COPY);
+  const locale = useLocale();
   const [query, setQuery] = React.useState("");
 
   const filtered = React.useMemo(() => {
@@ -66,7 +67,7 @@ export function HttpStatusTool() {
             return (
               <section key={group.id} className="overflow-hidden rounded-lg border border-border bg-surface">
                 <header className="flex h-10 items-center gap-2 border-b border-border px-4">
-                  <span className="text-xs font-semibold text-foreground">{group.label}</span>
+                  <span className="text-xs font-semibold text-foreground">{group[locale]}</span>
                   <span className="font-mono text-[11px] text-foreground-subtle">{group.range}</span>
                   <span className="ml-auto text-[11px] text-foreground-subtle">{items.length}</span>
                 </header>
@@ -98,10 +99,7 @@ export function HttpStatusTool() {
                             )}
                           </p>
                           <p className="mt-0.5 text-xs leading-relaxed text-foreground-muted">
-                            {item.zh}
-                          </p>
-                          <p className="text-[11px] leading-relaxed text-foreground-subtle">
-                            {item.en}
+                            {item[locale]}
                           </p>
                         </div>
                         <CopyButton value={`${item.code} ${item.name}`} size="icon-xs" />

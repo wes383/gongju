@@ -3,11 +3,11 @@
 import * as React from "react";
 
 import {
-  safe,
   textToUnicode,
   unicodeToText,
   type UnicodeFormat,
 } from "@/lib/encoding";
+import { safe } from "@/lib/errors";
 import {
   useCopy,
 } from "@/components/locale-provider";
@@ -51,10 +51,10 @@ const COPY = {
     plain: "Text",
     escapes: "Escapes",
     unicode: "Unicode",
-    inputPlaceholder: "Any text, e.g. 你好 or hello…",
+    inputPlaceholder: "Any text — letters, emoji or CJK…",
     unescapePlaceholder: "Paste \\u4E2D\\u6587 / &#20013; / U+4E2D sequences…",
     sample: "Sample",
-    sampleText: "Unicode escape: 你好，世界！",
+    sampleText: "Unicode escape: café ☕",
     note: "Unescaping understands \\uXXXX, \\u{1F600}, &#20013;, U+4E2D and 0x4E2D. Characters outside the BMP such as emoji are emitted as surrogate pairs in JS format.",
   },
 };

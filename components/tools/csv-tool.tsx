@@ -7,6 +7,7 @@ import {
 } from "@/lib/encoding";
 import {
   useCopy,
+  useLocale,
 } from "@/components/locale-provider";
 import {
   DualPane,
@@ -99,6 +100,7 @@ const SAMPLE_JSON = (role1: string, role2: string) =>
 
 export function CsvTool() {
   const t = useCopy(COPY);
+  const locale = useLocale();
   const [input, setInput] = React.useState("");
   const [mode, setMode] = React.useState<Mode>("csv2json");
   const [delimiter, setDelimiter] = React.useState<Delimiter>("auto");
@@ -239,8 +241,12 @@ export function CsvTool() {
           <SampleButton onClick={() =>
               setInput(
                 mode === "csv2json"
-                  ? SAMPLE_CSV("前端", "后端", "全栈")
-                  : SAMPLE_JSON("前端", "后端")
+                  ? locale === "zh"
+                    ? SAMPLE_CSV("前端", "后端", "全栈")
+                    : SAMPLE_CSV("Frontend", "Backend", "Full stack")
+                  : locale === "zh"
+                    ? SAMPLE_JSON("前端", "后端")
+                    : SAMPLE_JSON("Frontend", "Backend")
               )
             } />
         }

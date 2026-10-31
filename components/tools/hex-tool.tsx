@@ -4,10 +4,10 @@ import * as React from "react";
 
 import {
   hexToText,
-  safe,
   textToHex,
   type HexSeparator,
 } from "@/lib/encoding";
+import { safe } from "@/lib/errors";
 import {
   useCopy,
 } from "@/components/locale-provider";
@@ -54,7 +54,7 @@ const COPY = {
     inputPlaceholder: "Enter text…",
     decodePlaceholder: "Paste 48 65 6c 6c 6f or 48656c6c6f…",
     sample: "Sample",
-    sampleText: "Hello 世界",
+    sampleText: "Hello, world! ✓",
     note: "Conversion is byte-wise on UTF-8, and spaces, commas, 0x prefixes and newlines are ignored, so you can paste a hexdump fragment directly.",
   },
 };

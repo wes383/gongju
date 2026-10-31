@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { css as beautifyCss, html as beautifyHtml, js as beautifyJs } from "js-beautify";
-import { useCopy } from "@/components/locale-provider";
+import { useCopy, useLocale } from "@/components/locale-provider";
 import { DualPane, OptionBar, OptionField, SampleButton, Segmented } from "@/components/tools/tool-ui";
 
 const COPY = {
@@ -30,14 +30,16 @@ const COPY = {
 
 type Lang = "js" | "css" | "html";
 
-const SAMPLES: Record<Lang, string> = {
-  js: `// 计算订单总价
+/** Samples follow the UI language so an English page never shows Chinese code */
+const SAMPLES: Record<"zh" | "en", Record<Lang, string>> = {
+  zh: {
+    js: `// 计算订单总价
 function total(items) {
   /* 过滤掉下架商品 */
   return items.filter(function (item) { return item.active; })
     .reduce(function (sum, item) { return sum + item.price * item.qty; }, 0);
 }`,
-  css: `/* 主按钮 */
+    css: `/* 主按钮 */
 .btn {
   padding: 8px 16px;
   border-radius: 8px;
@@ -45,12 +47,35 @@ function total(items) {
   color: #fff;
 }
 .btn:hover { opacity: 0.9; }`,
-  html: `<!-- 卡片 -->
+    html: `<!-- 卡片 -->
 <div class="card">
   <h2 class="title">  标题  </h2>
   <p>  正文内容  </p>
   <pre>  这里  的空白   要保留  </pre>
 </div>`,
+  },
+  en: {
+    js: `// Order total
+function total(items) {
+  /* Skip delisted products */
+  return items.filter(function (item) { return item.active; })
+    .reduce(function (sum, item) { return sum + item.price * item.qty; }, 0);
+}`,
+    css: `/* Primary button */
+.btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #6366f1, #ec4899);
+  color: #fff;
+}
+.btn:hover { opacity: 0.9; }`,
+    html: `<!-- Card -->
+<div class="card">
+  <h2 class="title">  Heading  </h2>
+  <p>  Body copy  </p>
+  <pre>  Whitespace   here   is kept  </pre>
+</div>`,
+  },
 };
 
 const PLACEHOLDER: Record<Lang, string> = { js: "// JavaScript", css: "/* CSS */", html: "<!-- HTML -->" };
@@ -172,14 +197,18 @@ function minifyJs(code: string): string {
 
 export function CodeFormatTool() {
   const t = useCopy(COPY);
+  const locale = useLocale();
+  const samples = SAMPLES[locale];
   const [lang, setLang] = React.useState<Lang>("js");
   const [mode, setMode] = React.useState<"format" | "minify">("format");
   const [indent, setIndent] = React.useState(2);
-  const [input, setInput] = React.useState(SAMPLES.js);
+  const [input, setInput] = React.useState("");
 
   const switchLang = (next: Lang) => {
     setLang(next);
-    setInput(SAMPLES[next]);
+    // Only pull in the sample when the pane is still empty, so switching the
+    // language never throws away code the user already typed
+    setInput((current) => (current.trim() ? current : SAMPLES[locale][next]));
   };
 
   const result = React.useMemo(() => {
@@ -256,7 +285,7 @@ export function CodeFormatTool() {
         inputLabel={lang.toUpperCase()}
         outputLabel={outputLabel}
         inputPlaceholder={PLACEHOLDER[lang]}
-        inputActions={<SampleButton onClick={() => setInput(SAMPLES[lang])} label={t.sample} />}
+        inputActions={<SampleButton onClick={() => setInput(samples[lang])} label={t.sample} />}
         onClear={() => setInput("")}
       />
 

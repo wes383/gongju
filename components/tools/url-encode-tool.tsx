@@ -5,9 +5,9 @@ import * as React from "react";
 import {
   decodeUrl,
   encodeUrl,
-  safe,
   type UrlEncodeMode,
 } from "@/lib/encoding";
+import { safe } from "@/lib/errors";
 import {
   useCopy,
 } from "@/components/locale-provider";

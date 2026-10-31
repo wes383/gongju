@@ -41,7 +41,7 @@ const COPY = {
     plain: "Plain text",
     cipher: "Result",
     placeholder: "Text to encrypt or decrypt…",
-    sampleText: "Hello, GongJu! 这是一段测试文本。",
+    sampleText: "Hello, GongJu! This is a test string.",
     hint: "ROT13, Atbash and reversal are symmetric — applying twice restores the text",
     warning:
       "These are substitution ciphers. Anyone can reverse them, so never use them to protect passwords or private data.",

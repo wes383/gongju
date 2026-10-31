@@ -19,6 +19,14 @@ const COPY = {
     identical: "两段文本完全一致",
     empty: "在两侧填入文本后开始对比",
     tooLarge: (n: number) => `文本过长，最多支持 ${n} 行`,
+    sampleLeft: `第一行：保持不动
+第二行：这一行会被修改
+第三行：这一行会被删除
+第四行：保持不动`,
+    sampleRight: `第一行：保持不动
+第二行：这一行已经被修改
+第四行：保持不动
+第五行：这是新增的一行`,
   },
   en: {
     left: "Original",
@@ -31,18 +39,16 @@ const COPY = {
     identical: "Both texts are identical",
     empty: "Fill in both sides to start comparing",
     tooLarge: (n: number) => `Text is too long, the limit is ${n} lines`,
+    sampleLeft: `Line 1: stays the same
+Line 2: this line gets edited
+Line 3: this line gets removed
+Line 4: stays the same`,
+    sampleRight: `Line 1: stays the same
+Line 2: this line was edited
+Line 4: stays the same
+Line 5: this line is new`,
   },
 };
-
-const SAMPLE_LEFT = `第一行：保持不动
-第二行：这一行会被修改
-第三行：这一行会被删除
-第四行：保持不动`;
-
-const SAMPLE_RIGHT = `第一行：保持不动
-第二行：这一行已经被修改
-第四行：保持不动
-第五行：这是新增的一行`;
 
 function Row({ item }: { item: LineDiff }) {
   return (
@@ -141,8 +147,8 @@ export function TextDiffTool() {
       <OptionBar>
         <SampleButton
           onClick={() => {
-            setLeft(SAMPLE_LEFT);
-            setRight(SAMPLE_RIGHT);
+            setLeft(t.sampleLeft);
+            setRight(t.sampleRight);
           }}
         />
         <Toggle checked={onlyDiff} onChange={setOnlyDiff} label={t.onlyDiff} />

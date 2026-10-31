@@ -30,7 +30,7 @@ export type FontKey = "sans" | "serif";
 
 /**
  * Fonts come from the site's own webfonts, loaded only for this route.
- * Latin face first, CJK face second: Inter / Playfair have no 汉字, so the
+ * Latin face first, CJK face second: Inter / Playfair have no CJK glyphs, so the
  * browser falls through to Noto Sans SC / Noto Serif SC for those glyphs.
  */
 const FONTS: Record<

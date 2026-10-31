@@ -103,7 +103,8 @@ function normalizeUrl(value: string): string {
 export function QrcodeTool() {
   const t = useCopy(COPY);
   const [kind, setKind] = React.useState<Kind>("url");
-  const [text, setText] = React.useState("GongJu 在线工具箱");
+  // Starts empty: a Chinese default would leak into the English UI
+  const [text, setText] = React.useState("");
   const [url, setUrl] = React.useState("https://www.google.com");
   const [wifi, setWifi] = React.useState({
     ssid: "",

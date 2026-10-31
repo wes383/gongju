@@ -38,7 +38,7 @@ const COPY = {
     compact: "None",
     inputLabel: "Chinese",
     outputLabel: "Pinyin",
-    placeholder: "Type Chinese, e.g. 中文测试",
+    placeholder: "Type Chinese characters…",
     sampleText: "中文测试，你好世界！",
     hint: "Non-Chinese characters are kept as-is",
   },

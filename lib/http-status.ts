@@ -94,10 +94,10 @@ export const HTTP_STATUS: HttpStatus[] = [
   { code: 599, name: "Network Connect Timeout", zh: "网络连接超时。代理连接上游超时，非标准。", en: "Network Connect Timeout. A proxy timed out connecting upstream; not standard.", nonStandard: true },
 ];
 
-export const STATUS_CLASSES: { id: string; label: string; range: string }[] = [
-  { id: "1xx", label: "1xx 信息", range: "100–199" },
-  { id: "2xx", label: "2xx 成功", range: "200–299" },
-  { id: "3xx", label: "3xx 重定向", range: "300–399" },
-  { id: "4xx", label: "4xx 客户端错误", range: "400–499" },
-  { id: "5xx", label: "5xx 服务端错误", range: "500–599" },
+export const STATUS_CLASSES: { id: string; zh: string; en: string; range: string }[] = [
+  { id: "1xx", zh: "1xx 信息", en: "1xx Informational", range: "100–199" },
+  { id: "2xx", zh: "2xx 成功", en: "2xx Success", range: "200–299" },
+  { id: "3xx", zh: "3xx 重定向", en: "3xx Redirection", range: "300–399" },
+  { id: "4xx", zh: "4xx 客户端错误", en: "4xx Client error", range: "400–499" },
+  { id: "5xx", zh: "5xx 服务端错误", en: "5xx Server error", range: "500–599" },
 ];

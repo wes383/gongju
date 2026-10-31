@@ -61,11 +61,27 @@ const COPY = {
     invalid: "That lunar date does not exist — try another month or day",
     invalidSolar: "Pick a valid Gregorian date",
     empty: "Pick a date to see the conversion",
-    note: "Covers 1900–2100. Leap months are prefixed with 闰. Festivals and solar terms are informational only.",
+    note: "Covers 1900–2100. Leap months are marked “leap”. Stem-branch, solar terms and festivals come from the calendar library, which only ships Chinese names for them.",
   },
 };
 
 type Mode = "solar2lunar" | "lunar2solar";
+
+/** The calendar library only returns Chinese zodiac names */
+const ZODIAC_EN: Record<string, string> = {
+  鼠: "Rat",
+  牛: "Ox",
+  虎: "Tiger",
+  兔: "Rabbit",
+  龙: "Dragon",
+  蛇: "Snake",
+  马: "Horse",
+  羊: "Goat",
+  猴: "Monkey",
+  鸡: "Rooster",
+  狗: "Dog",
+  猪: "Pig",
+};
 
 function pad(n: number) {
   return String(n).padStart(2, "0");
@@ -98,16 +114,20 @@ export function LunarTool() {
 
   const monthOptions = React.useMemo(
     () =>
-      lunarMonthOptions(year).map((option) => ({
+      lunarMonthOptions(year, locale).map((option) => ({
         value: String(option.value),
         label: option.label,
       })),
-    [year]
+    [year, locale]
   );
 
   const dayOptions = React.useMemo(
-    () => lunarDayOptions().map((option) => ({ value: String(option.value), label: option.label })),
-    []
+    () =>
+      lunarDayOptions(locale).map((option) => ({
+        value: String(option.value),
+        label: option.label,
+      })),
+    [locale]
   );
 
   const result = React.useMemo<{ info: LunarInfo | null; error: string | null }>(() => {
@@ -147,15 +167,27 @@ export function LunarTool() {
         { weekday: "long" }
       )
     : "";
-  const bigText = info
-    ? mode === "solar2lunar"
+  // Lunar month/day names are Chinese by nature; spell them out for English
+  const lunarText = info
+    ? locale === "zh"
       ? `${info.yearChinese}年 ${info.lunar.monthName}月 ${info.lunar.dayName}`
-      : `${info.solar.year} 年 ${info.solar.month} 月 ${info.solar.day} 日`
+      : `${info.lunar.year} · ${info.lunar.isLeapMonth ? "leap month " : "month "}${Math.abs(
+          info.lunar.month
+        )} · day ${info.lunar.day}`
     : "";
+  const solarText = info
+    ? locale === "zh"
+      ? `${info.solar.year} 年 ${info.solar.month} 月 ${info.solar.day} 日`
+      : new Date(info.solar.year, info.solar.month - 1, info.solar.day).toLocaleDateString(
+          "en-US",
+          { year: "numeric", month: "long", day: "numeric" }
+        )
+    : "";
+  const bigText = info ? (mode === "solar2lunar" ? lunarText : solarText) : "";
   const subText = info
     ? mode === "solar2lunar"
       ? `${info.solar.year}-${pad(info.solar.month)}-${pad(info.solar.day)}`
-      : `${info.yearChinese}年 ${info.lunar.monthName}月 ${info.lunar.dayName}`
+      : lunarText
     : "";
 
   return (
@@ -264,7 +296,7 @@ export function LunarTool() {
               {t.ganzhi} {info.ganzhi}
             </Badge>
             <Badge variant="outline" size="sm">
-              {t.zodiac} {info.zodiac}
+              {t.zodiac} {locale === "zh" ? info.zodiac : (ZODIAC_EN[info.zodiac] ?? info.zodiac)}
             </Badge>
             {info.jieqi && (
               <Badge variant="warning" size="sm" dot>
@@ -283,7 +315,7 @@ export function LunarTool() {
               {t.solarResult} {info.solar.year}-{pad(info.solar.month)}-{pad(info.solar.day)}
             </span>
             <span>
-              {t.lunarResult} {info.yearChinese}年 {info.lunar.monthName}月 {info.lunar.dayName}
+              {t.lunarResult} {lunarText}
             </span>
           </div>
         </div>

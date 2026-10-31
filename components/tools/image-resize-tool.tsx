@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Download, Link2, Link2Off, Loader2 } from "lucide-react";
-import { useCopy } from "@/components/locale-provider";
+import { useCopy, useLocale } from "@/components/locale-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -79,14 +79,14 @@ const COPY = {
   },
 };
 
-const PRESETS: { label: string; width: number; height: number }[] = [
-  { label: "1920 × 1080", width: 1920, height: 1080 },
-  { label: "1280 × 720", width: 1280, height: 720 },
-  { label: "1080 × 1080", width: 1080, height: 1080 },
-  { label: "800 × 600", width: 800, height: 600 },
-  { label: "头像 512 × 512", width: 512, height: 512 },
-  { label: "一寸 295 × 413", width: 295, height: 413 },
-  { label: "二寸 413 × 579", width: 413, height: 579 },
+const PRESETS: { id: string; zh: string; en: string; width: number; height: number }[] = [
+  { id: "fhd", zh: "1920 × 1080", en: "1920 × 1080", width: 1920, height: 1080 },
+  { id: "hd", zh: "1280 × 720", en: "1280 × 720", width: 1280, height: 720 },
+  { id: "square", zh: "1080 × 1080", en: "1080 × 1080", width: 1080, height: 1080 },
+  { id: "svga", zh: "800 × 600", en: "800 × 600", width: 800, height: 600 },
+  { id: "avatar", zh: "头像 512 × 512", en: "Avatar 512 × 512", width: 512, height: 512 },
+  { id: "id-1", zh: "一寸 295 × 413", en: "1-inch ID 295 × 413", width: 295, height: 413 },
+  { id: "id-2", zh: "二寸 413 × 579", en: "2-inch ID 413 × 579", width: 413, height: 579 },
 ];
 
 const ASPECTS: { key: string; label: string; value: number | null }[] = [
@@ -131,6 +131,7 @@ function SizeInput({
 
 export function ImageResizeTool() {
   const t = useCopy(COPY);
+  const locale = useLocale();
   const { images, add, remove, clear, error, loading } = useImageFiles();
   const image = images[0];
 
@@ -159,13 +160,13 @@ export function ImageResizeTool() {
       ? crop.rect
       : { x: 0, y: 0, width: bounds.width, height: bounds.height };
 
-  // Reflect the current size in the preset dropdown; unmatched sizes read as 自定义
+  // Reflect the current size in the preset dropdown; unmatched sizes read as custom
   const presetValue =
     mode === "crop"
       ? (PRESETS.find(
           (p) => p.width === Math.round(rect.width) && p.height === Math.round(rect.height)
-        )?.label ?? "")
-      : (PRESETS.find((p) => p.width === width && p.height === height)?.label ?? "");
+        )?.id ?? "")
+      : (PRESETS.find((p) => p.width === width && p.height === height)?.id ?? "");
 
   const outWidth = mode === "crop" ? Math.round(rect.width) : width;
   const outHeight = mode === "crop" ? Math.round(rect.height) : height;
@@ -397,7 +398,7 @@ export function ImageResizeTool() {
               <Select
                 value={presetValue}
                 onValueChange={(value) => {
-                  const preset = PRESETS.find((p) => p.label === value);
+                  const preset = PRESETS.find((p) => p.id === value);
                   if (preset) applyPreset(preset);
                 }}
               >
@@ -406,8 +407,8 @@ export function ImageResizeTool() {
                 </SelectTrigger>
                 <SelectContent>
                   {PRESETS.map((preset) => (
-                    <SelectItem key={preset.label} value={preset.label}>
-                      {preset.label}
+                    <SelectItem key={preset.id} value={preset.id}>
+                      {preset[locale]}
                     </SelectItem>
                   ))}
                 </SelectContent>
