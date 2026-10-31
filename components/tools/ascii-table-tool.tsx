@@ -21,7 +21,7 @@ const COPY = {
     html: "HTML",
     empty: "没有匹配的字符",
     count: (n: number) => `${n} 个字符`,
-    note: "0–31 与 127 是控制字符，没有可显示的字符；128–255 属于 Latin-1 补充区，按字节解码显示。",
+    note: "0–31 与 127 是控制字符，没有可显示的字符；128–159 是 C1 控制符，160–255 是 Latin-1 符号，均按字节解码显示。",
   },
   en: {
     search: "Search",
@@ -36,7 +36,7 @@ const COPY = {
     html: "HTML",
     empty: "No matching character",
     count: (n: number) => `${n} characters`,
-    note: "0–31 and 127 are control characters with no glyph; 128–255 are the Latin-1 supplement, decoded byte by byte.",
+    note: "0–31 and 127 are control characters with no glyph; 128–159 are C1 controls and 160–255 the Latin-1 symbols, decoded byte by byte.",
   },
 };
 

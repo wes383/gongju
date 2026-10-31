@@ -2,8 +2,9 @@
  * Character names for the ASCII reference table.
  *
  * Codes 0–127 are described by their control abbreviation plus the usual
- * Chinese name; 128–255 are shown as Latin-1 characters with the block name,
- * since the C1 range has no printable glyphs.
+ * Chinese name; 128–255 are the Latin-1 block, named per code point like the
+ * Unicode standard does so `©` reads as "Copyright sign" instead of a block
+ * label.
  */
 
 export interface AsciiEntry {
@@ -86,6 +87,125 @@ const PUNCTUATION_NAMES: Record<number, [string, string]> = {
   126: ["Tilde", "波浪号"],
 };
 
+/** U+0080–U+009F: the C1 control block, which has no glyph of its own. */
+const C1_NAMES: Record<number, [string, string]> = {
+  128: ["PAD", "填充字符"],
+  129: ["HOP", "高位组预设"],
+  130: ["BPH", "允许在此换行"],
+  131: ["NBH", "禁止在此换行"],
+  132: ["IND", "索引"],
+  133: ["NEL", "下一行"],
+  134: ["SSA", "选定区域开始"],
+  135: ["ESA", "选定区域结束"],
+  136: ["HTS", "制表位设置"],
+  137: ["HTJ", "带对齐的制表"],
+  138: ["VTS", "行制表位设置"],
+  139: ["PLD", "部分下移"],
+  140: ["PLU", "部分上移"],
+  141: ["RI", "反向换行"],
+  142: ["SS2", "单次移位 2"],
+  143: ["SS3", "单次移位 3"],
+  144: ["DCS", "设备控制字符串"],
+  145: ["PU1", "专用字符 1"],
+  146: ["PU2", "专用字符 2"],
+  147: ["STS", "设置发送状态"],
+  148: ["CCH", "取消字符"],
+  149: ["MW", "消息等待"],
+  150: ["SPA", "保护区开始"],
+  151: ["EPA", "保护区结束"],
+  152: ["SOS", "字符串开始"],
+  153: ["SGC", "单图形字符引导符"],
+  154: ["SCI", "单字符引导符"],
+  155: ["CSI", "控制序列引导符"],
+  156: ["ST", "字符串终止符"],
+  157: ["OSC", "操作系统命令"],
+  158: ["PM", "隐私消息"],
+  159: ["APC", "应用程序命令"],
+};
+
+/** Symbols in U+00A0–U+00BF plus the two arithmetic signs further down. */
+const LATIN1_SYMBOLS: Record<number, [string, string]> = {
+  160: ["No-break space", "不换行空格"],
+  161: ["Inverted exclamation mark", "倒感叹号"],
+  162: ["Cent sign", "分币符号"],
+  163: ["Pound sign", "英镑符号"],
+  164: ["Currency sign", "货币符号"],
+  165: ["Yen sign", "日元符号"],
+  166: ["Broken bar", "断竖线"],
+  167: ["Section sign", "章节符号"],
+  168: ["Diaeresis", "分音符"],
+  169: ["Copyright sign", "版权符号"],
+  170: ["Feminine ordinal indicator", "阴性序数符号"],
+  171: ["Left-pointing double angle quotation mark", "左双角引号"],
+  172: ["Not sign", "否定符号"],
+  173: ["Soft hyphen", "软连字符"],
+  174: ["Registered sign", "注册商标符号"],
+  175: ["Macron", "长音符"],
+  176: ["Degree sign", "度符号"],
+  177: ["Plus-minus sign", "正负号"],
+  178: ["Superscript two", "上标 2"],
+  179: ["Superscript three", "上标 3"],
+  180: ["Acute accent", "锐音符"],
+  181: ["Micro sign", "微符号"],
+  182: ["Pilcrow sign", "段落符号"],
+  183: ["Middle dot", "中点"],
+  184: ["Cedilla", "下加符"],
+  185: ["Superscript one", "上标 1"],
+  186: ["Masculine ordinal indicator", "阳性序数符号"],
+  187: ["Right-pointing double angle quotation mark", "右双角引号"],
+  188: ["Vulgar fraction one quarter", "四分之一"],
+  189: ["Vulgar fraction one half", "二分之一"],
+  190: ["Vulgar fraction three quarters", "四分之三"],
+  191: ["Inverted question mark", "倒问号"],
+  215: ["Multiplication sign", "乘号"],
+  247: ["Division sign", "除号"],
+};
+
+/** Letters that do not decompose into a base letter plus an accent. */
+const LATIN1_LETTERS: Record<number, [string, string]> = {
+  198: ["Latin capital letter AE", "大写连字 AE"],
+  208: ["Latin capital letter Eth", "大写字母 Eth"],
+  216: ["Latin capital letter O with stroke", "带斜线的大写 O"],
+  222: ["Latin capital letter Thorn", "大写字母 Thorn"],
+  223: ["Latin small letter sharp s", "小写字母 sharp s"],
+  230: ["Latin small letter ae", "小写连字 ae"],
+  240: ["Latin small letter eth", "小写字母 eth"],
+  248: ["Latin small letter o with stroke", "带斜线的小写 o"],
+  254: ["Latin small letter thorn", "小写字母 thorn"],
+};
+
+/** Combining marks reachable through NFD, with their English and Chinese names. */
+const COMBINING_MARKS: Record<string, [string, string]> = {
+  "\u0300": ["grave", "抑音"],
+  "\u0301": ["acute", "锐音"],
+  "\u0302": ["circumflex", "抑扬符"],
+  "\u0303": ["tilde", "波浪符"],
+  "\u0308": ["diaeresis", "分音符"],
+  "\u030a": ["ring above", "上圆环"],
+  "\u0327": ["cedilla", "下加符"],
+};
+
+/**
+ * Name a Latin-1 character the way Unicode does: `é` is "Latin small letter e
+ * with acute". Accented letters are decomposed with NFD instead of being listed
+ * by hand, which keeps the table honest.
+ */
+function latin1Name(code: number): [string, string] {
+  const known = LATIN1_SYMBOLS[code] ?? LATIN1_LETTERS[code];
+  if (known) return known;
+
+  const char = String.fromCharCode(code);
+  const [base, mark] = [...char.normalize("NFD")];
+  const accent = mark ? COMBINING_MARKS[mark] : undefined;
+  if (!base || !accent) return ["Latin-1 supplement", "Latin-1 补充"];
+
+  const capital = char === char.toUpperCase();
+  return [
+    `Latin ${capital ? "capital" : "small"} letter ${base} with ${accent[0]}`,
+    `带${accent[1]}的${capital ? "大写" : "小写"}字母 ${base}`,
+  ];
+}
+
 function describe(code: number): [string, string] {
   const control = CONTROL_NAMES[code];
   if (control) return control;
@@ -108,12 +228,13 @@ function describe(code: number): [string, string] {
 export function asciiEntries(includeLatin1 = false): AsciiEntry[] {
   const end = includeLatin1 ? 256 : 128;
   return Array.from({ length: end }, (_, code) => {
-    const control = code < 32 || code === 127;
+    // C1 is a control block too: nothing to draw for 128–159.
+    const control = code < 32 || code === 127 || (code >= 128 && code <= 159);
     const [name, zh] =
       code > 127
         ? code < 160
-          ? ["C1 control", "C1 控制符"]
-          : ["Latin-1 supplement", "Latin-1 补充"]
+          ? (C1_NAMES[code] ?? ["C1 control", "C1 控制符"])
+          : latin1Name(code)
         : describe(code);
     return {
       code,

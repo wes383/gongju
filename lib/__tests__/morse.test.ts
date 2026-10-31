@@ -96,7 +96,33 @@ describe("asciiEntries", () => {
     const rows = asciiEntries(true);
     expect(rows).toHaveLength(256);
     expect(rows[233].char).toBe("é");
-    expect(rows[150].name).toBe("C1 control");
+    expect(rows[233].name).toBe("Latin small letter e with acute");
+  });
+
+  it("names the C1 controls and the Latin-1 symbols", () => {
+    const rows = asciiEntries(true);
+    expect(rows[150].name).toBe("SPA");
+    expect(rows[150].control).toBe(true);
+    expect(rows[160].name).toBe("No-break space");
+    expect(rows[169].name).toBe("Copyright sign");
+    expect(rows[215].name).toBe("Multiplication sign");
+  });
+
+  it("spells out the letters that do not decompose", () => {
+    const rows = asciiEntries(true);
+    expect(rows[223].name).toBe("Latin small letter sharp s");
+    expect(rows[199].name).toBe("Latin capital letter C with cedilla");
+    expect(rows[228].name).toBe("Latin small letter a with diaeresis");
+    expect(rows[248].name).toBe("Latin small letter o with stroke");
+  });
+
+  it("names every code point in the Latin-1 block", () => {
+    for (const row of asciiEntries(true).slice(128)) {
+      expect(row.name).not.toBe("");
+      expect(row.name).not.toBe("C1 control");
+      expect(row.name).not.toBe("Latin-1 supplement");
+      expect(row.zh).not.toBe("");
+    }
   });
 
   it("formats HTML entities", () => {
