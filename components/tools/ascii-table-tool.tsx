@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useCopy } from "@/components/locale-provider";
+import { useCopy, useLocale } from "@/components/locale-provider";
 import { Input } from "@/components/ui/input";
 import { CopyButton, Toggle } from "@/components/tools/tool-ui";
 import { asciiEntries, htmlEntity } from "@/lib/ascii";
@@ -42,6 +42,7 @@ const COPY = {
 
 export function AsciiTableTool() {
   const t = useCopy(COPY);
+  const locale = useLocale();
   const [query, setQuery] = React.useState("");
   const [latin1, setLatin1] = React.useState(false);
 
@@ -115,9 +116,9 @@ export function AsciiTableTool() {
                   {entry.control ? "·" : entry.char}
                 </td>
                 <td className="px-3 py-1.5 text-foreground-muted">
-                  {entry.name}
-                  {entry.code < 128 && entry.name !== entry.zh && (
-                    <span className="ml-2 text-foreground-faint">{entry.zh}</span>
+                  {locale === "zh" ? entry.zh : entry.name}
+                  {locale === "zh" && entry.name !== entry.zh && (
+                    <span className="ml-2 text-foreground-faint">{entry.name}</span>
                   )}
                 </td>
                 <td className="px-3 py-1.5 text-foreground-faint">{htmlEntity(entry.code)}</td>
