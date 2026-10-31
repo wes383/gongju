@@ -236,7 +236,7 @@ export function ToolDirectory() {
                   </span>
                 </button>
                 {index === 0 && (
-                  <div className="flex shrink-0 items-center gap-2">
+                  <div className="flex shrink-0 -translate-y-0.5 items-center gap-2">
                     {/* While searching every category is forced open, so bulk
                         toggling would either do nothing or hide matches. */}
                     {!searching && bulkToggle}
