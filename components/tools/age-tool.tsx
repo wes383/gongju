@@ -1,8 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { Cake } from "lucide-react";
+import { Cake, CalendarDays } from "lucide-react";
 import { useCopy, useLocale } from "@/components/locale-provider";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { WarningNote } from "@/components/tools/tool-ui";
 import { ageBetween, type ZodiacSign } from "@/lib/age";
@@ -149,13 +150,16 @@ export function AgeTool() {
             className="w-40 font-mono"
           />
         </label>
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="xs"
           onClick={() => setAt(toInputValue(new Date()))}
-          className="text-xs text-foreground-subtle underline-offset-4 transition-colors hover:text-foreground hover:underline"
+          className="gap-1.5"
         >
+          <CalendarDays className="h-3.5 w-3.5" />
           {t.today}
-        </button>
+        </Button>
       </div>
 
       {future && <WarningNote>{t.future}</WarningNote>}
