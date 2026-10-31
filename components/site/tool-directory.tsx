@@ -137,7 +137,6 @@ export function ToolDirectory() {
       type="button"
       onClick={toggleAll}
       aria-label={bulkToggleLabel}
-      title={bulkToggleLabel}
       className="flex h-8 shrink-0 items-center gap-1 rounded-full border border-border bg-surface px-2.5 text-[11px] font-medium text-foreground-muted transition-colors duration-base ease-out hover:bg-hover-bg hover:text-foreground"
     >
       {allExpanded ? (
@@ -159,7 +158,6 @@ export function ToolDirectory() {
           onClick={() => changeView(mode)}
           aria-label={label}
           aria-pressed={view === mode}
-          title={label}
           className={cn(
             "flex h-7 items-center gap-1 rounded-full px-2 text-[11px] font-medium transition-colors duration-base ease-out",
             view === mode
