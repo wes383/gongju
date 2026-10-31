@@ -1,108 +1,43 @@
 /**
- * Braille conversion for English Grade 1 and Chinese current braille.
+ * Braille conversion for English and Chinese.
  *
- * English: one cell per letter, `⠠` marks a capital letter and `⠼` switches the
- * following cells to digits.
+ * English: Grade 1 writes one cell per letter, Grade 2 applies the UEB
+ * contractions. `⠠` marks a capital letter and `⠼` switches the following
+ * cells to digits.
  *
- * Chinese: follows the national scheme (GB/T 15720) — one initial, one final and
- * an optional tone cell per syllable. Tone cells are 1 (阴平), 2 (阳平), 3 (上声)
- * and 23 (去声); neutral tone is left unmarked. Abbreviations and word spacing
- * rules are not applied, so the output is a faithful but literal transcription.
+ * Chinese: follows the national scheme (GB/T 15720) — one initial, one final
+ * and an optional tone cell per syllable. Tone cells are 1 (阴平), 2 (阳平),
+ * 3 (上声) and 23 (去声); neutral tone is left unmarked. The national scheme
+ * defines two tone levels: level 1 marks every syllable, level 2 additionally
+ * omits the tones listed in its elision rules. Word spacing and abbreviations
+ * are not applied, so the output is a faithful but literal transcription.
  */
 
 import { pinyin } from "pinyin-pro";
+import {
+  CAPITAL_SIGN,
+  EN_BY_DOTS,
+  EN_LETTERS,
+  EN_PUNCT,
+  NUMBER_SIGN,
+  cellFromDots,
+  digitLetter,
+  dotsFromCell,
+  isBrailleCell,
+  letterDigit,
+} from "./braille-cells";
+import { fromGrade2Braille, toGrade2Braille } from "./braille-grade2";
 
-const CELL_BASE = 0x2800;
-
-export function cellFromDots(dots: string): string {
-  let value = 0;
-  for (const char of dots) {
-    const bit = Number(char) - 1;
-    if (bit >= 0 && bit < 6) value |= 1 << bit;
-  }
-  return String.fromCharCode(CELL_BASE + value);
-}
-
-export function dotsFromCell(cell: string): string {
-  const code = cell.codePointAt(0) ?? 0;
-  if (code < CELL_BASE || code > CELL_BASE + 0xff) return "";
-  const value = code - CELL_BASE;
-  const dots: number[] = [];
-  for (let bit = 0; bit < 6; bit += 1) {
-    if (value & (1 << bit)) dots.push(bit + 1);
-  }
-  return dots.join("");
-}
-
-export function isBrailleCell(char: string): boolean {
-  const code = char.codePointAt(0) ?? 0;
-  return code >= CELL_BASE && code <= CELL_BASE + 0xff;
-}
+export {
+  cellFromDots,
+  dotsFromCell,
+  isBrailleCell,
+  cellsFromDots,
+  EN_LETTERS,
+  EN_PUNCT,
+} from "./braille-cells";
 
 /* ------------------------------------------------------------------ English */
-
-const EN_LETTERS: Record<string, string> = {
-  a: "1",
-  b: "12",
-  c: "14",
-  d: "145",
-  e: "15",
-  f: "124",
-  g: "1245",
-  h: "125",
-  i: "24",
-  j: "245",
-  k: "13",
-  l: "123",
-  m: "134",
-  n: "1345",
-  o: "135",
-  p: "1234",
-  q: "12345",
-  r: "1235",
-  s: "234",
-  t: "2345",
-  u: "136",
-  v: "1236",
-  w: "2456",
-  x: "1346",
-  y: "13456",
-  z: "1356",
-};
-
-const EN_PUNCT: Record<string, string> = {
-  ",": "2",
-  ".": "256",
-  "?": "26",
-  "!": "235",
-  ";": "23",
-  ":": "25",
-  "'": "3",
-  '"': "2356",
-  "-": "36",
-  "/": "34",
-};
-
-const DIGIT_LETTERS = "abcdefghij";
-
-/** Digit 1 maps to `a`, digit 0 to `j` */
-function digitLetter(digit: number): string {
-  return DIGIT_LETTERS[(digit + 9) % 10];
-}
-
-function letterDigit(letter: string): number {
-  const index = DIGIT_LETTERS.indexOf(letter);
-  return index < 0 ? -1 : (index + 1) % 10;
-}
-
-const EN_BY_DOTS: Record<string, string> = Object.fromEntries(
-  Object.entries(EN_LETTERS).map(([letter, dots]) => [dots, letter])
-);
-
-/** `⠠` (dot 6) marks the next letter as a capital */
-const CAPITAL_SIGN = "6";
-/** `⠼` (dots 3456) switches the following letters to digits */
-const NUMBER_SIGN = "3456";
 
 export function toEnglishBraille(text: string): string {
   const out: string[] = [];
@@ -284,6 +219,88 @@ const ZH_FINALS: Record<string, string> = {
 
 const ZH_TONES: Record<number, string> = { 1: "1", 2: "2", 3: "3", 4: "23" };
 
+/* --------------------------------------------------------- Chinese tone levels */
+
+export type ToneLevel = 1 | 2;
+
+/**
+ * Level 2 elision (国家通用盲文二级标调): every initial may drop one tone.
+ * Level 1 keeps all of them, which is what an unmarked output means here.
+ */
+const TONE_ELISION: Record<string, number> = {
+  // 阴平
+  f: 1,
+  // 阳平
+  p: 2,
+  m: 2,
+  t: 2,
+  n: 2,
+  h: 2,
+  q: 2,
+  ch: 2,
+  r: 2,
+  c: 2,
+  // 去声
+  b: 4,
+  d: 4,
+  l: 4,
+  g: 4,
+  k: 4,
+  j: 4,
+  x: 4,
+  zh: 4,
+  sh: 4,
+  z: 4,
+  s: 4,
+};
+
+/** Syllables written with the initial alone (zhi, chi, shi, ri, zi, ci, si) */
+const INITIAL_ONLY = new Set(["zh", "ch", "sh", "r", "z", "c", "s"]);
+
+/** Zero-initial finals whose tones follow the five high-frequency syllables rule */
+const FREQUENT_ZERO = new Set(["i", "er", "uo", "ie", "iou"]);
+
+/**
+ * Decide whether level 2 leaves this tone out. The rules are ordered the way
+ * the national scheme numbers them: rule 4 elides every zero-initial 去声,
+ * while rules 5 and 6 carve specific syllables out of it.
+ */
+function toneElided(parts: PinyinParts, next: PinyinParts | null): boolean {
+  const { initial, final, tone } = parts;
+  if (tone === 0) return false;
+
+  if (!initial) {
+    // Rule 6: o and e share a cell, so o drops the tone and e keeps it
+    if (final === "e") return false;
+    if (final === "o") return true;
+    // Rule 5: yi / er / wo / ye / you mark 去声 only
+    if (FREQUENT_ZERO.has(final)) return tone !== 4;
+    // Rule 4
+    return tone === 4;
+  }
+
+  // Rule 7: an initial-only syllable followed by a zero-initial one keeps its tone
+  if (next && next.initial === "" && INITIAL_ONLY.has(initial) && final === "i") return false;
+
+  // Exceptions listed under rules 2 and 3
+  if (initial === "t" && final === "ou" && tone === 2) return false;
+  if (initial === "l" && final === "e" && tone === 4) return false;
+  if (initial === "z" && final === "i" && tone === 4) return false;
+
+  return TONE_ELISION[initial] === tone;
+}
+
+function partsToBraille(parts: PinyinParts, toneLevel: ToneLevel, next: PinyinParts | null): string {
+  const cells: string[] = [];
+  if (parts.initial) cells.push(ZH_INITIALS[parts.initial]);
+  cells.push(ZH_FINALS[parts.final]);
+
+  const elided = toneLevel === 2 && toneElided(parts, next);
+  if (!elided && ZH_TONES[parts.tone]) cells.push(ZH_TONES[parts.tone]);
+
+  return cells.map(cellFromDots).join("");
+}
+
 /** Punctuation, dots separated by spaces because some signs take several cells */
 export const ZH_PUNCT: Record<string, string> = {
   "。": "5 23",
@@ -389,12 +406,13 @@ export interface PinyinParts {
 
 /** Split one numbered pinyin syllable ("zhuang1") into initial, final and tone */
 export function splitPinyin(raw: string): PinyinParts | null {
-  const match = /^([a-zA-ZüÜ]+)([1-5])?$/.exec(raw.trim());
+  const match = /^([a-zA-ZüÜ]+)([0-5])?$/.exec(raw.trim());
   if (!match) return null;
 
   let body = match[1].toLowerCase();
-  // pinyin-pro writes the neutral tone as 5, braille leaves it unmarked
-  const tone = match[2] && match[2] !== "5" ? Number(match[2]) : 0;
+  // pinyin-pro writes the neutral tone as 5 or 0; braille leaves it unmarked
+  const tone =
+    match[2] && match[2] !== "5" && match[2] !== "0" ? Number(match[2]) : 0;
 
   if (ZERO_INITIAL[body]) return { initial: "", final: ZERO_INITIAL[body], tone };
 
@@ -424,16 +442,10 @@ export function splitPinyin(raw: string): PinyinParts | null {
   return { initial, final, tone };
 }
 
-export function syllableToBraille(raw: string): string | null {
+export function syllableToBraille(raw: string, toneLevel: ToneLevel = 1): string | null {
   const parts = splitPinyin(raw);
   if (!parts) return null;
-
-  const cells: string[] = [];
-  if (parts.initial) cells.push(ZH_INITIALS[parts.initial]);
-  cells.push(ZH_FINALS[parts.final]);
-  if (ZH_TONES[parts.tone]) cells.push(ZH_TONES[parts.tone]);
-
-  return cells.map(cellFromDots).join("");
+  return partsToBraille(parts, toneLevel, null);
 }
 
 const HAN_RUN = /[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]+|[^\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]+/g;
@@ -471,7 +483,7 @@ function symbolsToBraille(text: string): string {
   return out.join("");
 }
 
-export function toChineseBraille(text: string): string {
+export function toChineseBraille(text: string, toneLevel: ToneLevel = 1): string {
   const out: string[] = [];
 
   for (const run of text.match(HAN_RUN) ?? []) {
@@ -481,10 +493,17 @@ export function toChineseBraille(text: string): string {
     }
 
     const syllables = pinyin(run, { toneType: "num", type: "array" });
-    for (const syllable of syllables) {
-      const braille = syllableToBraille(syllable);
-      out.push(braille ?? syllable);
-    }
+    const parts = syllables.map((syllable) => splitPinyin(syllable));
+
+    syllables.forEach((syllable, index) => {
+      const current = parts[index];
+      if (!current) {
+        out.push(syllable);
+        return;
+      }
+      const next = index + 1 < parts.length ? parts[index + 1] : null;
+      out.push(partsToBraille(current, toneLevel, next));
+    });
   }
 
   return out.join("");
@@ -690,20 +709,47 @@ export type BrailleMode = "en" | "zh";
 export interface BrailleResult {
   output: string;
   direction: "encode" | "decode";
+  /** Grade 2 decoding expands contractions and may not restore the original wording */
+  approximate?: boolean;
 }
 
-export function convertBraille(input: string, mode: BrailleMode): BrailleResult {
+export interface BrailleOptions {
+  /** English contraction level, 1 (letter by letter) or 2 (UEB contracted) */
+  grade?: 1 | 2;
+  /** Chinese tone marking level, 1 (every syllable) or 2 (with elision) */
+  toneLevel?: ToneLevel;
+}
+
+export function convertBraille(
+  input: string,
+  mode: BrailleMode,
+  options: BrailleOptions = {}
+): BrailleResult {
   const decode = Array.from(input).some(isBrailleCell);
+  const grade = options.grade ?? 1;
+  const toneLevel = options.toneLevel ?? 1;
 
   if (decode) {
-    return {
-      output: mode === "en" ? fromEnglishBraille(input) : fromChineseBraille(input),
-      direction: "decode",
-    };
+    if (mode === "en") {
+      if (grade === 2) {
+        return {
+          output: fromGrade2Braille(input),
+          direction: "decode",
+          approximate: true,
+        };
+      }
+      return { output: fromEnglishBraille(input), direction: "decode" };
+    }
+    return { output: fromChineseBraille(input), direction: "decode" };
   }
 
   return {
-    output: mode === "en" ? toEnglishBraille(input) : toChineseBraille(input),
+    output:
+      mode === "en"
+        ? grade === 2
+          ? toGrade2Braille(input)
+          : toEnglishBraille(input)
+        : toChineseBraille(input, toneLevel),
     direction: "encode",
   };
 }

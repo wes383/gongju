@@ -7,6 +7,7 @@ import {
   fromChineseBraille,
   fromEnglishBraille,
   splitPinyin,
+  syllableToBraille,
   toChineseBraille,
   toEnglishBraille,
 } from "@/lib/braille";
@@ -107,6 +108,44 @@ describe("chinese braille", () => {
   });
 });
 
+describe("chinese tone levels", () => {
+  it("level 1 marks every syllable", () => {
+    expect(syllableToBraille("ba4", 1)).toBe("⠃⠔⠆");
+    expect(syllableToBraille("feng1", 1)).toBe("⠋⠼⠁");
+  });
+
+  it("level 2 drops the tone assigned to each initial group", () => {
+    expect(syllableToBraille("ba4", 2)).toBe("⠃⠔"); // b 省去声
+    expect(syllableToBraille("pa2", 2)).toBe("⠏⠔"); // p 省阳平
+    expect(syllableToBraille("fei1", 2)).toBe("⠋⠮"); // f 省阴平
+    expect(syllableToBraille("lai4", 2)).toBe("⠇⠪"); // l 省去声
+    expect(syllableToBraille("ta1", 2)).toBe("⠞⠔⠁"); // t only drops 阳平
+  });
+
+  it("level 2 keeps the listed exceptions", () => {
+    expect(syllableToBraille("tou2", 2)).toBe("⠞⠷⠂");
+    expect(syllableToBraille("le4", 2)).toBe("⠇⠢⠆");
+    expect(syllableToBraille("zi4", 2)).toBe("⠵⠊⠆");
+  });
+
+  it("level 2 treats zero initials by their own rules", () => {
+    expect(syllableToBraille("ai4", 2)).toBe("⠪"); // 零声母去声省
+    expect(syllableToBraille("yi4", 2)).toBe("⠊⠆"); // 五个高频音节标去声
+    expect(syllableToBraille("wo3", 2)).toBe("⠕");
+    expect(syllableToBraille("o4", 2)).toBe("⠢"); // o 系列全省
+    expect(syllableToBraille("e4", 2)).toBe("⠢⠆"); // e 系列全不省
+  });
+
+  it("level 2 keeps the tone before a zero-initial syllable", () => {
+    expect(toChineseBraille("慈爱", 2)).toBe("⠉⠊⠂⠪");
+    expect(toChineseBraille("慈爱", 1)).toBe("⠉⠊⠂⠪⠆");
+  });
+
+  it("decodes level 2 output as untoned pinyin", () => {
+    expect(fromChineseBraille(toChineseBraille("非常", 2))).toBe("feichang");
+  });
+});
+
 describe("convertBraille", () => {
   it("detects the direction from the input", () => {
     expect(convertBraille("abc", "en")).toEqual({ output: "⠁⠃⠉", direction: "encode" });
@@ -117,5 +156,15 @@ describe("convertBraille", () => {
 
   it("returns Chinese braille as text when decoding", () => {
     expect(convertBraille(toChineseBraille("中国"), "zh").output).toBe("zhōngguó");
+  });
+
+  it("honours the grade and tone level options", () => {
+    expect(convertBraille("the", "en", { grade: 2 }).output).toBe("⠮");
+    expect(convertBraille("⠮", "en", { grade: 2 })).toEqual({
+      output: "the",
+      direction: "decode",
+      approximate: true,
+    });
+    expect(convertBraille("爸爸", "zh", { toneLevel: 2 }).output).toBe("⠃⠔⠃⠔");
   });
 });
