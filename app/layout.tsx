@@ -3,6 +3,7 @@ import { Inter, JetBrains_Mono, Noto_Sans_SC, Plus_Jakarta_Sans } from "next/fon
 import { ThemeProvider } from "@/components/theme-provider";
 import { LocaleProvider } from "@/components/locale-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { SITE_NAME, SITE_URL } from "@/lib/site";
 import "./globals.css";
 
 const inter = Inter({
@@ -34,14 +35,33 @@ const notoSansSC = Noto_Sans_SC({
   preload: false,
 });
 
+const SITE_TITLE = "GongJu · 在线工具箱";
+const SITE_DESCRIPTION =
+  "纯浏览器端运行的开发者工具箱：编码解码、格式化、转换、加密、时间日期等常用工具，数据不出本机。";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
-    default: "GongJu · 在线工具箱",
+    default: SITE_TITLE,
     template: "%s · GongJu",
   },
-  description:
-    "纯浏览器端运行的开发者工具箱：编码解码、格式化、转换、加密、时间日期等常用工具，数据不出本机。",
+  description: SITE_DESCRIPTION,
+  applicationName: SITE_NAME,
   keywords: ["在线工具", "开发者工具", "编码解码", "格式化", "转换器"],
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    siteName: SITE_NAME,
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    locale: "zh_CN",
+    alternateLocale: ["en"],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+  },
   // Empty data URL: no favicon is shipped, and this stops the browser from
   // requesting /favicon.ico and logging a 404 on every load.
   icons: { icon: "data:," },
