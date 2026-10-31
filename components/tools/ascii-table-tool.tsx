@@ -83,13 +83,13 @@ export function AsciiTableTool() {
         <table className="w-full min-w-[620px] border-collapse font-mono text-[11.5px]">
           <thead>
             <tr className="border-b border-border text-left text-foreground-subtle">
-              <th className="w-14 px-3 py-2 font-medium">{t.code}</th>
-              <th className="w-14 px-3 py-2 font-medium">{t.hex}</th>
-              <th className="w-16 px-3 py-2 font-medium">{t.octal}</th>
-              <th className="w-24 px-3 py-2 font-medium">{t.binary}</th>
-              <th className="w-16 px-3 py-2 font-medium">{t.char}</th>
-              <th className="px-3 py-2 font-medium">{t.name}</th>
-              <th className="w-20 px-3 py-2 font-medium">{t.html}</th>
+              <th className="w-14 whitespace-nowrap px-3 py-2 font-medium">{t.code}</th>
+              <th className="w-14 whitespace-nowrap px-3 py-2 font-medium">{t.hex}</th>
+              <th className="w-16 whitespace-nowrap px-3 py-2 font-medium">{t.octal}</th>
+              <th className="w-24 whitespace-nowrap px-3 py-2 font-medium">{t.binary}</th>
+              <th className="w-16 whitespace-nowrap px-3 py-2 font-medium">{t.char}</th>
+              <th className="whitespace-nowrap px-3 py-2 font-medium">{t.name}</th>
+              <th className="w-20 whitespace-nowrap px-3 py-2 font-medium">{t.html}</th>
               <th className="w-10 px-2 py-2" />
             </tr>
           </thead>
