@@ -1,43 +1,105 @@
 "use client";
 
 import * as React from "react";
-import { Pipette, RotateCcw } from "lucide-react";
+import { Check, Copy, Pipette, X } from "lucide-react";
 import { useCopy } from "@/components/locale-provider";
-import { Button } from "@/components/ui/button";
 import { ImageDrop, useImageFiles } from "@/components/tools/image-drop";
-import { CopyButton, OptionBar, OptionField } from "@/components/tools/tool-ui";
-import { createCanvas, decodeFile, hexToRgbTuple, luminance } from "@/lib/image";
+import { createCanvas, decodeFile, hexToRgbTuple } from "@/lib/image";
 import { cn } from "@/lib/utils";
 
 const COPY = {
   zh: {
-    pick: "点击图片取色",
+    pick: "悬停预览颜色，点击取色",
     picked: "取到的颜色",
     palette: "主要颜色",
-    colors: "颜色数",
-    reset: "重新取色",
-    note: "取色读取的是画布上的真实像素值，缩放显示不会影响准确度；主要颜色按 4 位量化统计后取占比最高的几组。",
-    empty: "选择图片后开始取色",
+    note: "取色读取的是画布上的真实像素值，缩放显示不会影响准确度；主要颜色按 4 位量化统计后取占比最高的 8 组。",
     share: "占比",
   },
   en: {
-    pick: "Click the image to pick a colour",
+    pick: "Hover to preview a colour, click to pick it",
     picked: "Picked colour",
     palette: "Dominant colours",
-    colors: "Colours",
-    reset: "Reset",
-    note: "Sampling reads real pixels from the canvas, so the display scale does not affect accuracy. Dominant colours are 4-bit quantised buckets sorted by share.",
-    empty: "Pick an image to start",
+    note: "Sampling reads real pixels from the canvas, so the display scale does not affect accuracy. Dominant colours are the top 8 of the 4-bit quantised buckets.",
     share: "share",
   },
 };
 
 const MAX_EDGE = 1400;
+const PALETTE_SIZE = 8;
 
 interface Swatch {
   hex: string;
   share: number;
 }
+
+/**
+ * Copy chip: the icon makes it obvious the value is copyable, the label says
+ * which format will land in the clipboard.
+ */
+function CopyFormat({
+  label,
+  value,
+  showLabel = false,
+  className,
+}: {
+  label: string;
+  value: string;
+  showLabel?: boolean;
+  className?: string;
+}) {
+  const t = useCopy(CHIP_COPY);
+  const [state, setState] = React.useState<"idle" | "done" | "failed">("idle");
+  const timer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  React.useEffect(() => {
+    return () => {
+      if (timer.current) clearTimeout(timer.current);
+    };
+  }, []);
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(value);
+      setState("done");
+    } catch {
+      setState("failed");
+    }
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => setState("idle"), 1200);
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={copy}
+      title={`${t.copy} ${label} · ${value}`}
+      aria-label={`${t.copy} ${label}`}
+      className={cn(
+        "inline-flex h-6 items-center gap-1 rounded px-1.5 transition-colors duration-base ease-out",
+        state === "done"
+          ? "text-green-fg"
+          : state === "failed"
+            ? "text-red-fg"
+            : "text-foreground-subtle hover:bg-hover-bg hover:text-foreground",
+        className
+      )}
+    >
+      {state === "done" ? (
+        <Check className="h-3 w-3" strokeWidth={3} />
+      ) : state === "failed" ? (
+        <X className="h-3 w-3" />
+      ) : (
+        <Copy className="h-3 w-3" />
+      )}
+      {showLabel && <span className="font-mono text-[10px] uppercase">{label}</span>}
+    </button>
+  );
+}
+
+const CHIP_COPY = {
+  zh: { copy: "复制" },
+  en: { copy: "Copy" },
+};
 
 export function ImageColorTool() {
   const t = useCopy(COPY);
@@ -47,7 +109,13 @@ export function ImageColorTool() {
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
   const [picked, setPicked] = React.useState<{ id: string; hex: string } | null>(null);
   const [palette, setPalette] = React.useState<{ id: string; swatches: Swatch[] } | null>(null);
-  const [count, setCount] = React.useState(6);
+  const [hover, setHover] = React.useState<{
+    x: number;
+    y: number;
+    boxW: number;
+    boxH: number;
+    hex: string;
+  } | null>(null);
 
   // Palette entries are tagged with their source image so a new file never
   // shows the previous colours while it decodes.
@@ -66,8 +134,10 @@ export function ImageColorTool() {
       const ctx = canvas.getContext("2d", { willReadFrequently: true });
       if (!ctx) return;
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      // Extract the top 12 once; the slider simply shows fewer of them
-      setPalette({ id: image.id, swatches: extractPalette(ctx, canvas.width, canvas.height, 12) });
+      setPalette({
+        id: image.id,
+        swatches: extractPalette(ctx, canvas.width, canvas.height, PALETTE_SIZE),
+      });
     }, 40);
     return () => {
       cancelled = true;
@@ -75,21 +145,39 @@ export function ImageColorTool() {
     };
   }, [image]);
 
-  const handlePick = (event: React.MouseEvent<HTMLCanvasElement>) => {
+  const sampleAt = (clientX: number, clientY: number) => {
     const canvas = canvasRef.current;
-    if (!canvas || !image) return;
+    if (!canvas) return null;
     const rect = canvas.getBoundingClientRect();
-    const x = Math.floor(((event.clientX - rect.left) / rect.width) * canvas.width);
-    const y = Math.floor(((event.clientY - rect.top) / rect.height) * canvas.height);
+    const x = Math.min(Math.max(Math.floor(((clientX - rect.left) / rect.width) * canvas.width), 0), canvas.width - 1);
+    const y = Math.min(Math.max(Math.floor(((clientY - rect.top) / rect.height) * canvas.height), 0), canvas.height - 1);
     const ctx = canvas.getContext("2d", { willReadFrequently: true });
-    if (!ctx) return;
-    const [r, g, b] = ctx.getImageData(
-      Math.min(Math.max(x, 0), canvas.width - 1),
-      Math.min(Math.max(y, 0), canvas.height - 1),
-      1,
-      1
-    ).data;
-    setPicked({ id: image.id, hex: rgbToHex(r, g, b) });
+    if (!ctx) return null;
+    const [r, g, b] = ctx.getImageData(x, y, 1, 1).data;
+    return {
+      hex: rgbToHex(r, g, b),
+      x: clientX - rect.left,
+      y: clientY - rect.top,
+      boxW: rect.width,
+      boxH: rect.height,
+    };
+  };
+
+  const handleMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
+    const sample = sampleAt(event.clientX, event.clientY);
+    if (sample)
+      setHover({
+        x: sample.x,
+        y: sample.y,
+        boxW: sample.boxW,
+        boxH: sample.boxH,
+        hex: sample.hex,
+      });
+  };
+
+  const handlePick = (event: React.MouseEvent<HTMLCanvasElement>) => {
+    const sample = sampleAt(event.clientX, event.clientY);
+    if (sample && image) setPicked({ id: image.id, hex: sample.hex });
   };
 
   const current =
@@ -104,60 +192,38 @@ export function ImageColorTool() {
         onClear={clear}
         error={error}
         loading={loading}
-        hint={t.pick}
       />
 
       {image && (
         <>
-          <OptionBar>
-            <OptionField label={t.colors}>
-              <input
-                type="range"
-                min={3}
-                max={12}
-                step={1}
-                value={count}
-                onChange={(e) => setCount(Number(e.target.value))}
-                aria-label={t.colors}
-                className="w-28 accent-[var(--accent)]"
-              />
-              <span className="w-6 font-mono text-[11px] text-foreground-subtle">{count}</span>
-            </OptionField>
-
-            {current && (
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-medium text-foreground-muted">{t.picked}</span>
-                <span
-                  className="h-6 w-6 rounded border border-border"
-                  style={{ background: current }}
-                  aria-hidden="true"
-                />
-                <code className="font-mono text-xs text-foreground">{current.toUpperCase()}</code>
-                <CopyButton value={current.toUpperCase()} size="icon-xs" />
-              </div>
-            )}
-
-            {picked && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="xs"
-                onClick={() => setPicked(null)}
-                className="gap-1.5"
-              >
-                <RotateCcw className="h-3.5 w-3.5" />
-                {t.reset}
-              </Button>
-            )}
-          </OptionBar>
-
-          <div className="grid gap-3 lg:grid-cols-[1fr_260px]">
+          <div className="grid gap-3 lg:grid-cols-[1fr_320px]">
             <div className="overflow-hidden rounded-lg border border-border bg-surface p-3">
-              <canvas
-                ref={canvasRef}
-                onClick={handlePick}
-                className="mx-auto block max-h-[460px] max-w-full cursor-crosshair rounded"
-              />
+              <div className="relative">
+                <canvas
+                  ref={canvasRef}
+                  onMouseMove={handleMove}
+                  onMouseLeave={() => setHover(null)}
+                  onClick={handlePick}
+                  className="mx-auto block max-h-[460px] max-w-full cursor-crosshair rounded"
+                />
+                {hover && (
+                  <div
+                    className="pointer-events-none absolute z-10 flex items-center gap-1.5 rounded bg-black/80 px-1.5 py-1 shadow"
+                    style={{
+                      left: Math.min(hover.x + 14, Math.max(hover.boxW - 96, 0)),
+                      top: Math.min(hover.y + 14, Math.max(hover.boxH - 34, 0)),
+                    }}
+                  >
+                    <span
+                      className="h-3.5 w-3.5 rounded-sm border border-white/40"
+                      style={{ background: hover.hex }}
+                    />
+                    <span className="font-mono text-[10px] text-white">
+                      {hover.hex.toUpperCase()}
+                    </span>
+                  </div>
+                )}
+              </div>
               <p className="mt-2 text-center text-[11px] text-foreground-subtle">
                 <Pipette className="mr-1 inline h-3 w-3" />
                 {t.pick}
@@ -171,9 +237,10 @@ export function ImageColorTool() {
                 </span>
               </header>
               <ul>
-                {swatches.slice(0, count).map((swatch) => {
+                {swatches.map((swatch) => {
                   const [r, g, b] = hexToRgbTuple(swatch.hex);
                   const [h, s, l] = rgbToHsl(r, g, b);
+                  const hex = swatch.hex.toUpperCase();
                   return (
                     <li
                       key={swatch.hex}
@@ -185,20 +252,21 @@ export function ImageColorTool() {
                       <button
                         type="button"
                         onClick={() => image && setPicked({ id: image.id, hex: swatch.hex })}
-                        className="h-8 w-8 shrink-0 rounded border border-border"
+                        className="h-7 w-7 shrink-0 rounded border border-border"
                         style={{ background: swatch.hex }}
-                        aria-label={swatch.hex}
+                        aria-label={hex}
                       />
                       <div className="min-w-0 flex-1">
-                        <p className="font-mono text-xs text-foreground">{swatch.hex.toUpperCase()}</p>
-                        <p className="truncate font-mono text-[10px] text-foreground-subtle">
-                          rgb({r}, {g}, {b}) · hsl({h}, {s}%, {l}%)
+                        <p className="font-mono text-xs text-foreground">{hex}</p>
+                        <p className="font-mono text-[10px] text-foreground-subtle">
+                          {Math.round(swatch.share * 100)}%
                         </p>
                       </div>
-                      <span className="shrink-0 font-mono text-[10px] text-foreground-subtle">
-                        {Math.round(swatch.share * 100)}%
-                      </span>
-                      <CopyButton value={swatch.hex.toUpperCase()} size="icon-xs" />
+                      <div className="flex shrink-0 items-center">
+                        <CopyFormat label="HEX" value={hex} showLabel />
+                        <CopyFormat label="RGB" value={`rgb(${r}, ${g}, ${b})`} showLabel />
+                        <CopyFormat label="HSL" value={`hsl(${h}, ${s}%, ${l}%)`} showLabel />
+                      </div>
                     </li>
                   );
                 })}
@@ -206,7 +274,7 @@ export function ImageColorTool() {
             </div>
           </div>
 
-          {current && <ColorDetails hex={current} />}
+          {current && <ColorDetails hex={current} label={t.picked} />}
 
           <p className="text-xs leading-relaxed text-foreground-subtle">{t.note}</p>
         </>
@@ -215,30 +283,36 @@ export function ImageColorTool() {
   );
 }
 
-function ColorDetails({ hex }: { hex: string }) {
+function ColorDetails({ hex, label }: { hex: string; label: string }) {
   const [r, g, b] = hexToRgbTuple(hex);
   const [h, s, l] = rgbToHsl(r, g, b);
-  const light = luminance(hex) > 0.5;
+  const rows = [
+    { key: "HEX", value: hex.toUpperCase() },
+    { key: "RGB", value: `rgb(${r}, ${g}, ${b})` },
+    { key: "HSL", value: `hsl(${h}, ${s}%, ${l}%)` },
+  ];
+
   return (
-    <div
-      className="flex flex-wrap items-center gap-4 rounded-lg border border-border px-4 py-3"
-      style={{ background: hex }}
-    >
-      {[
-        ["HEX", hex.toUpperCase()],
-        ["RGB", `${r}, ${g}, ${b}`],
-        ["HSL", `${h}°, ${s}%, ${l}%`],
-      ].map(([label, value]) => (
-        <div key={label} className={cn("flex items-center gap-2", light ? "text-black" : "text-white")}>
-          <span className="font-mono text-[10px] uppercase opacity-60">{label}</span>
-          <code className="font-mono text-xs">{value}</code>
-        </div>
-      ))}
-      <CopyButton
-        value={hex.toUpperCase()}
-        size="xs"
-        className={cn("ml-auto", light ? "text-black hover:bg-black/10" : "text-white hover:bg-white/15")}
+    <div className="flex flex-wrap items-center gap-4 rounded-lg border border-border bg-surface p-3">
+      <div
+        className="h-14 w-14 shrink-0 rounded-md border border-border"
+        style={{ background: hex }}
+        aria-hidden="true"
       />
+      <div className="min-w-0 flex-1">
+        <p className="mb-1 text-[11px] uppercase tracking-wide text-foreground-subtle">{label}</p>
+        <ul className="flex flex-wrap gap-x-6 gap-y-1">
+          {rows.map((row) => (
+            <li key={row.key} className="flex items-center gap-1.5">
+              <span className="font-mono text-[10px] uppercase text-foreground-subtle">
+                {row.key}
+              </span>
+              <code className="font-mono text-xs text-foreground">{row.value}</code>
+              <CopyFormat label={row.key} value={row.value} />
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }
