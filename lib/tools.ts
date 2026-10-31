@@ -61,6 +61,12 @@ import {
   Timer,
   Table2,
   Terminal,
+  Database,
+  SquareCode,
+  Server,
+  FileType,
+  MonitorSmartphone,
+  Repeat,
   Type,
   Wand2,
 } from "lucide-react";
@@ -108,6 +114,7 @@ const hashTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category:
 const imageTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "image" });
 const colorTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "color" });
 const qrTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "qrcode" });
+const devTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "dev" });
 
 const encodingTools: ToolMeta[] = [
   tool({
@@ -823,6 +830,69 @@ const qrcodeTools: ToolMeta[] = [
   }),
 ];
 
+const devTools: ToolMeta[] = [
+  devTool({
+    slug: "sql-format",
+    name: { zh: "SQL 格式化", en: "SQL Formatter" },
+    description: {
+      zh: "按方言美化 SQL，或去掉注释与空白压缩成一行",
+      en: "Pretty-print SQL for your dialect, or strip comments and whitespace",
+    },
+    keywords: ["sql", "格式化", "format", "压缩", "mysql", "postgresql"],
+    icon: Database,
+  }),
+  devTool({
+    slug: "code-format",
+    name: { zh: "代码格式化 / 压缩", en: "Code Formatter" },
+    description: {
+      zh: "JavaScript、CSS、HTML 的格式化与安全压缩",
+      en: "Format and safely minify JavaScript, CSS and HTML",
+    },
+    keywords: ["格式化", "压缩", "beautify", "minify", "js", "css", "html"],
+    icon: SquareCode,
+  }),
+  devTool({
+    slug: "http-status",
+    name: { zh: "HTTP 状态码查询", en: "HTTP Status Codes" },
+    description: {
+      zh: "按编号或关键字查询状态码含义与常见成因",
+      en: "Look up status codes by number or keyword, with what usually causes them",
+    },
+    keywords: ["http", "状态码", "status", "404", "500", "301"],
+    icon: Server,
+  }),
+  devTool({
+    slug: "mime-type",
+    name: { zh: "MIME 类型查询", en: "MIME Type Lookup" },
+    description: {
+      zh: "按扩展名或类型名查询 MIME 类型与用途",
+      en: "Find a MIME type by extension or name, with what it is used for",
+    },
+    keywords: ["mime", "content-type", "扩展名", "类型", "文件"],
+    icon: FileType,
+  }),
+  devTool({
+    slug: "ua-parser",
+    name: { zh: "User-Agent 解析", en: "User-Agent Parser" },
+    description: {
+      zh: "把 UA 字符串拆成浏览器、内核、系统与设备",
+      en: "Break a UA string into browser, engine, OS and device",
+    },
+    keywords: ["ua", "user-agent", "解析", "浏览器", "设备"],
+    icon: MonitorSmartphone,
+  }),
+  devTool({
+    slug: "ua-generator",
+    name: { zh: "随机 User-Agent", en: "Random User-Agent" },
+    description: {
+      zh: "按浏览器与系统筛选，批量生成真实 UA 字符串",
+      en: "Generate real UA strings, filtered by browser and OS",
+    },
+    keywords: ["ua", "user-agent", "随机", "生成", "爬虫"],
+    icon: Repeat,
+  }),
+];
+
 export const categories: CategoryMeta[] = [
   {
     id: "encoding",
@@ -912,7 +982,7 @@ export const categories: CategoryMeta[] = [
       en: "SQL, code formatting, status codes and user-agent parsing",
     },
     icon: Terminal,
-    tools: [],
+    tools: devTools,
   },
   {
     id: "network",
