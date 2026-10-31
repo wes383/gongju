@@ -1203,26 +1203,6 @@ const miscTools: ToolMeta[] = [
 
 export const categories: CategoryMeta[] = [
   {
-    id: "encoding",
-    name: { zh: "编码 / 解码", en: "Encoding / Decoding" },
-    description: {
-      zh: "字符串与各种编码格式之间的互转，最高频的一类工具",
-      en: "String and encoding conversions, the most used category",
-    },
-    icon: Binary,
-    tools: encodingTools,
-  },
-  {
-    id: "json",
-    name: { zh: "JSON / 数据格式", en: "JSON / Data" },
-    description: {
-      zh: "格式化、校验、对比、树形浏览与类型生成",
-      en: "Format, validate, diff, browse and generate types from JSON",
-    },
-    icon: Braces,
-    tools: jsonTools,
-  },
-  {
     id: "text",
     name: { zh: "文本处理", en: "Text" },
     description: {
@@ -1241,16 +1221,6 @@ export const categories: CategoryMeta[] = [
     },
     icon: Clock,
     tools: datetimeTools,
-  },
-  {
-    id: "hash",
-    name: { zh: "哈希 / 安全", en: "Hash / Security" },
-    description: {
-      zh: "摘要、HMAC、随机串与密码强度",
-      en: "Digests, HMAC, random strings and password strength",
-    },
-    icon: ShieldCheck,
-    tools: hashTools,
   },
   {
     id: "image",
@@ -1283,26 +1253,6 @@ export const categories: CategoryMeta[] = [
     tools: qrcodeTools,
   },
   {
-    id: "dev",
-    name: { zh: "开发者 / 代码", en: "Developer / Code" },
-    description: {
-      zh: "SQL、代码格式化、状态码、UA 解析",
-      en: "SQL, code formatting, status codes and user-agent parsing",
-    },
-    icon: Terminal,
-    tools: devTools,
-  },
-  {
-    id: "network",
-    name: { zh: "网络 / URL", en: "Network / URL" },
-    description: {
-      zh: "URL 结构解析、IP 校验、Header 生成",
-      en: "URL structure, IP validation and header builders",
-    },
-    icon: Globe,
-    tools: networkTools,
-  },
-  {
     id: "convert",
     name: { zh: "转换器 / 单位", en: "Converters / Units" },
     description: {
@@ -1331,6 +1281,56 @@ export const categories: CategoryMeta[] = [
     },
     icon: Dices,
     tools: miscTools,
+  },
+  {
+    id: "encoding",
+    name: { zh: "编码 / 解码", en: "Encoding / Decoding" },
+    description: {
+      zh: "字符串与各种编码格式之间的互转，最高频的一类工具",
+      en: "String and encoding conversions, the most used category",
+    },
+    icon: Binary,
+    tools: encodingTools,
+  },
+  {
+    id: "json",
+    name: { zh: "JSON / 数据格式", en: "JSON / Data" },
+    description: {
+      zh: "格式化、校验、对比、树形浏览与类型生成",
+      en: "Format, validate, diff, browse and generate types from JSON",
+    },
+    icon: Braces,
+    tools: jsonTools,
+  },
+  {
+    id: "hash",
+    name: { zh: "哈希 / 安全", en: "Hash / Security" },
+    description: {
+      zh: "摘要、HMAC、随机串与密码强度",
+      en: "Digests, HMAC, random strings and password strength",
+    },
+    icon: ShieldCheck,
+    tools: hashTools,
+  },
+  {
+    id: "dev",
+    name: { zh: "开发者 / 代码", en: "Developer / Code" },
+    description: {
+      zh: "SQL、代码格式化、状态码、UA 解析",
+      en: "SQL, code formatting, status codes and user-agent parsing",
+    },
+    icon: Terminal,
+    tools: devTools,
+  },
+  {
+    id: "network",
+    name: { zh: "网络 / URL", en: "Network / URL" },
+    description: {
+      zh: "URL 结构解析、IP 校验、Header 生成",
+      en: "URL structure, IP validation and header builders",
+    },
+    icon: Globe,
+    tools: networkTools,
   },
 ];
 
