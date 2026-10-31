@@ -8,6 +8,7 @@ import { LanguageToggle } from "@/components/site/language-toggle";
 import { ToolCard } from "@/components/site/tool-card";
 import { useLocale, useT } from "@/components/locale-provider";
 import { useDocumentTitle } from "@/components/use-document-title";
+import { useScrollRestoration } from "@/components/use-scroll-restoration";
 import {
   categories,
   toolDescription,
@@ -60,6 +61,7 @@ export function ToolDirectory() {
   const t = useT();
 
   useDocumentTitle(HOME_TITLE[locale]);
+  useScrollRestoration();
 
   // Apply the stored view mode before paint so there is no flash of the other layout
   useIsoLayoutEffect(() => {
