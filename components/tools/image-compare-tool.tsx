@@ -12,7 +12,10 @@ const COPY = {
     right: "对比图",
     mode: "模式",
     slider: "滑动对比",
+    overlay: "叠加",
     side: "并排",
+    overlayOpacity: "透明度",
+    overlayHint: "调整上层图片的不透明度：0% 只看原图，100% 只看对比图",
     drag: "拖动分割线对比",
     note: "两张图按同一个框等比裁切，尺寸不一致时以左图的比例为准。",
     a: "左图",
@@ -23,7 +26,10 @@ const COPY = {
     right: "Comparison",
     mode: "Mode",
     slider: "Slider",
+    overlay: "Overlay",
     side: "Side by side",
+    overlayOpacity: "Opacity",
+    overlayHint: "Blend the two images: 0% shows only the original, 100% only the comparison",
     drag: "Drag the divider",
     note: "Both images fill the same box; if their sizes differ, the left image's aspect ratio wins.",
     a: "Left",
@@ -35,7 +41,8 @@ export function ImageCompareTool() {
   const t = useCopy(COPY);
   const left = useImageFiles();
   const right = useImageFiles();
-  const [mode, setMode] = React.useState<"slider" | "side">("slider");
+  const [mode, setMode] = React.useState<"slider" | "overlay" | "side">("slider");
+  const [opacity, setOpacity] = React.useState(50);
   const [position, setPosition] = React.useState(50);
   const [dragging, setDragging] = React.useState(false);
   const boxRef = React.useRef<HTMLDivElement>(null);
@@ -100,6 +107,7 @@ export function ImageCompareTool() {
               onChange={setMode}
               options={[
                 { value: "slider", label: t.slider },
+                { value: "overlay", label: t.overlay },
                 { value: "side", label: t.side },
               ]}
             />
@@ -108,6 +116,29 @@ export function ImageCompareTool() {
                 <MoveHorizontal className="h-3.5 w-3.5" />
                 {t.drag}
               </span>
+            )}
+            {mode === "overlay" && (
+              <>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-medium text-foreground-muted">
+                    {t.overlayOpacity}
+                  </span>
+                  <input
+                    type="range"
+                    min={0}
+                    max={100}
+                    step={5}
+                    value={opacity}
+                    onChange={(e) => setOpacity(Number(e.target.value))}
+                    aria-label={t.overlayOpacity}
+                    className="w-40 accent-[var(--accent)]"
+                  />
+                  <span className="w-8 font-mono text-[11px] text-foreground-subtle">
+                    {opacity}%
+                  </span>
+                </div>
+                <span className="ml-auto text-[11px] text-foreground-subtle">{t.overlayHint}</span>
+              </>
             )}
           </OptionBar>
 
@@ -154,6 +185,30 @@ export function ImageCompareTool() {
               >
                 <Columns2 className="h-4 w-4" />
               </div>
+            </div>
+          ) : mode === "overlay" ? (
+            <div
+              className="relative select-none overflow-hidden rounded-lg border border-border bg-surface"
+              style={{ aspectRatio: aspect }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={a.url}
+                alt={t.left}
+                className="absolute inset-0 h-full w-full object-cover"
+                draggable={false}
+              />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={b.url}
+                alt={t.right}
+                className="absolute inset-0 h-full w-full object-cover"
+                style={{ opacity: opacity / 100 }}
+                draggable={false}
+              />
+              <span className="pointer-events-none absolute left-2 top-2 rounded bg-black/55 px-1.5 py-0.5 text-[10px] font-medium text-white">
+                {t.right} {opacity}%
+              </span>
             </div>
           ) : (
             <div className="grid gap-3 sm:grid-cols-2">
