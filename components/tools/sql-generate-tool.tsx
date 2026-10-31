@@ -3,7 +3,6 @@
 import * as React from "react";
 import { FileUp } from "lucide-react";
 import {
-  CopyButton,
   DualPane,
   OptionBar,
   SampleButton,
@@ -154,7 +153,6 @@ export function SqlGenerateTool() {
             <SampleButton onClick={() => setInput(SQL_SAMPLE)} />
           </>
         }
-        outputActions={<CopyButton value={output} />}
         onClear={() => setInput("")}
         inputFooter={<span>{table ? `${table.rows.length} × ${table.header.length}` : ""}</span>}
         outputFooter={

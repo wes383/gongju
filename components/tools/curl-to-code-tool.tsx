@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import {
-  CopyButton,
   DualPane,
   OptionBar,
   SampleButton,
@@ -88,7 +87,6 @@ export function CurlToCodeTool() {
         outputLabel={t.outputLabel}
         inputPlaceholder={t.inputPlaceholder}
         inputActions={<SampleButton onClick={() => setInput(CURL_SAMPLE)} label={t.sample} />}
-        outputActions={<CopyButton value={output} />}
         onClear={() => setInput("")}
         inputFooter={
           <span>

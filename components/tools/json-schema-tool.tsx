@@ -3,7 +3,6 @@
 import * as React from "react";
 import { CheckCircle2, Loader2, ShieldCheck, XCircle } from "lucide-react";
 import {
-  CopyButton,
   DualPane,
   ErrorNote,
   InputArea,
@@ -226,7 +225,6 @@ export function JsonSchemaTool() {
           inputActions={
             <SampleButton onClick={() => setSample(SCHEMA_SAMPLE)} label={t.sample} />
           }
-          outputActions={<CopyButton value={generated.text} />}
           onClear={() => setSample("")}
           inputFooter={<span>{sample.length}</span>}
         />
