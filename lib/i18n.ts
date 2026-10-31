@@ -96,8 +96,8 @@ const zh: Dict = {
   valid: "JSON 有效",
   invalid: "语法错误",
   view: {
-    grid: "卡片视图",
-    list: "列表视图",
+    grid: "卡片",
+    list: "列表",
     expandAll: "展开全部",
     collapseAll: "收起全部",
   },
@@ -178,8 +178,8 @@ const en: Dict = {
   valid: "Valid JSON",
   invalid: "Syntax error",
   view: {
-    grid: "Card view",
-    list: "List view",
+    grid: "Card",
+    list: "List",
     expandAll: "Expand all",
     collapseAll: "Collapse all",
   },

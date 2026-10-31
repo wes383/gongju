@@ -138,13 +138,14 @@ export function ToolDirectory() {
       onClick={toggleAll}
       aria-label={bulkToggleLabel}
       title={bulkToggleLabel}
-      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-foreground-muted transition-colors duration-base ease-out hover:bg-hover-bg hover:text-foreground"
+      className="flex h-8 shrink-0 items-center gap-1 rounded-full border border-border bg-surface px-2.5 text-[11px] font-medium text-foreground-muted transition-colors duration-base ease-out hover:bg-hover-bg hover:text-foreground"
     >
       {allExpanded ? (
         <ChevronsDownUp className="h-3.5 w-3.5" />
       ) : (
         <ChevronsUpDown className="h-3.5 w-3.5" />
       )}
+      <span className="whitespace-nowrap">{bulkToggleLabel}</span>
     </button>
   );
 
@@ -160,13 +161,14 @@ export function ToolDirectory() {
           aria-pressed={view === mode}
           title={label}
           className={cn(
-            "flex h-7 w-7 items-center justify-center rounded-full transition-colors duration-base ease-out",
+            "flex h-7 items-center gap-1 rounded-full px-2 text-[11px] font-medium transition-colors duration-base ease-out",
             view === mode
               ? "bg-accent text-accent-fg"
               : "text-foreground-muted hover:bg-hover-bg hover:text-foreground"
           )}
         >
-          <Icon className="h-3.5 w-3.5" />
+          <Icon className="h-3.5 w-3.5 shrink-0" />
+          <span className="whitespace-nowrap">{label}</span>
         </button>
       ))}
     </div>
@@ -219,7 +221,7 @@ export function ToolDirectory() {
                   type="button"
                   onClick={() => toggleCategory(cat.id)}
                   aria-expanded={!isCollapsed}
-                  className="group flex flex-1 items-center gap-2 rounded-md py-1 text-left"
+                  className="group flex min-w-0 flex-1 items-center gap-2 rounded-md py-1 text-left"
                 >
                   <ChevronRight
                     className={cn(
@@ -228,15 +230,15 @@ export function ToolDirectory() {
                     )}
                   />
                   <Icon className="h-4 w-4 shrink-0 text-foreground-subtle" />
-                  <h2 className="font-display text-sm font-semibold text-foreground">
+                  <h2 className="min-w-0 truncate font-display text-sm font-semibold text-foreground">
                     {cat.name[locale]}
                   </h2>
-                  <span className="font-mono text-[11px] text-foreground-faint">
+                  <span className="shrink-0 font-mono text-[11px] text-foreground-faint">
                     {cat.tools.length}
                   </span>
                 </button>
                 {index === 0 && (
-                  <div className="flex shrink-0 items-center gap-1.5">
+                  <div className="flex shrink-0 items-center gap-2">
                     {/* While searching every category is forced open, so bulk
                         toggling would either do nothing or hide matches. */}
                     {!searching && bulkToggle}
