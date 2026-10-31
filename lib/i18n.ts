@@ -123,6 +123,12 @@ const zh: Dict = {
     "image.tooLarge": "图片太大，请先压缩或换一张",
     "image.canvasUnavailable": "当前浏览器无法创建画布，请更换浏览器后重试",
     "image.encodeFailed": "图片编码失败，请换一种输出格式",
+    "url.empty": "请输入一个 URL",
+    "url.invalid": "不是合法的 URL，检查一下协议、域名和空格",
+    "ip.empty": "请输入一个 IP 地址",
+    "ip.invalid": "不是合法的 IP 地址，IPv4 需要四段 0–255，IPv6 用冒号分组",
+    "ip.badPrefix": "前缀长度不合法（IPv4 最大 32，IPv6 最大 128）",
+    "header.tooMany": "请求头太多，一次最多解析 {0} 条",
   },
 };
 
@@ -190,6 +196,12 @@ const en: Dict = {
     "image.tooLarge": "This image is too large, compress it or pick another one",
     "image.canvasUnavailable": "This browser cannot create a canvas, try another browser",
     "image.encodeFailed": "Encoding failed, try a different output format",
+    "url.empty": "Enter a URL first",
+    "url.invalid": "That is not a valid URL — check the scheme, the host and stray spaces",
+    "ip.empty": "Enter an IP address first",
+    "ip.invalid": "Not a valid IP address: IPv4 needs four 0–255 octets, IPv6 uses colon groups",
+    "ip.badPrefix": "Invalid prefix length (32 for IPv4, 128 for IPv6)",
+    "header.tooMany": "Too many headers, {0} at a time is the limit",
   },
 };
 

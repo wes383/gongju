@@ -67,6 +67,9 @@ import {
   FileType,
   MonitorSmartphone,
   Repeat,
+  Route,
+  Network,
+  Rows3,
   Type,
   Wand2,
 } from "lucide-react";
@@ -115,6 +118,7 @@ const imageTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category
 const colorTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "color" });
 const qrTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "qrcode" });
 const devTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "dev" });
+const netTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "network" });
 
 const encodingTools: ToolMeta[] = [
   tool({
@@ -893,6 +897,39 @@ const devTools: ToolMeta[] = [
   }),
 ];
 
+const networkTools: ToolMeta[] = [
+  netTool({
+    slug: "url-parser",
+    name: { zh: "URL 解析", en: "URL Parser" },
+    description: {
+      zh: "拆出协议、域名、端口、路径、锚点，查询参数逐条解码展示",
+      en: "Break a URL into scheme, host, port, path, fragment and decoded query pairs",
+    },
+    keywords: ["url", "解析", "query", "参数", "pathname", "域名"],
+    icon: Route,
+  }),
+  netTool({
+    slug: "ip",
+    name: { zh: "IP 地址 / 网段工具", en: "IP & CIDR Tool" },
+    description: {
+      zh: "校验 IPv4 / IPv6，给出二进制、十六进制与网段、掩码、可用主机范围",
+      en: "Validate IPv4 and IPv6, with binary, hex, CIDR, mask and usable host range",
+    },
+    keywords: ["ip", "ipv4", "ipv6", "cidr", "子网", "掩码", "网段"],
+    icon: Network,
+  }),
+  netTool({
+    slug: "http-header",
+    name: { zh: "HTTP Header 解析 / 生成", en: "HTTP Header Parser / Builder" },
+    description: {
+      zh: "把原始请求头拆成表格并给出 curl，或按常用头一键拼出表达式",
+      en: "Turn a raw header block into a table plus a curl command, or build one from presets",
+    },
+    keywords: ["header", "请求头", "响应头", "cors", "curl", "http"],
+    icon: Rows3,
+  }),
+];
+
 export const categories: CategoryMeta[] = [
   {
     id: "encoding",
@@ -992,7 +1029,7 @@ export const categories: CategoryMeta[] = [
       en: "URL structure, IP validation and header builders",
     },
     icon: Globe,
-    tools: [],
+    tools: networkTools,
   },
   {
     id: "convert",
