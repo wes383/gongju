@@ -48,6 +48,7 @@ const COPY = {
     download: "下载",
     result: "结果",
     empty: "调整尺寸后显示预览",
+    cropNoop: "输出比例和原图一致，没有可裁剪的部分——改一下宽或高",
     note: "裁剪会按目标比例从原图裁掉多余部分，再缩放到指定尺寸；缩放则是整张图拉伸到目标尺寸。",
   },
   en: {
@@ -66,6 +67,7 @@ const COPY = {
     download: "Download",
     result: "Result",
     empty: "Adjust the size to see the preview",
+    cropNoop: "The output ratio matches the source, so there is nothing to crop — change the width or height",
     note: "Crop keeps the target aspect ratio, cuts the overflow away and scales to the exact size; resize stretches the whole image.",
   },
 };
@@ -101,6 +103,9 @@ export function ImageResizeTool() {
   const height = dims && image && dims.id === image.id ? dims.height : (image?.height ?? 0);
   const ratio = image ? image.width / image.height : 1;
   // Reflect the current size in the trigger: a preset name when it matches one
+  // Same ratio as the source means every anchor produces the same pixels
+  const cropNoop =
+    mode === "crop" && image ? Math.abs(width / height - ratio) < 0.005 : false;
   const matchedPreset =
     PRESETS.find((p) => p.width === width && p.height === height)?.label ?? "";
 
@@ -176,7 +181,10 @@ export function ImageResizeTool() {
             <Segmented
               ariaLabel={t.mode}
               value={mode}
-              onChange={setMode}
+              onChange={(next) => {
+                setMode(next);
+                if (next === "crop") setLock(false);
+              }}
               options={[
                 { value: "resize", label: t.resize },
                 { value: "crop", label: t.crop },
@@ -250,7 +258,12 @@ export function ImageResizeTool() {
           {mode === "crop" && (
             <OptionBar>
               <span className="text-xs font-medium text-foreground-muted">{t.anchor}</span>
-              <div className="grid grid-cols-3 gap-1">
+              <div
+                className={cn(
+                  "grid grid-cols-3 gap-1",
+                  cropNoop && "pointer-events-none opacity-40"
+                )}
+              >
                 {ANCHORS.map((option) => (
                   <button
                     key={option}
@@ -270,6 +283,7 @@ export function ImageResizeTool() {
               <span className="text-[11px] text-foreground-subtle">
                 {image.width}×{image.height} → {width}×{height}
               </span>
+              {cropNoop && <span className="text-[11px] text-orange-fg">{t.cropNoop}</span>}
             </OptionBar>
           )}
 
