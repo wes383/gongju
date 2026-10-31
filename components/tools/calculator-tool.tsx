@@ -19,10 +19,12 @@ const COPY = {
     result: "结果",
     empty: "输入表达式后按回车或点等号",
     invalid: "表达式无法计算，请检查括号与运算符",
+    invalidAt: (n: number) => `第 ${n} 个字符附近无法解析，请检查括号与运算符`,
     loading: "正在加载计算引擎…",
     history: "历史记录",
     clearHistory: "清空历史",
-    note: "支持四则运算、幂、阶乘、三角函数、对数与常量 pi / e。计算在浏览器内完成，表达式不会上传。",
+    second: "第二功能",
+    note: "支持四则运算、幂、阶乘、三角与反三角、双曲、对数、常量 pi / e；点 2nd 切换到 asin / eˣ / 10ˣ / n 次根等，ans 表示上一次结果，括号会自动补齐。计算在浏览器内完成，表达式不会上传。",
     keys: {
       clear: "清空",
       back: "退格",
@@ -37,10 +39,13 @@ const COPY = {
     result: "Result",
     empty: "Type an expression, then press Enter or hit equals",
     invalid: "This expression cannot be evaluated — check the brackets and operators",
+    invalidAt: (n: number) =>
+      `Cannot parse near character ${n} — check the brackets and operators`,
     loading: "Loading the maths engine…",
     history: "History",
     clearHistory: "Clear history",
-    note: "Handles arithmetic, powers, factorials, trigonometry, logarithms and the constants pi / e. Everything is computed in your browser, the expression is never uploaded.",
+    second: "Second function",
+    note: "Handles arithmetic, powers, factorials, trigonometry and its inverses, hyperbolic functions, logarithms and the constants pi / e. Tap 2nd for asin / e^x / 10^x / nth root; ans is the previous result and brackets are closed for you. Everything runs in your browser, the expression is never uploaded.",
     keys: {
       clear: "Clear",
       back: "Backspace",
@@ -51,18 +56,32 @@ const COPY = {
 interface Key {
   label: string;
   insert?: string;
-  action?: "clear" | "back" | "equals";
+  action?: "clear" | "back" | "equals" | "second";
   tone?: "accent" | "op" | "fn";
-  span?: number;
+  /** Label + insert used while the 2nd layer is on */
+  alt?: { label: string; insert: string };
+  /** Only usable once there is a previous result */
+  needsAns?: boolean;
 }
 
 const KEYS: Key[] = [
-  { label: "sin", insert: "sin(", tone: "fn" },
-  { label: "cos", insert: "cos(", tone: "fn" },
-  { label: "tan", insert: "tan(", tone: "fn" },
-  { label: "ln", insert: "log(", tone: "fn" },
-  { label: "log", insert: "log10(", tone: "fn" },
-  { label: "√", insert: "sqrt(", tone: "fn" },
+  // second layer + handy unary helpers
+  { label: "2nd", action: "second", tone: "fn" },
+  { label: "x²", insert: "^2", tone: "op", alt: { label: "x³", insert: "^3" } },
+  { label: "1/x", insert: "1/(", tone: "op" },
+  { label: "|x|", insert: "abs(", tone: "op", alt: { label: "round", insert: "round(" } },
+  { label: "%", insert: "%", tone: "op", alt: { label: "mod", insert: " mod " } },
+  { label: "ans", insert: "ans", tone: "op", needsAns: true },
+
+  // functions
+  { label: "sin", insert: "sin(", tone: "fn", alt: { label: "sin⁻¹", insert: "asin(" } },
+  { label: "cos", insert: "cos(", tone: "fn", alt: { label: "cos⁻¹", insert: "acos(" } },
+  { label: "tan", insert: "tan(", tone: "fn", alt: { label: "tan⁻¹", insert: "atan(" } },
+  { label: "ln", insert: "log(", tone: "fn", alt: { label: "eˣ", insert: "exp(" } },
+  { label: "log", insert: "log10(", tone: "fn", alt: { label: "10ˣ", insert: "10^(" } },
+  { label: "√", insert: "sqrt(", tone: "fn", alt: { label: "ⁿ√", insert: "nthRoot(" } },
+
+  // keypad
   { label: "7", insert: "7" },
   { label: "8", insert: "8" },
   { label: "9", insert: "9" },
@@ -89,6 +108,23 @@ const KEYS: Key[] = [
   { label: "⌫", action: "back", tone: "fn" },
 ];
 
+/** Close any brackets the user left open, so `sin(30` still evaluates. */
+function autoCloseParens(source: string) {
+  let depth = 0;
+  for (const char of source) {
+    if (char === "(") depth += 1;
+    else if (char === ")") depth = Math.max(0, depth - 1);
+  }
+  return source + ")".repeat(depth);
+}
+
+/** mathjs reports the offending offset as `(char 7)`; a few errors have none. */
+function errorOffset(message: string) {
+  const match = /char (\d+)/.exec(message);
+  return match ? Number(match[1]) : null;
+}
+
+
 function formatResult(value: unknown): string {
   if (typeof value === "number") {
     if (Number.isNaN(value)) return "NaN";
@@ -104,11 +140,13 @@ const DEG = Math.PI / 180;
 export function CalculatorTool() {
   const t = useCopy(COPY);
   const [angle, setAngle] = React.useState<Angle>("deg");
+  const [second, setSecond] = React.useState(false);
   const [expr, setExpr] = React.useState("");
   const [result, setResult] = React.useState("");
   const [error, setError] = React.useState<string | null>(null);
   const [history, setHistory] = React.useState<{ expr: string; result: string }[]>([]);
   const [justEvaluated, setJustEvaluated] = React.useState(false);
+  const [lastAns, setLastAns] = React.useState<number | null>(null);
   const [engine, setEngine] = React.useState<
     ((expr: string, scope?: object) => unknown) | null
   >(null);
@@ -127,8 +165,8 @@ export function CalculatorTool() {
   }, []);
 
   const scope = React.useMemo(
-    () =>
-      angle === "deg"
+    () => ({
+      ...(angle === "deg"
         ? {
             sin: (x: number) => Math.sin(x * DEG),
             cos: (x: number) => Math.cos(x * DEG),
@@ -137,8 +175,10 @@ export function CalculatorTool() {
             acos: (x: number) => Math.acos(x) / DEG,
             atan: (x: number) => Math.atan(x) / DEG,
           }
-        : undefined,
-    [angle]
+        : {}),
+      ans: lastAns ?? 0,
+    }),
+    [angle, lastAns]
   );
 
   const run = () => {
@@ -146,19 +186,25 @@ export function CalculatorTool() {
     const source = expr.trim();
     if (!source) return;
     try {
-      const value = engine(source, scope);
+      const value = engine(autoCloseParens(source), { ...scope });
       const text = formatResult(value);
       setResult(text);
       setError(null);
       setJustEvaluated(true);
+      setLastAns(typeof value === "number" && Number.isFinite(value) ? value : null);
       setHistory((prev) => [{ expr: source, result: text }, ...prev].slice(0, 10));
-    } catch {
-      setError(t.invalid);
+    } catch (raw) {
+      const offset = errorOffset(raw instanceof Error ? raw.message : "");
+      setError(offset === null ? t.invalid : t.invalidAt(offset));
       setResult("");
     }
   };
 
-  const press = (key: Key) => {
+  const press = (key: Key, insert?: string) => {
+    if (key.action === "second") {
+      setSecond((prev) => !prev);
+      return;
+    }
     if (key.action === "clear") {
       setExpr("");
       setResult("");
@@ -175,8 +221,8 @@ export function CalculatorTool() {
       run();
       return;
     }
-    if (!key.insert) return;
-    setExpr((prev) => (justEvaluated ? key.insert! : prev + key.insert));
+    if (!insert) return;
+    setExpr((prev) => (justEvaluated ? insert : prev + insert));
     setJustEvaluated(false);
     setError(null);
   };
@@ -247,25 +293,44 @@ export function CalculatorTool() {
       </div>
 
       <div className="grid grid-cols-6 gap-1.5">
-        {KEYS.map((key) => (
-          <button
-            key={key.label}
-            type="button"
-            onClick={() => press(key)}
-            aria-label={
-              key.action === "clear" ? t.keys.clear : key.action === "back" ? t.keys.back : key.label
-            }
-            className={cn(
-              "flex h-11 items-center justify-center rounded-lg border border-border font-mono text-sm transition-colors active:scale-[0.97]",
-              key.tone === "accent" && "border-transparent bg-accent text-accent-fg hover:bg-accent-hover",
-              key.tone === "op" && "bg-hover-bg text-foreground hover:bg-hover-bg-strong",
-              key.tone === "fn" && "bg-surface text-foreground-muted hover:bg-hover-bg hover:text-foreground",
-              !key.tone && "bg-surface text-foreground hover:bg-hover-bg"
-            )}
-          >
-            {key.action === "back" ? <Delete className="h-4 w-4" /> : key.label}
-          </button>
-        ))}
+        {KEYS.map((key) => {
+          const alt = second ? key.alt : undefined;
+          const label = alt?.label ?? key.label;
+          const isSecondKey = key.action === "second";
+          const disabled = key.needsAns === true && lastAns === null;
+          return (
+            <button
+              key={key.label}
+              type="button"
+              onClick={() => press(key, alt?.insert ?? key.insert)}
+              disabled={disabled}
+              aria-pressed={isSecondKey ? second : undefined}
+              aria-label={
+                key.action === "clear"
+                  ? t.keys.clear
+                  : key.action === "back"
+                    ? t.keys.back
+                    : isSecondKey
+                      ? t.second
+                      : label
+              }
+              className={cn(
+                "flex h-11 items-center justify-center rounded-lg border border-border font-mono text-sm transition-colors active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40",
+                key.tone === "accent" &&
+                  "border-transparent bg-accent text-accent-fg hover:bg-accent-hover",
+                key.tone === "op" && "bg-hover-bg text-foreground hover:bg-hover-bg-strong",
+                key.tone === "fn" &&
+                  "bg-surface text-foreground-muted hover:bg-hover-bg hover:text-foreground",
+                !key.tone && "bg-surface text-foreground hover:bg-hover-bg",
+                isSecondKey &&
+                  second &&
+                  "border-accent bg-accent-muted text-accent hover:bg-accent-muted hover:text-accent"
+              )}
+            >
+              {key.action === "back" ? <Delete className="h-4 w-4" /> : label}
+            </button>
+          );
+        })}
       </div>
 
       {history.length > 0 && (
