@@ -347,6 +347,19 @@ describe("gitignore", () => {
   it("ships a sensible default selection", () => {
     expect(buildGitignore(DEFAULT_IGNORE, "zh")).toContain("# Next.js");
   });
+
+  it("appends extra rules without duplicates and skips blanks", () => {
+    const output = buildGitignore(["node"], "en", "public/uploads/\n\n# comment\nnode_modules/\n*.psd");
+    expect(output).toContain("# Custom");
+    expect(output).toContain("public/uploads/");
+    expect(output).toContain("*.psd");
+    expect(output).not.toContain("# comment");
+    expect(output.split("node_modules/").length - 1).toBe(1);
+  });
+
+  it("keeps the extra block when no group is selected", () => {
+    expect(buildGitignore([], "zh", "*.log")).toBe("# 自定义\n*.log\n");
+  });
 });
 
 describe("svg", () => {
