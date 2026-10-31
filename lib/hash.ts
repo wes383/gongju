@@ -4,7 +4,20 @@
  * MD5 and SHA-3 are not available in Web Crypto, so those go through
  * hash-wasm; the SHA-2 family and HMAC use the native SubtleCrypto API.
  */
-import { md5, sha1, sha256, sha3, sha384, sha512 } from "hash-wasm";
+import {
+  createMD5,
+  createSHA1,
+  createSHA256,
+  createSHA384,
+  createSHA512,
+  createSHA3,
+  md5,
+  sha1,
+  sha256,
+  sha3,
+  sha384,
+  sha512,
+} from "hash-wasm";
 import { codedError } from "./errors";
 
 export type HashAlgorithm = "md5" | "sha1" | "sha256" | "sha384" | "sha512" | "sha3-256" | "sha3-512";
@@ -76,4 +89,58 @@ export function hexToBase64(hex: string): string {
   let binary = "";
   for (const byte of bytes) binary += String.fromCharCode(parseInt(byte, 16));
   return btoa(binary);
+}
+
+const FILE_CHUNK = 4 * 1024 * 1024;
+
+async function createHasher(algorithm: HashAlgorithm) {
+  switch (algorithm) {
+    case "md5":
+      return createMD5();
+    case "sha1":
+      return createSHA1();
+    case "sha256":
+      return createSHA256();
+    case "sha384":
+      return createSHA384();
+    case "sha512":
+      return createSHA512();
+    case "sha3-256":
+      return createSHA3(256);
+    case "sha3-512":
+      return createSHA3(512);
+  }
+}
+
+/**
+ * Hash a file in 4 MB slices so a 2 GB video does not have to sit in memory.
+ * Every requested algorithm is fed from the same read pass.
+ */
+export async function hashFile(
+  file: File,
+  algorithms: HashAlgorithm[],
+  onProgress?: (ratio: number) => void
+): Promise<Partial<Record<HashAlgorithm, string>>> {
+  if (algorithms.length === 0) return {};
+  const hashers = await Promise.all(
+    algorithms.map(async (algorithm) => {
+      const hasher = await createHasher(algorithm);
+      hasher.init();
+      return { algorithm, hasher };
+    })
+  );
+
+  let offset = 0;
+  while (offset < file.size) {
+    const slice = file.slice(offset, Math.min(offset + FILE_CHUNK, file.size));
+    const chunk = new Uint8Array(await slice.arrayBuffer());
+    for (const { hasher } of hashers) hasher.update(chunk);
+    offset += chunk.length;
+    onProgress?.(file.size === 0 ? 1 : offset / file.size);
+  }
+
+  const out: Partial<Record<HashAlgorithm, string>> = {};
+  for (const { algorithm, hasher } of hashers) out[algorithm] = hasher.digest("hex");
+  onProgress?.(1);
+  return out;
 }
