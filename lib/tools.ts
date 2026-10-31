@@ -953,8 +953,8 @@ const convertTools: ToolMeta[] = [
     slug: "currency",
     name: { zh: "汇率换算", en: "Currency Converter" },
     description: {
-      zh: "按每日官方汇率换算 43 种常用货币，每个工作日更新，无需 API Key",
-      en: "Convert 43 common currencies at official daily rates, updated every working day, no API key",
+      zh: "按每日官方汇率换算 42 种常用货币，每个工作日更新，无需 API Key",
+      en: "Convert 42 common currencies at official daily rates, updated every working day, no API key",
     },
     keywords: ["汇率", "货币", "换算", "美元", "人民币", "currency", "exchange"],
     icon: Coins,
