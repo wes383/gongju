@@ -197,7 +197,7 @@ export function CsvTableTool() {
                 <FileSpreadsheet className="h-3.5 w-3.5" />
                 {t.paste}
               </Button>
-              <SampleButton onClick={() => load(CSV_SAMPLE, "sample.csv")} label={t.load} />
+              <SampleButton onClick={() => load(CSV_SAMPLE, "sample.csv")} />
             </div>
             {pasteOpen && (
               <div className="mt-2 flex flex-col gap-2">
