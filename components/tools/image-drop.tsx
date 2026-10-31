@@ -18,7 +18,7 @@ export interface LoadedImage {
   height: number;
 }
 
-export type ImageError = "not-image" | "too-large" | "load-failed";
+export type ImageError = "not-image" | "too-large" | "load-failed" | "heic";
 
 const COPY = {
   zh: {
@@ -32,6 +32,7 @@ const COPY = {
       "not-image": "只支持图片文件",
       "too-large": "图片像素过大（超过 4000 万像素），请先缩小",
       "load-failed": "无法读取这张图片，可能已损坏",
+      heic: "浏览器无法解码 HEIC / HEIF（iPhone 默认格式），请先转成 JPG 或 PNG；iPhone 可在「设置 → 相机 → 格式」里改成「兼容性最佳」",
     },
   },
   en: {
@@ -45,6 +46,7 @@ const COPY = {
       "not-image": "Only image files are supported",
       "too-large": "Image is too large (over 40 megapixels), please shrink it first",
       "load-failed": "Could not read this image, it may be corrupted",
+      heic: "Browsers cannot decode HEIC / HEIF (the iPhone default). Convert it to JPG or PNG first — on iPhone: Settings → Camera → Formats → Most Compatible",
     },
   },
 };
@@ -84,6 +86,16 @@ export function useImageFiles({ multiple = false, limit = 40 } = {}) {
       for (const file of files) {
         if (!file.type.startsWith("image/")) {
           setError("not-image");
+          continue;
+        }
+        // Chrome / Edge / Firefox cannot decode HEIC at all, so calling it a
+        // corrupted file would send people looking for the wrong problem
+        if (
+          file.type === "image/heic" ||
+          file.type === "image/heif" ||
+          /\.hei[cf]$/i.test(file.name)
+        ) {
+          setError("heic");
           continue;
         }
         try {

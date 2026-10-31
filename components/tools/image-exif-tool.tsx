@@ -101,7 +101,7 @@ const COPY = {
     download: "下载",
     flashOn: "已闪光",
     flashOff: "未闪光",
-    note: "清除的方式是解码后重新绘制并编码，因此所有元数据（含 GPS、拍摄设备、缩略图）都会丢失，代价是重新压缩一次。",
+    note: "可读取 JPEG、PNG、WebP 里的 EXIF；AVIF / HEIC 这类容器不解析。清除的方式是解码后重新绘制并编码，因此所有元数据（含 GPS、拍摄设备、缩略图）都会丢失，代价是重新压缩一次。",
     groups: { camera: "设备", exposure: "拍摄参数", gps: "位置", other: "其他" },
   },
   en: {
@@ -117,7 +117,7 @@ const COPY = {
     download: "Download",
     flashOn: "Fired",
     flashOff: "Did not fire",
-    note: "Stripping works by decoding and re-encoding the image, so every metadata block (GPS, device, thumbnail) is dropped — at the cost of one extra compression pass.",
+    note: "Reads EXIF from JPEG, PNG and WebP; AVIF and HEIC containers are not parsed. Stripping decodes and re-encodes the image, so every metadata block (GPS, device, thumbnail) is dropped — at the cost of one extra compression pass.",
     groups: { camera: "Device", exposure: "Capture", gps: "Location", other: "Other" },
   },
 };
