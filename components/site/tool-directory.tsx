@@ -2,7 +2,16 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ArrowUpRight, ChevronRight, LayoutGrid, List, Search, X } from "lucide-react";
+import {
+  ArrowUpRight,
+  ChevronRight,
+  ChevronsDownUp,
+  ChevronsUpDown,
+  LayoutGrid,
+  List,
+  Search,
+  X,
+} from "lucide-react";
 import { ThemeToggle } from "@/components/site/theme-toggle";
 import { LanguageToggle } from "@/components/site/language-toggle";
 import { ToolCard } from "@/components/site/tool-card";
@@ -110,10 +119,34 @@ export function ToolDirectory() {
   const toggleCategory = (id: string) =>
     setCollapsed((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
 
+  // Only the categories currently on screen count: something hidden by the
+  // search filter should not keep the button stuck on "expand all".
+  const allExpanded = groups.every((cat) => !collapsed.includes(cat.id));
+
+  const toggleAll = () => setCollapsed(allExpanded ? groups.map((cat) => cat.id) : []);
+
   const viewOptions = [
     { mode: "grid" as ViewMode, icon: LayoutGrid, label: t.view.grid },
     { mode: "list" as ViewMode, icon: List, label: t.view.list },
   ];
+
+  // One button, two states: expand while anything is folded, collapse once all are open
+  const bulkToggleLabel = allExpanded ? t.view.collapseAll : t.view.expandAll;
+  const bulkToggle = (
+    <button
+      type="button"
+      onClick={toggleAll}
+      aria-label={bulkToggleLabel}
+      title={bulkToggleLabel}
+      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-foreground-muted transition-colors duration-base ease-out hover:bg-hover-bg hover:text-foreground"
+    >
+      {allExpanded ? (
+        <ChevronsDownUp className="h-3.5 w-3.5" />
+      ) : (
+        <ChevronsUpDown className="h-3.5 w-3.5" />
+      )}
+    </button>
+  );
 
   // Sits at the right edge of the first category row
   const viewToggle = (
@@ -202,7 +235,14 @@ export function ToolDirectory() {
                     {cat.tools.length}
                   </span>
                 </button>
-                {index === 0 && viewToggle}
+                {index === 0 && (
+                  <div className="flex shrink-0 items-center gap-1.5">
+                    {/* While searching every category is forced open, so bulk
+                        toggling would either do nothing or hide matches. */}
+                    {!searching && bulkToggle}
+                    {viewToggle}
+                  </div>
+                )}
               </div>
 
               {!isCollapsed &&

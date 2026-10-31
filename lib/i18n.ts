@@ -49,6 +49,8 @@ export interface Dict {
   view: {
     grid: string;
     list: string;
+    expandAll: string;
+    collapseAll: string;
   };
   notFound: {
     title: string;
@@ -96,6 +98,8 @@ const zh: Dict = {
   view: {
     grid: "卡片视图",
     list: "列表视图",
+    expandAll: "展开全部",
+    collapseAll: "收起全部",
   },
   notFound: {
     title: "页面不存在",
@@ -176,6 +180,8 @@ const en: Dict = {
   view: {
     grid: "Card view",
     list: "List view",
+    expandAll: "Expand all",
+    collapseAll: "Collapse all",
   },
   notFound: {
     title: "Page not found",
