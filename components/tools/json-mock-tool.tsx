@@ -3,11 +3,10 @@
 import * as React from "react";
 import { Dices, Download } from "lucide-react";
 import {
-  CopyButton,
   DualPane,
   OptionBar,
-  Segmented,
   SampleButton,
+  Segmented,
 } from "@/components/tools/tool-ui";
 import { useCopy, useLocale, useT } from "@/components/locale-provider";
 import { Button } from "@/components/ui/button";
@@ -59,6 +58,10 @@ const COPY = {
 
 type Source = "schema" | "sample";
 
+function randomSeed() {
+  return Math.floor(Math.random() * 1_000_000);
+}
+
 export function JsonMockTool() {
   const t = useCopy(COPY);
   const shared = useT();
@@ -69,7 +72,14 @@ export function JsonMockTool() {
   const [sampleText, setSampleText] = React.useState(JSON_SAMPLE);
   const [count, setCount] = React.useState("5");
   const [style, setStyle] = React.useState<"zh" | "en">(locale);
-  const [seed, setSeed] = React.useState(() => Math.floor(Math.random() * 1_000_000));
+  const [seed, setSeed] = React.useState(0);
+
+  // Random seed after mount: reading Math.random() during render is an unstable
+  // value for the prerender and blocks the route.
+  React.useEffect(() => {
+    const id = window.setTimeout(() => setSeed(randomSeed()), 0);
+    return () => window.clearTimeout(id);
+  }, []);
 
   const input = source === "schema" ? schemaText : sampleText;
 
@@ -139,7 +149,7 @@ export function JsonMockTool() {
           type="button"
           variant="ghost"
           size="xs"
-          onClick={() => setSeed(Math.floor(Math.random() * 1_000_000))}
+          onClick={() => setSeed(randomSeed())}
           className="ml-auto gap-1.5 text-foreground-muted"
         >
           <Dices className="h-3.5 w-3.5" />
@@ -185,7 +195,6 @@ export function JsonMockTool() {
               <Download className="h-3.5 w-3.5" />
               <span>{t.download}</span>
             </Button>
-            <CopyButton value={output} />
           </>
         }
         onClear={() => (source === "schema" ? setSchemaText("") : setSampleText(""))}
