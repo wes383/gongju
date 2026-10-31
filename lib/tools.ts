@@ -86,6 +86,7 @@ import {
   ClipboardList,
   Dice5,
   Keyboard,
+  Laptop,
   NotebookPen,
   Radio,
   Wand2,
@@ -260,6 +261,26 @@ const encodingTools: ToolMeta[] = [
     },
     keywords: ["csv", "json", "表格", "excel", "tsv", "转换"],
     icon: Table2,
+  }),
+  tool({
+    slug: "ascii-table",
+    name: { zh: "ASCII 码表", en: "ASCII Table" },
+    description: {
+      zh: "0–127 与 Latin-1 的字符对照，含各进制与 HTML 实体",
+      en: "Character reference for 0–127 and Latin-1, with bases and HTML entities",
+    },
+    keywords: ["ascii", "码表", "字符", "进制", "unicode", "table", "对照表"],
+    icon: Binary,
+  }),
+  tool({
+    slug: "morse",
+    name: { zh: "摩斯电码", en: "Morse Code" },
+    description: {
+      zh: "文本与摩斯电码互转，可播放提示音",
+      en: "Convert text to and from Morse code, with audio playback",
+    },
+    keywords: ["morse", "摩斯", "电码", "编码", "telegraph", "code"],
+    icon: Radio,
   }),
 ];
 
@@ -447,6 +468,16 @@ const textTools: ToolMeta[] = [
     keywords: ["拼音", "pinyin", "声调", "首字母", "汉字"],
     icon: SpellCheck,
   }),
+  textTool({
+    slug: "regex-cheatsheet",
+    name: { zh: "正则速查表", en: "Regex Cheatsheet" },
+    description: {
+      zh: "JavaScript 正则语法速查，按类别分组并可搜索",
+      en: "Searchable JavaScript regex syntax reference, grouped by category",
+    },
+    keywords: ["regex", "正则", "表达式", "速查", "cheatsheet", "pattern"],
+    icon: Regex,
+  }),
 ];
 
 const datetimeTools: ToolMeta[] = [
@@ -519,6 +550,16 @@ const datetimeTools: ToolMeta[] = [
     },
     keywords: ["农历", "阴历", "公历", "阳历", "生肖", "干支", "节气", "lunar", "chinese calendar"],
     icon: CalendarDays,
+  }),
+  dateTool({
+    slug: "age",
+    name: { zh: "年龄计算器", en: "Age Calculator" },
+    description: {
+      zh: "按日期算出周岁、总天数、下次生日与星座",
+      en: "Work out exact age, days lived, next birthday and zodiac sign",
+    },
+    keywords: ["age", "年龄", "生日", "周岁", "birthday", "zodiac", "星座"],
+    icon: Cake,
   }),
 ];
 
@@ -915,6 +956,26 @@ const devTools: ToolMeta[] = [
     keywords: ["ua", "user-agent", "随机", "生成", "爬虫"],
     icon: Repeat,
   }),
+  devTool({
+    slug: "key-event",
+    name: { zh: "键盘按键查看", en: "Key Event Inspector" },
+    description: {
+      zh: "查看按键的 key、code、keyCode 与修饰键状态",
+      en: "Inspect the key, code, keyCode and modifiers of any keystroke",
+    },
+    keywords: ["keyboard", "键盘", "按键", "keycode", "event", "快捷键"],
+    icon: Keyboard,
+  }),
+  devTool({
+    slug: "device-info",
+    name: { zh: "设备信息", en: "Device Info" },
+    description: {
+      zh: "查看屏幕分辨率、像素比、视口尺寸、CPU 与网络信息",
+      en: "Inspect screen resolution, pixel ratio, viewport size, CPU and network",
+    },
+    keywords: ["device", "屏幕", "分辨率", "视口", "dpr", "ua", "设备"],
+    icon: Laptop,
+  }),
 ];
 
 const networkTools: ToolMeta[] = [
@@ -1011,6 +1072,16 @@ const convertTools: ToolMeta[] = [
     },
     keywords: ["角度", "弧度", "度", "rad", "deg", "三角函数", "angle"],
     icon: Triangle,
+  }),
+  convertTool({
+    slug: "calculator",
+    name: { zh: "科学计算器", en: "Scientific Calculator" },
+    description: {
+      zh: "支持三角函数、对数、阶乘与常量的表达式计算器",
+      en: "Expression calculator with trigonometry, logs, factorials and constants",
+    },
+    keywords: ["calculator", "计算器", "科学", "sin", "log", "math", "表达式"],
+    icon: Calculator,
   }),
 ];
 
@@ -1109,36 +1180,6 @@ const miscTools: ToolMeta[] = [
     icon: Dices,
   }),
   miscTool({
-    slug: "calculator",
-    name: { zh: "科学计算器", en: "Scientific Calculator" },
-    description: {
-      zh: "支持三角函数、对数、阶乘与常量的表达式计算器",
-      en: "Expression calculator with trigonometry, logs, factorials and constants",
-    },
-    keywords: ["calculator", "计算器", "科学", "sin", "log", "math", "表达式"],
-    icon: Calculator,
-  }),
-  miscTool({
-    slug: "age",
-    name: { zh: "年龄计算器", en: "Age Calculator" },
-    description: {
-      zh: "按日期算出周岁、总天数、下次生日与星座",
-      en: "Work out exact age, days lived, next birthday and zodiac sign",
-    },
-    keywords: ["age", "年龄", "生日", "周岁", "birthday", "zodiac", "星座"],
-    icon: Cake,
-  }),
-  miscTool({
-    slug: "device-info",
-    name: { zh: "设备信息", en: "Device Info" },
-    description: {
-      zh: "查看屏幕分辨率、像素比、视口尺寸、CPU 与网络信息",
-      en: "Inspect screen resolution, pixel ratio, viewport size, CPU and network",
-    },
-    keywords: ["device", "屏幕", "分辨率", "视口", "dpr", "ua", "设备", "分辨率"],
-    icon: MonitorSmartphone,
-  }),
-  miscTool({
     slug: "clipboard-history",
     name: { zh: "剪贴板历史", en: "Clipboard History" },
     description: {
@@ -1157,46 +1198,6 @@ const miscTools: ToolMeta[] = [
     },
     keywords: ["notes", "记事本", "笔记", "notepad", "memo", "便签"],
     icon: NotebookPen,
-  }),
-  miscTool({
-    slug: "morse",
-    name: { zh: "摩斯电码", en: "Morse Code" },
-    description: {
-      zh: "文本与摩斯电码互转，可播放提示音",
-      en: "Convert text to and from Morse code, with audio playback",
-    },
-    keywords: ["morse", "摩斯", "电码", "编码", "telegraph", "code"],
-    icon: Radio,
-  }),
-  miscTool({
-    slug: "ascii-table",
-    name: { zh: "ASCII 码表", en: "ASCII Table" },
-    description: {
-      zh: "0–127 与 Latin-1 的字符对照，含各进制与 HTML 实体",
-      en: "Character reference for 0–127 and Latin-1, with bases and HTML entities",
-    },
-    keywords: ["ascii", "码表", "字符", "进制", "unicode", "table", "对照表"],
-    icon: Binary,
-  }),
-  miscTool({
-    slug: "regex-cheatsheet",
-    name: { zh: "正则速查表", en: "Regex Cheatsheet" },
-    description: {
-      zh: "JavaScript 正则语法速查，按类别分组并可搜索",
-      en: "Searchable JavaScript regex syntax reference, grouped by category",
-    },
-    keywords: ["regex", "正则", "表达式", "速查", "cheatsheet", "pattern"],
-    icon: Regex,
-  }),
-  miscTool({
-    slug: "key-event",
-    name: { zh: "键盘按键查看", en: "Key Event Inspector" },
-    description: {
-      zh: "查看按键的 key、code、keyCode 与修饰键状态",
-      en: "Inspect the key, code, keyCode and modifiers of any keystroke",
-    },
-    keywords: ["keyboard", "键盘", "按键", "keycode", "event", "快捷键"],
-    icon: Keyboard,
   }),
 ];
 
@@ -1305,8 +1306,8 @@ export const categories: CategoryMeta[] = [
     id: "convert",
     name: { zh: "转换器 / 单位", en: "Converters / Units" },
     description: {
-      zh: "单位换算、汇率、百分比、BMI",
-      en: "Units, currency, percentages and BMI",
+      zh: "单位换算、汇率、百分比、BMI 与计算器",
+      en: "Units, currency, percentages, BMI and calculators",
     },
     icon: Ruler,
     tools: convertTools,
@@ -1325,8 +1326,8 @@ export const categories: CategoryMeta[] = [
     id: "misc",
     name: { zh: "其他实用工具", en: "Misc" },
     description: {
-      zh: "随机数、计算器、摩斯电码、记事本与速查表",
-      en: "Random numbers, calculators, Morse code, notes and cheat sheets",
+      zh: "随机数、掷骰子、剪贴板历史与记事本",
+      en: "Random numbers, dice, clipboard history and notes",
     },
     icon: Dices,
     tools: miscTools,
