@@ -246,7 +246,7 @@ export function ImageCollageTool() {
             </header>
             <div className="p-3">
               {preview ? (
-                <ImagePreview src={preview.url} alt={t.preview} maxHeight="max-h-[520px]" />
+                <ImagePreview src={preview.url} alt={t.preview} height="h-[480px]" />
               ) : (
                 <p className="py-10 text-center text-sm text-foreground-subtle">{t.empty}</p>
               )}

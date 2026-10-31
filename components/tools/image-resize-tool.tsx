@@ -40,6 +40,7 @@ const COPY = {
     height: "高",
     lock: "锁定比例",
     preset: "常用尺寸",
+    custom: "自定义",
     anchor: "裁剪位置",
     format: "输出格式",
     quality: "质量",
@@ -57,6 +58,7 @@ const COPY = {
     height: "Height",
     lock: "Lock ratio",
     preset: "Presets",
+    custom: "Custom",
     anchor: "Crop anchor",
     format: "Format",
     quality: "Quality",
@@ -98,6 +100,9 @@ export function ImageResizeTool() {
   const width = dims && image && dims.id === image.id ? dims.width : (image?.width ?? 0);
   const height = dims && image && dims.id === image.id ? dims.height : (image?.height ?? 0);
   const ratio = image ? image.width / image.height : 1;
+  // Reflect the current size in the trigger: a preset name when it matches one
+  const matchedPreset =
+    PRESETS.find((p) => p.width === width && p.height === height)?.label ?? "";
 
   const applySize = (nextWidth: number, nextHeight: number) => {
     if (!image) return;
@@ -220,7 +225,7 @@ export function ImageResizeTool() {
 
             <OptionField label={t.preset}>
               <Select
-                value=""
+                value={matchedPreset}
                 onValueChange={(value) => {
                   const preset = PRESETS.find((p) => p.label === value);
                   if (!preset) return;
@@ -229,7 +234,7 @@ export function ImageResizeTool() {
                 }}
               >
                 <SelectTrigger size="xs" aria-label={t.preset} className="w-36">
-                  <SelectValue placeholder="—" />
+                  <SelectValue placeholder={t.custom} />
                 </SelectTrigger>
                 <SelectContent>
                   {PRESETS.map((preset) => (

@@ -287,17 +287,18 @@ export function ImagePreview({
   src,
   alt,
   className,
-  maxHeight = "max-h-[420px]",
+  height = "h-[360px]",
 }: {
   src: string;
   alt: string;
   className?: string;
-  maxHeight?: string;
+  /** Fixed height keeps the page from reflowing when the output ratio changes */
+  height?: string;
 }) {
   return (
-    <Checkerboard className={cn("flex items-center justify-center", className)}>
+    <Checkerboard className={cn("flex items-center justify-center", height, className)}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={src} alt={alt} className={cn("w-full object-contain", maxHeight)} />
+      <img src={src} alt={alt} className="max-h-full max-w-full object-contain" />
     </Checkerboard>
   );
 }
