@@ -10,6 +10,7 @@ import {
 } from "@/components/tools/tool-ui";
 import { useCopy, useLocale, useT } from "@/components/locale-provider";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { highlightJson } from "@/lib/encoding";
 import { parseJson, JSON_SAMPLE } from "@/lib/json";
 import { inferSchema } from "@/lib/json-schema";
@@ -58,6 +59,13 @@ const COPY = {
 
 type Source = "schema" | "sample";
 
+const COUNT_PRESETS = ["1", "5", "10", "50"];
+const COUNT_MAX = 500;
+
+function clampCount(raw: string): number {
+  return Math.min(COUNT_MAX, Math.max(1, Math.round(Number(raw) || 1)));
+}
+
 function randomSeed() {
   return Math.floor(Math.random() * 1_000_000);
 }
@@ -82,6 +90,7 @@ export function JsonMockTool() {
   }, []);
 
   const input = source === "schema" ? schemaText : sampleText;
+  const countValue = clampCount(count);
 
   const resolved = React.useMemo(() => {
     const parsed = parseJson(input);
@@ -104,13 +113,13 @@ export function JsonMockTool() {
     if (!resolved.schema) return { text: "", error: null as string | null };
     try {
       return {
-        text: mockJson(resolved.schema, { count: Number(count), seed, locale: style }),
+        text: mockJson(resolved.schema, { count: countValue, seed, locale: style }),
         error: null as string | null,
       };
     } catch (error) {
       return { text: "", error: error instanceof Error ? error.message : String(error) };
     }
-  }, [resolved.schema, count, seed, style]);
+  }, [resolved.schema, countValue, seed, style]);
   const output = generated.text;
 
   return (
@@ -129,12 +138,20 @@ export function JsonMockTool() {
           ariaLabel={t.count}
           value={count}
           onChange={setCount}
-          options={[
-            { value: "1", label: "1" },
-            { value: "5", label: "5" },
-            { value: "10", label: "10" },
-            { value: "50", label: "50" },
-          ]}
+          options={COUNT_PRESETS.map((value) => ({ value, label: value }))}
+        />
+        <Input
+          type="number"
+          inputMode="numeric"
+          min={1}
+          max={COUNT_MAX}
+          value={count}
+          onChange={(e) => setCount(e.target.value.replace(/[^\d]/g, ""))}
+          onBlur={() => setCount(String(countValue))}
+          placeholder={`1–${COUNT_MAX}`}
+          aria-label={`${t.count} 1–${COUNT_MAX}`}
+          size="xs"
+          className="w-16 text-center font-mono"
         />
         <Segmented
           ariaLabel={t.language}
@@ -198,7 +215,7 @@ export function JsonMockTool() {
         }
         onClear={() => (source === "schema" ? setSchemaText("") : setSampleText(""))}
         inputFooter={<span>{input.length}</span>}
-        outputFooter={<span>{output ? `${count} ${t.rows}` : ""}</span>}
+        outputFooter={<span>{output ? `${countValue} ${t.rows}` : ""}</span>}
       />
 
       <p className="text-xs leading-relaxed text-foreground-subtle">{t.note}</p>
