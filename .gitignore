@@ -49,6 +49,7 @@ next-env.d.ts
 /.codeium
 /.tabnine
 /.trae
+/.workbuddy
 /.workbuddy-ai
 /.qodo
 /.aider*
