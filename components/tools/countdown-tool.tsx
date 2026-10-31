@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Flag, Pause, Play, RotateCcw } from "lucide-react";
+import { Flag, Maximize2, Minimize2, Pause, Play, RotateCcw } from "lucide-react";
 import { useCopy } from "@/components/locale-provider";
 import { OptionBar, Segmented } from "@/components/tools/tool-ui";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,8 @@ const COPY = {
     resume: "继续",
     reset: "重置",
     finished: "时间到",
+    fullscreen: "全屏",
+    exitFullscreen: "退出全屏",
     lap: "计次",
     lapIndex: "第",
     lapTimes: "计次记录",
@@ -45,6 +47,8 @@ const COPY = {
     resume: "Resume",
     reset: "Reset",
     finished: "Time's up",
+    fullscreen: "Full screen",
+    exitFullscreen: "Exit full screen",
     lap: "Lap",
     lapIndex: "Lap",
     lapTimes: "Laps",
@@ -178,6 +182,25 @@ export function CountdownTool() {
   const progress =
     durationMs > 0 ? Math.min(1, Math.max(0, 1 - remainingMs / durationMs)) : 0;
 
+  /* ── full screen ─────────────────────────────────────────── */
+  const timerRef = React.useRef<HTMLDivElement>(null);
+  const [fullscreen, setFullscreen] = React.useState(false);
+
+  React.useEffect(() => {
+    const onChange = () => setFullscreen(document.fullscreenElement !== null);
+    document.addEventListener("fullscreenchange", onChange);
+    return () => document.removeEventListener("fullscreenchange", onChange);
+  }, []);
+
+  const toggleFullscreen = async () => {
+    try {
+      if (document.fullscreenElement) await document.exitFullscreen();
+      else await timerRef.current?.requestFullscreen();
+    } catch {
+      /* the browser refused, the layout stays as it is */
+    }
+  };
+
   const durationParts = {
     h: Math.floor(durationMs / 3_600_000),
     m: Math.floor(durationMs / 60_000) % 60,
@@ -260,6 +283,16 @@ export function CountdownTool() {
             <div className="ml-auto flex items-center gap-1.5">
               <Button
                 type="button"
+                variant="ghost"
+                size="icon-sm"
+                onClick={toggleFullscreen}
+                aria-label={t.fullscreen}
+                title={t.fullscreen}
+              >
+                <Maximize2 className="h-3.5 w-3.5" />
+              </Button>
+              <Button
+                type="button"
                 variant={running ? "outline" : "default"}
                 size="sm"
                 onClick={toggleCountdown}
@@ -325,9 +358,31 @@ export function CountdownTool() {
       </p>
 
       {mode === "countdown" ? (
-        <div className="flex flex-col items-center gap-6 rounded-lg border border-border bg-surface px-6 py-14">
+        <div
+          ref={timerRef}
+          className={cn(
+            "relative flex flex-col items-center gap-6 rounded-lg border border-border bg-surface px-6 py-14",
+            fullscreen && "justify-center rounded-none border-0 bg-background px-10 py-0"
+          )}
+        >
+          {fullscreen && (
+            <button
+              type="button"
+              onClick={toggleFullscreen}
+              aria-label={t.exitFullscreen}
+              title={t.exitFullscreen}
+              className="absolute right-6 top-6 grid h-10 w-10 place-items-center rounded-full text-foreground-subtle transition-colors hover:bg-hover-bg hover:text-foreground"
+            >
+              <Minimize2 className="h-5 w-5" />
+            </button>
+          )}
           {editing ? (
-            <div className="flex items-baseline gap-1 font-display tabular-nums text-foreground">
+            <div
+              className={cn(
+                "flex items-baseline gap-1 font-display tabular-nums text-foreground",
+                fullscreen && "scale-150 sm:scale-[2]"
+              )}
+            >
               <TimeField
                 value={durationParts.h}
                 max={99}
@@ -353,7 +408,8 @@ export function CountdownTool() {
             <div
               className={cn(
                 "flex items-baseline gap-1 font-display tabular-nums",
-                finished ? "text-accent" : "text-foreground"
+                finished ? "text-accent" : "text-foreground",
+                fullscreen && "scale-150 sm:scale-[2.5]"
               )}
             >
               {countdown.h > 0 && (
@@ -368,7 +424,12 @@ export function CountdownTool() {
             </div>
           )}
 
-          <div className="h-1 w-full max-w-md overflow-hidden rounded-full bg-hover-bg">
+          <div
+            className={cn(
+              "h-1 w-full max-w-md overflow-hidden rounded-full bg-hover-bg",
+              fullscreen && "max-w-xl"
+            )}
+          >
             <div
               className="h-full rounded-full bg-accent transition-[width] duration-200 ease-linear"
               style={{ width: `${progress * 100}%` }}
