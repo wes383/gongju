@@ -13,6 +13,7 @@ import {
   CSV_SAMPLE,
   delimiterName,
   parseCsv,
+  removeColumn,
   removeRow,
   setCell,
   setHeader,
@@ -40,9 +41,12 @@ const COPY = {
     paste: "粘贴文本",
     pastePlaceholder: "id,name,email\n1,Alice,alice@example.com",
     load: "导入",
-    hint: "表格可双击单元格直接编辑，支持 .csv / .tsv，文件不上传",
+    hint: "表格可双击单元格直接编辑，拖动表头右边缘可调列宽，支持 .csv / .tsv，文件不上传",
     rowNumber: "#",
     deleteRow: "删除这一行",
+    deleteColumn: "删除这一列",
+    resizeColumn: "调整列宽",
+    resizeHint: "拖动调整列宽，双击恢复自适应",
     stats: "列统计",
     statEmpty: "空值",
     statUnique: "唯一值",
@@ -64,9 +68,12 @@ const COPY = {
     paste: "Paste text",
     pastePlaceholder: "id,name,email\n1,Alice,alice@example.com",
     load: "Import",
-    hint: "Double-click a cell to edit; .csv and .tsv, nothing leaves your device",
+    hint: "Double-click a cell to edit; drag a header edge to resize a column; .csv and .tsv, nothing leaves your device",
     rowNumber: "#",
     deleteRow: "Delete this row",
+    deleteColumn: "Delete this column",
+    resizeColumn: "Resize column",
+    resizeHint: "Drag to resize, double-click to reset",
     stats: "Column stats",
     statEmpty: "empty",
     statUnique: "unique",
@@ -78,6 +85,7 @@ const COPY = {
 const ROW_H = 34;
 const INDEX_W = 44;
 const CELL_MIN = 140;
+const CELL_MIN_DRAG = 64;
 
 type CellPos = { row: number; column: number };
 
@@ -96,6 +104,16 @@ export function CsvTableTool() {
   const [scrollTop, setScrollTop] = React.useState(0);
   const [viewportH, setViewportH] = React.useState(440);
   const viewportRef = React.useRef<HTMLDivElement>(null);
+
+  // null 表示该列保持自适应（minmax(CELL_MIN, 1fr)），数字表示拖动后的固定像素宽
+  const [widths, setWidths] = React.useState<(number | null)[]>([]);
+  const headerRefs = React.useRef<(HTMLDivElement | null)[]>([]);
+  const dragRef = React.useRef<{
+    column: number;
+    startX: number;
+    startWidth: number;
+    measured: number[];
+  } | null>(null);
 
   React.useEffect(() => {
     const node = viewportRef.current;
@@ -117,6 +135,7 @@ export function CsvTableTool() {
     setTable(parsed);
     setName(filename.replace(/\.[^.]+$/, "") || "table");
     setScrollTop(0);
+    setWidths([]);
     if (viewportRef.current) viewportRef.current.scrollTop = 0;
   };
 
@@ -131,8 +150,53 @@ export function CsvTableTool() {
   const stats = React.useMemo(() => (table ? columnStats(table) : []), [table]);
 
   const gridTemplate = table
-    ? `${INDEX_W}px repeat(${table.header.length}, minmax(${CELL_MIN}px, 1fr))`
+    ? `${INDEX_W}px ${table.header
+        .map((_, i) => {
+          const width = widths[i];
+          return width ? `${width}px` : `minmax(${CELL_MIN}px, 1fr)`;
+        })
+        .join(" ")}`
     : undefined;
+
+  const startResize = (column: number, e: React.PointerEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    const measured = (table?.header ?? []).map(
+      (_, i) => headerRefs.current[i]?.getBoundingClientRect().width ?? CELL_MIN
+    );
+    dragRef.current = {
+      column,
+      startX: e.clientX,
+      startWidth: measured[column] ?? CELL_MIN,
+      measured,
+    };
+    // 先把当前实际宽度固化成像素，拖动时其它列才不会被 1fr 带着一起变
+    setWidths(measured.map((w) => Math.round(w)));
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+
+  const moveResize = (e: React.PointerEvent<HTMLButtonElement>) => {
+    const drag = dragRef.current;
+    if (!drag) return;
+    const next = Math.max(
+      CELL_MIN_DRAG,
+      Math.round(drag.startWidth + (e.clientX - drag.startX))
+    );
+    setWidths((prev) => {
+      const copy = prev.length ? [...prev] : drag.measured.map((w) => Math.round(w));
+      copy[drag.column] = next;
+      return copy;
+    });
+  };
+
+  const endResize = (e: React.PointerEvent<HTMLButtonElement>) => {
+    dragRef.current = null;
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    }
+  };
+
+  const resetWidth = (column: number) =>
+    setWidths((prev) => prev.map((w, i) => (i === column ? null : w)));
 
   const rowCount = table?.rows.length ?? 0;
   const overscan = 6;
@@ -305,7 +369,13 @@ export function CsvTableTool() {
                       {t.rowNumber}
                     </div>
                     {table.header.map((_, column) => (
-                      <div key={column} className="min-w-0 border-l border-border">
+                      <div
+                        key={column}
+                        ref={(node) => {
+                          headerRefs.current[column] = node;
+                        }}
+                        className="group/col relative min-w-0 border-l border-border"
+                      >
                         <input
                           value={editing({ row: -1, column }).value}
                           onChange={(e) =>
@@ -314,8 +384,35 @@ export function CsvTableTool() {
                           aria-label={`${t.columns} ${column + 1}`}
                           className={cn(
                             cellClass,
-                            "h-9 font-sans text-[11px] font-semibold uppercase tracking-wide"
+                            "h-9 font-sans text-[11px] font-semibold uppercase tracking-wide",
+                            table.header.length > 1 && "pr-8"
                           )}
+                        />
+                        {table.header.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setTable((prev) => (prev ? removeColumn(prev, column) : prev));
+                              setWidths((prev) => prev.filter((_, i) => i !== column));
+                            }}
+                            aria-label={`${t.deleteColumn} ${column + 1}`}
+                            title={t.deleteColumn}
+                            className="absolute right-1.5 top-1/2 grid h-5 w-5 -translate-y-1/2 place-items-center rounded text-foreground-faint opacity-0 transition-opacity hover:bg-hover-bg hover:text-foreground group-hover/col:opacity-100"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          tabIndex={-1}
+                          onPointerDown={(e) => startResize(column, e)}
+                          onPointerMove={moveResize}
+                          onPointerUp={endResize}
+                          onPointerCancel={endResize}
+                          onDoubleClick={() => resetWidth(column)}
+                          aria-label={`${t.resizeColumn} ${column + 1}`}
+                          title={t.resizeHint}
+                          className="absolute right-[-3px] top-0 z-20 h-full w-1.5 cursor-col-resize touch-none select-none bg-transparent transition-colors hover:bg-accent/60 active:bg-accent"
                         />
                       </div>
                     ))}

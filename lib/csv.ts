@@ -184,6 +184,14 @@ export function removeRow(table: CsvTable, index: number): CsvTable {
   return { ...table, rows: table.rows.filter((_, r) => r !== index) };
 }
 
+export function removeColumn(table: CsvTable, index: number): CsvTable {
+  return {
+    header: table.header.filter((_, c) => c !== index),
+    rows: table.rows.map((row) => row.filter((_, c) => c !== index)),
+    delimiter: table.delimiter,
+  };
+}
+
 export function addColumn(table: CsvTable): CsvTable {
   return {
     header: [...table.header, defaultHeader(table.header.length)],

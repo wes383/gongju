@@ -4,6 +4,7 @@ import {
   addRow,
   columnStats,
   parseCsv,
+  removeColumn,
   removeRow,
   setCell,
   sniffDelimiter,
@@ -61,6 +62,14 @@ describe("csv", () => {
     const withRow = addRow(table);
     expect(withRow.rows).toHaveLength(4);
     expect(removeRow(withRow, 0).rows[0][0]).toBe("2");
+  });
+
+  it("drops a column from the header and every row", () => {
+    const table = parseCsv(text)!;
+    const trimmed = removeColumn(table, 1);
+    expect(trimmed.header).toEqual(["id", "score"]);
+    expect(trimmed.rows[0]).toEqual(["1", "9.5"]);
+    expect(removeColumn(table, 2).header).toEqual(["id", "name"]);
   });
 
   it("renders a markdown table", () => {
