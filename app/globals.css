@@ -777,7 +777,9 @@ html.dark.high-contrast {
      ::-webkit-scrollbar rules below when neither of them is customised. */
   scrollbar-width: auto;
   scrollbar-color: auto;
-  scrollbar-gutter: stable;
+  /* `stable` would reserve the 8px gutter even for short lists, which reads as
+     a lopsided right margin. `auto` only takes the space when it scrolls. */
+  scrollbar-gutter: auto;
 }
 
 .scroll-panel::-webkit-scrollbar,
