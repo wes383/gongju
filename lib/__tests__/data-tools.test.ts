@@ -12,7 +12,13 @@ import {
   tableToMarkdown,
 } from "@/lib/csv";
 import { parseCurl, toCode, tokenize } from "@/lib/curl";
-import { buildGitignore, DEFAULT_IGNORE } from "@/lib/gitignore";
+import {
+  buildGitignore,
+  DEFAULT_IGNORE,
+  IGNORE_CATEGORIES,
+  IGNORE_GROUPS,
+  IGNORE_PRESETS,
+} from "@/lib/gitignore";
 import { buildIco, readIcoDirectory } from "@/lib/ico";
 import { inferSchema, schemaFromSample, validateJson } from "@/lib/json-schema";
 import { generateMock } from "@/lib/mock";
@@ -359,6 +365,30 @@ describe("gitignore", () => {
 
   it("keeps the extra block when no group is selected", () => {
     expect(buildGitignore([], "zh", "*.log")).toBe("# 自定义\n*.log\n");
+  });
+
+  it("groups every block under a known category with unique ids", () => {
+    const ids = IGNORE_GROUPS.map((group) => group.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    const categories = new Set(IGNORE_CATEGORIES.map((category) => category.id));
+    for (const group of IGNORE_GROUPS) {
+      expect(categories.has(group.category)).toBe(true);
+    }
+  });
+
+  it("only references existing blocks from presets", () => {
+    const ids = new Set(IGNORE_GROUPS.map((group) => group.id));
+    for (const preset of IGNORE_PRESETS) {
+      expect(preset.groups.length).toBeGreaterThan(0);
+      for (const id of preset.groups) expect(ids.has(id)).toBe(true);
+    }
+    expect(buildGitignore(IGNORE_PRESETS[0].groups, "en")).toContain("node_modules/");
+  });
+
+  it("negates the env example after the wildcard", () => {
+    const lines = buildGitignore(["dotenv"], "en").split("\n");
+    expect(lines).toContain(".env*");
+    expect(lines.indexOf("!.env.example")).toBeGreaterThan(lines.indexOf(".env*"));
   });
 });
 

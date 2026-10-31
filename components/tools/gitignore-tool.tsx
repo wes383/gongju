@@ -9,15 +9,18 @@ import { Input } from "@/components/ui/input";
 import { downloadBlob } from "@/lib/files";
 import {
   buildGitignore,
+  categoryLabel,
   DEFAULT_IGNORE,
+  IGNORE_CATEGORIES,
   IGNORE_GROUPS,
+  IGNORE_PRESETS,
   groupLabel,
 } from "@/lib/gitignore";
 import { cn } from "@/lib/utils";
 
 const COPY = {
   zh: {
-    stacks: "按项目选择",
+    presets: "快捷预设",
     search: "搜索分类",
     output: ".gitignore",
     selectAll: "全选",
@@ -25,12 +28,14 @@ const COPY = {
     download: "下载",
     empty: "至少选择一个分类",
     noMatch: "没有匹配的分类",
+    groupAll: "全选",
+    groupNone: "取消",
     custom: "补充规则",
     customPlaceholder: "每行一条，例如 public/uploads/ 或 *.psd",
     note: "选中的分类会按组拼接、去重，`!` 开头的例外规则会保留；补充规则原样追加在末尾。生成的是标准 .gitignore 文本，可下载后放到项目根目录。",
   },
   en: {
-    stacks: "Pick your stack",
+    presets: "Presets",
     search: "Search groups",
     output: ".gitignore",
     selectAll: "Select all",
@@ -38,11 +43,16 @@ const COPY = {
     download: "Download",
     empty: "Pick at least one group",
     noMatch: "No matching groups",
+    groupAll: "All",
+    groupNone: "None",
     custom: "Extra rules",
     customPlaceholder: "One per line, e.g. public/uploads/ or *.psd",
     note: "Selected groups are merged and de-duplicated while keeping `!` exceptions; extra rules are appended verbatim. The result is a plain .gitignore you can download into the project root.",
   },
 };
+
+const sameSet = (a: string[], b: string[]) =>
+  a.length === b.length && [...a].sort().join("\n") === [...b].sort().join("\n");
 
 export function GitignoreTool() {
   const t = useCopy(COPY);
@@ -66,115 +76,183 @@ export function GitignoreTool() {
       )
     : IGNORE_GROUPS;
 
+  const sections = IGNORE_CATEGORIES.map((category) => ({
+    category,
+    groups: visible.filter((group) => group.category === category.id),
+  })).filter((section) => section.groups.length > 0);
+
   const toggle = (id: string) =>
     setSelected((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
 
+  const toggleSection = (ids: string[], allSelected: boolean) =>
+    setSelected((prev) =>
+      allSelected
+        ? prev.filter((id) => !ids.includes(id))
+        : Array.from(new Set([...prev, ...ids]))
+    );
+
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="text-xs text-foreground-muted">{t.stacks}</span>
-        <Input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder={t.search}
-          aria-label={t.search}
-          size="xs"
-          className="w-40"
-        />
-        <div className="ml-auto flex items-center gap-1.5">
-          <Button
-            type="button"
-            variant="ghost"
-            size="xs"
-            onClick={() =>
-              setSelected((prev) =>
-                Array.from(new Set([...prev, ...visible.map((group) => group.id)]))
-              )
-            }
-            className="text-foreground-muted"
-          >
-            {t.selectAll}
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="xs"
-            onClick={() => setSelected([])}
-            className="text-foreground-muted"
-          >
-            {t.clear}
-          </Button>
-        </div>
-      </div>
+      <div className="grid gap-3 lg:grid-cols-2">
+        <div className="flex min-w-0 flex-col gap-3">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="mr-1 text-xs text-foreground-muted">{t.presets}</span>
+            {IGNORE_PRESETS.map((preset) => {
+              const active = sameSet(selected, preset.groups);
+              return (
+                <button
+                  key={preset.id}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => setSelected(preset.groups)}
+                  className={cn(
+                    "inline-flex items-center rounded-md border px-2 py-1 text-[11px] transition-colors duration-base ease-out",
+                    active
+                      ? "border-accent bg-accent-muted text-accent"
+                      : "border-dashed border-border bg-surface text-foreground-muted hover:bg-hover-bg hover:text-foreground"
+                  )}
+                >
+                  {preset.label[locale]}
+                </button>
+              );
+            })}
+          </div>
 
-      {visible.length > 0 ? (
-        <div className="flex flex-wrap gap-1.5">
-          {visible.map((group) => {
-            const active = selected.includes(group.id);
-            return (
-              <button
-                key={group.id}
-                type="button"
-                aria-pressed={active}
-                onClick={() => toggle(group.id)}
-                className={cn(
-                  "inline-flex items-center rounded-full border px-2.5 py-1 text-xs transition-colors duration-base ease-out",
-                  active
-                    ? "border-accent bg-accent-muted text-accent"
-                    : "border-border bg-surface text-foreground-muted hover:bg-hover-bg hover:text-foreground"
-                )}
-              >
-                {groupLabel(group, locale)}
-              </button>
-            );
-          })}
-        </div>
-      ) : (
-        <p className="text-xs text-foreground-subtle">{t.noMatch}</p>
-      )}
-
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="gitignore-extra" className="text-xs font-medium text-foreground-muted">
-          {t.custom}
-        </label>
-        <textarea
-          id="gitignore-extra"
-          value={extra}
-          onChange={(e) => setExtra(e.target.value)}
-          placeholder={t.customPlaceholder}
-          spellCheck={false}
-          className="min-h-[72px] w-full resize-y rounded-md border border-border bg-surface px-2.5 py-2 font-mono text-xs leading-relaxed text-foreground placeholder:text-foreground-faint focus:border-border-strong focus:outline-none"
-        />
-      </div>
-
-      <div className="overflow-hidden rounded-lg border border-border bg-surface">
-        <Pane
-          label={t.output}
-          actions={
-            <>
+          <div className="flex flex-wrap items-center gap-2">
+            <Input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={t.search}
+              aria-label={t.search}
+              size="xs"
+              className="w-40"
+            />
+            <div className="ml-auto flex items-center gap-1.5">
               <Button
                 type="button"
                 variant="ghost"
                 size="xs"
-                disabled={!output}
                 onClick={() =>
-                  downloadBlob(
-                    new Blob([output], { type: "text/plain;charset=utf-8" }),
-                    ".gitignore"
+                  setSelected((prev) =>
+                    Array.from(new Set([...prev, ...visible.map((group) => group.id)]))
                   )
                 }
-                className="gap-1.5 text-foreground-muted"
+                className="text-foreground-muted"
               >
-                <Download className="h-3.5 w-3.5" />
-                <span>{t.download}</span>
+                {t.selectAll}
               </Button>
-              <CopyButton value={output} />
-            </>
-          }
-          footer={<span>{output ? `${output.split("\n").length} lines` : t.empty}</span>}
-        >
-          <OutputArea value={output} minHeight="min-h-[320px]" placeholder={t.empty} />
-        </Pane>
+              <Button
+                type="button"
+                variant="ghost"
+                size="xs"
+                onClick={() => setSelected([])}
+                className="text-foreground-muted"
+              >
+                {t.clear}
+              </Button>
+            </div>
+          </div>
+
+          {sections.length > 0 ? (
+            <div className="flex flex-col gap-2.5">
+              {sections.map(({ category, groups }) => {
+                const ids = groups.map((group) => group.id);
+                const allSelected = ids.every((id) => selected.includes(id));
+                return (
+                  <div key={category.id} className="flex flex-col gap-1.5">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[11px] font-medium uppercase tracking-wide text-foreground-subtle">
+                        {categoryLabel(category, locale)}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => toggleSection(ids, allSelected)}
+                        className="text-[11px] text-foreground-faint transition-colors hover:text-foreground-muted"
+                      >
+                        {allSelected ? t.groupNone : t.groupAll}
+                      </button>
+                      <span className="h-px flex-1 bg-border" />
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {groups.map((group) => {
+                        const active = selected.includes(group.id);
+                        return (
+                          <button
+                            key={group.id}
+                            type="button"
+                            aria-pressed={active}
+                            onClick={() => toggle(group.id)}
+                            className={cn(
+                              "inline-flex items-center rounded-full border px-2.5 py-1 text-xs transition-colors duration-base ease-out",
+                              active
+                                ? "border-accent bg-accent-muted text-accent"
+                                : "border-border bg-surface text-foreground-muted hover:bg-hover-bg hover:text-foreground"
+                            )}
+                          >
+                            {groupLabel(group, locale)}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="text-xs text-foreground-subtle">{t.noMatch}</p>
+          )}
+
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="gitignore-extra" className="text-xs font-medium text-foreground-muted">
+              {t.custom}
+            </label>
+            <textarea
+              id="gitignore-extra"
+              value={extra}
+              onChange={(e) => setExtra(e.target.value)}
+              placeholder={t.customPlaceholder}
+              spellCheck={false}
+              className="min-h-[72px] w-full resize-y rounded-md border border-border bg-surface px-2.5 py-2 font-mono text-xs leading-relaxed text-foreground placeholder:text-foreground-faint focus:border-border-strong focus:outline-none"
+            />
+          </div>
+        </div>
+
+        <div className="flex min-w-0 flex-col overflow-hidden rounded-lg border border-border bg-surface">
+          <Pane
+            label={t.output}
+            className="h-full"
+            actions={
+              <>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="xs"
+                  disabled={!output}
+                  onClick={() =>
+                    downloadBlob(
+                      new Blob([output], { type: "text/plain;charset=utf-8" }),
+                      ".gitignore"
+                    )
+                  }
+                  className="gap-1.5 text-foreground-muted"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  <span>{t.download}</span>
+                </Button>
+                <CopyButton value={output} />
+              </>
+            }
+            footer={
+              <span>{output ? `${selected.length} / ${IGNORE_GROUPS.length}` : t.empty}</span>
+            }
+          >
+            <OutputArea
+              value={output}
+              minHeight="min-h-[360px] lg:h-full"
+              placeholder={t.empty}
+            />
+          </Pane>
+        </div>
       </div>
 
       <p className="text-xs leading-relaxed text-foreground-subtle">{t.note}</p>
