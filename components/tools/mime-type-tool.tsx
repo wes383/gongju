@@ -1,10 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { useCopy } from "@/components/locale-provider";
+import { useCopy, useLocale } from "@/components/locale-provider";
 import { Input } from "@/components/ui/input";
 import { CopyButton } from "@/components/tools/tool-ui";
-import { MIME_FULL } from "@/lib/mime-full";
 import { MIME_TYPES } from "@/lib/mime-types";
 
 const COPY = {
@@ -71,9 +70,9 @@ interface Entry {
 /** Curated descriptions keyed by MIME type. */
 const CURATED = new Map(MIME_TYPES.map((item) => [item.type, item]));
 
-/** Full list with curated descriptions merged in. */
-const ALL_TYPES: Entry[] = (() => {
-  const list: Entry[] = MIME_FULL.map(([type, ext, iana]) => {
+/** Merge the full mime-db table with the curated descriptions. */
+function buildAllTypes(full: [string, string, number][]): Entry[] {
+  const list: Entry[] = full.map(([type, ext, iana]) => {
     const curated = CURATED.get(type);
     return {
       type,
@@ -83,14 +82,14 @@ const ALL_TYPES: Entry[] = (() => {
       en: curated?.en,
     };
   });
-  const seen = new Set(MIME_FULL.map(([type]) => type));
+  const seen = new Set(full.map(([type]) => type));
   MIME_TYPES.forEach((item) => {
     if (!seen.has(item.type)) {
       list.push({ type: item.type, ext: item.ext, iana: true, zh: item.zh, en: item.en });
     }
   });
   return list.sort((a, b) => a.type.localeCompare(b.type));
-})();
+}
 
 const CURATED_LIST: Entry[] = MIME_TYPES.map((item) => ({
   type: item.type,
@@ -106,21 +105,37 @@ function groupOf(type: string): string {
 
 export function MimeTypeTool() {
   const t = useCopy(COPY);
+  const locale = useLocale();
   const [query, setQuery] = React.useState("");
+  // The full table is ~2.5k rows; keep it out of the first paint and load it
+  // the first time someone actually searches
+  const [allTypes, setAllTypes] = React.useState<Entry[] | null>(null);
 
   const searching = query.trim().length > 0;
+
+  React.useEffect(() => {
+    if (!searching || allTypes) return;
+    let cancelled = false;
+    import("@/lib/mime-full").then(({ MIME_FULL }) => {
+      if (!cancelled) setAllTypes(buildAllTypes(MIME_FULL));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [searching, allTypes]);
 
   const filtered = React.useMemo(() => {
     if (!searching) return CURATED_LIST;
     const text = query.trim().toLowerCase();
-    return ALL_TYPES.filter(
+    const pool = allTypes ?? CURATED_LIST;
+    return pool.filter(
       (item) =>
         item.type.toLowerCase().includes(text) ||
         item.ext.toLowerCase().includes(text) ||
         (item.zh ?? "").includes(text) ||
         (item.en ?? "").toLowerCase().includes(text)
     );
-  }, [query, searching]);
+  }, [query, searching, allTypes]);
 
   const shown = filtered.slice(0, LIMIT);
   const hidden = filtered.length - shown.length;
@@ -172,35 +187,35 @@ export function MimeTypeTool() {
                 <span className="ml-auto text-[11px] text-foreground-subtle">{items.length}</span>
               </header>
               <ul>
-                {items.map((item) => (
-                  <li
-                    key={item.type}
-                    className="flex items-start gap-3 border-b border-border px-4 py-2.5 last:border-b-0"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <p className="flex flex-wrap items-center gap-2">
-                        <span className="break-all font-mono text-xs text-foreground">
-                          {item.type}
-                        </span>
-                        {!item.iana && (
-                          <span className="rounded-full bg-hover-bg-strong px-1.5 py-0.5 text-[10px] text-foreground-subtle">
-                            {t.nonStandard}
+                {items.map((item) => {
+                  const description = locale === "zh" ? item.zh : item.en;
+                  return (
+                    <li
+                      key={item.type}
+                      className="flex items-start gap-3 border-b border-border px-4 py-2.5 last:border-b-0"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p className="flex flex-wrap items-center gap-2">
+                          <span className="break-all font-mono text-xs text-foreground">
+                            {item.type}
                           </span>
+                          {!item.iana && (
+                            <span className="rounded-full bg-hover-bg-strong px-1.5 py-0.5 text-[10px] text-foreground-subtle">
+                              {t.nonStandard}
+                            </span>
+                          )}
+                        </p>
+                        {description && (
+                          <p className="mt-0.5 text-xs text-foreground-muted">{description}</p>
                         )}
-                      </p>
-                      {item.zh && (
-                        <p className="mt-0.5 text-xs text-foreground-muted">{item.zh}</p>
-                      )}
-                      {item.en && (
-                        <p className="text-[11px] text-foreground-subtle">{item.en}</p>
-                      )}
-                    </div>
-                    <span className="shrink-0 font-mono text-[11px] text-foreground-subtle">
-                      {item.ext}
-                    </span>
-                    <CopyButton value={item.type} size="icon-xs" />
-                  </li>
-                ))}
+                      </div>
+                      <span className="shrink-0 font-mono text-[11px] text-foreground-subtle">
+                        {item.ext}
+                      </span>
+                      <CopyButton value={item.type} size="icon-xs" />
+                    </li>
+                  );
+                })}
               </ul>
             </section>
           ))}
