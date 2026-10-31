@@ -13,12 +13,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ImageDrop, ImagePreview, useImageFiles } from "@/components/tools/image-drop";
+import { ImageCropper, fitRectToAspect, type CropRect } from "@/components/tools/image-cropper";
 import { OptionBar, OptionField, Segmented } from "@/components/tools/tool-ui";
 import {
-  ANCHORS,
   baseName,
   canvasToBlob,
-  cropRect,
   decodeFile,
   downloadBlob,
   extensionFor,
@@ -26,7 +25,6 @@ import {
   isLossy,
   OUTPUT_FORMATS,
   renderImage,
-  type Anchor,
   type ImageFormat,
 } from "@/lib/image";
 import { clamp, cn } from "@/lib/utils";
@@ -41,15 +39,20 @@ const COPY = {
     lock: "锁定比例",
     preset: "常用尺寸",
     custom: "自定义",
-    anchor: "裁剪位置",
+    ratio: "裁剪比例",
+    free: "自由",
+    outputWidth: "输出宽度",
+    outputAuto: "同裁剪区域",
+    dragHint: "拖动裁剪框移动位置，拉四角调整大小",
     format: "输出格式",
     quality: "质量",
     background: "背景",
     download: "下载",
     result: "结果",
+    cropArea: "裁剪区域",
+    output: "输出",
     empty: "调整尺寸后显示预览",
-    cropNoop: "输出比例和原图一致，没有可裁剪的部分——改一下宽或高",
-    note: "裁剪会按目标比例从原图裁掉多余部分，再缩放到指定尺寸；缩放则是整张图拉伸到目标尺寸。",
+    note: "裁剪：拖动裁剪框选区域，输出尺寸默认等于框内像素，填「输出宽度」可再缩放；缩放：整张图拉伸到目标尺寸。",
   },
   en: {
     mode: "Mode",
@@ -60,15 +63,20 @@ const COPY = {
     lock: "Lock ratio",
     preset: "Presets",
     custom: "Custom",
-    anchor: "Crop anchor",
+    ratio: "Crop ratio",
+    free: "Free",
+    outputWidth: "Output width",
+    outputAuto: "Same as crop",
+    dragHint: "Drag the box to move it, pull a corner to resize",
     format: "Format",
     quality: "Quality",
     background: "Background",
     download: "Download",
     result: "Result",
+    cropArea: "Crop area",
+    output: "Output",
     empty: "Adjust the size to see the preview",
-    cropNoop: "The output ratio matches the source, so there is nothing to crop — change the width or height",
-    note: "Crop keeps the target aspect ratio, cuts the overflow away and scales to the exact size; resize stretches the whole image.",
+    note: "Crop: drag a box over the image — the output matches the box unless you set an output width. Resize: the whole image is stretched to the target size.",
   },
 };
 
@@ -82,6 +90,13 @@ const PRESETS: { label: string; width: number; height: number }[] = [
   { label: "二寸 413 × 579", width: 413, height: 579 },
 ];
 
+const ASPECTS: { key: string; label: string; value: number | null }[] = [
+  { key: "free", label: "", value: null },
+  { key: "1:1", label: "1:1", value: 1 },
+  { key: "4:3", label: "4:3", value: 4 / 3 },
+  { key: "16:9", label: "16:9", value: 16 / 9 },
+];
+
 export function ImageResizeTool() {
   const t = useCopy(COPY);
   const { images, add, remove, clear, error, loading } = useImageFiles();
@@ -90,24 +105,35 @@ export function ImageResizeTool() {
   const [mode, setMode] = React.useState<"resize" | "crop">("resize");
   const [dims, setDims] = React.useState<{ id: string; width: number; height: number } | null>(null);
   const [lock, setLock] = React.useState(true);
-  const [anchor, setAnchor] = React.useState<Anchor>("center");
+  const [crop, setCrop] = React.useState<{ id: string; rect: CropRect } | null>(null);
+  const [aspect, setAspect] = React.useState<{ key: string; value: number | null }>({
+    key: "free",
+    value: null,
+  });
+  const [outputWidth, setOutputWidth] = React.useState(0);
   const [format, setFormat] = React.useState<ImageFormat>("image/png");
   const [quality, setQuality] = React.useState(90);
   const [background, setBackground] = React.useState("#ffffff");
   const [preview, setPreview] = React.useState<{ url: string; blob: Blob; width: number; height: number } | null>(null);
   const [working, setWorking] = React.useState(false);
 
-  // The size follows the loaded image until the user edits it, so no effect is
-  // needed to copy dimensions into state.
+  // Size follows the loaded image until the user edits it, so no effect is needed
   const width = dims && image && dims.id === image.id ? dims.width : (image?.width ?? 0);
   const height = dims && image && dims.id === image.id ? dims.height : (image?.height ?? 0);
   const ratio = image ? image.width / image.height : 1;
-  // Reflect the current size in the trigger: a preset name when it matches one
-  // Same ratio as the source means every anchor produces the same pixels
-  const cropNoop =
-    mode === "crop" && image ? Math.abs(width / height - ratio) < 0.005 : false;
-  const matchedPreset =
-    PRESETS.find((p) => p.width === width && p.height === height)?.label ?? "";
+
+  const bounds = { width: image?.width ?? 1, height: image?.height ?? 1 };
+  const rect: CropRect =
+    crop && image && crop.id === image.id
+      ? crop.rect
+      : { x: 0, y: 0, width: bounds.width, height: bounds.height };
+
+  const outWidth =
+    mode === "crop" ? (outputWidth > 0 ? outputWidth : Math.round(rect.width)) : width;
+  const outHeight =
+    mode === "crop"
+      ? Math.max(1, Math.round((outWidth * rect.height) / Math.max(rect.width, 1)))
+      : height;
 
   const applySize = (nextWidth: number, nextHeight: number) => {
     if (!image) return;
@@ -124,11 +150,18 @@ export function ImageResizeTool() {
     applySize(lock ? Math.max(1, Math.round(next * ratio)) : width, next);
   };
 
+  const applyAspect = (next: { key: string; value: number | null }) => {
+    setAspect(next);
+    if (image && next.value) {
+      setCrop({ id: image.id, rect: fitRectToAspect(rect, next.value, bounds) });
+    }
+  };
+
   React.useEffect(() => {
     let cancelled = false;
     let created: string | null = null;
     const timer = window.setTimeout(async () => {
-      if (!image || width < 1 || height < 1) {
+      if (!image) {
         setPreview(null);
         return;
       }
@@ -138,9 +171,9 @@ export function ImageResizeTool() {
         const canvas =
           mode === "crop"
             ? renderImage(img, {
-                width,
-                height,
-                source: cropRect(img.naturalWidth, img.naturalHeight, width / height, anchor),
+                width: outWidth,
+                height: outHeight,
+                source: { sx: rect.x, sy: rect.y, sw: rect.width, sh: rect.height },
               })
             : renderImage(img, {
                 width,
@@ -155,14 +188,35 @@ export function ImageResizeTool() {
       } finally {
         if (!cancelled) setWorking(false);
       }
-    }, 180);
+    }, mode === "crop" ? 220 : 180);
 
     return () => {
       cancelled = true;
       window.clearTimeout(timer);
       if (created) URL.revokeObjectURL(created);
     };
-  }, [image, mode, width, height, anchor, format, quality, background]);
+  }, [
+    image,
+    mode,
+    width,
+    height,
+    outWidth,
+    outHeight,
+    rect.x,
+    rect.y,
+    rect.width,
+    rect.height,
+    format,
+    quality,
+    background,
+  ]);
+
+  const onCropChange = React.useCallback(
+    (next: CropRect) => {
+      if (image) setCrop({ id: image.id, rect: next });
+    },
+    [image]
+  );
 
   return (
     <div className="flex flex-col gap-4">
@@ -181,64 +235,78 @@ export function ImageResizeTool() {
             <Segmented
               ariaLabel={t.mode}
               value={mode}
-              onChange={(next) => {
-                setMode(next);
-                if (next === "crop") setLock(false);
-              }}
+              onChange={setMode}
               options={[
                 { value: "resize", label: t.resize },
                 { value: "crop", label: t.crop },
               ]}
             />
 
-            <OptionField label={t.width}>
-              <Input
-                type="number"
-                min={1}
-                max={20000}
-                value={width}
-                onChange={(e) => setWidthValue(Number(e.target.value) || 1)}
-                aria-label={t.width}
-                size="xs"
-                className="w-20 text-center font-mono"
-              />
-            </OptionField>
-            <OptionField label={t.height}>
-              <Input
-                type="number"
-                min={1}
-                max={20000}
-                value={height}
-                onChange={(e) => setHeightValue(Number(e.target.value) || 1)}
-                aria-label={t.height}
-                size="xs"
-                className="w-20 text-center font-mono"
-              />
-            </OptionField>
-
-            <button
-              type="button"
-              onClick={() => setLock(!lock)}
-              aria-pressed={lock}
-              className={cn(
-                "inline-flex h-8 items-center gap-1.5 rounded-md border px-2 text-[11px] font-medium transition-colors duration-base ease-out",
-                lock
-                  ? "border-accent bg-hover-bg text-foreground"
-                  : "border-border text-foreground-subtle hover:bg-hover-bg"
-              )}
-            >
-              {lock ? <Link2 className="h-3.5 w-3.5" /> : <Link2Off className="h-3.5 w-3.5" />}
-              {t.lock}
-            </button>
+            {mode === "resize" ? (
+              <>
+                <OptionField label={t.width}>
+                  <Input
+                    type="number"
+                    min={1}
+                    max={20000}
+                    value={width}
+                    onChange={(e) => setWidthValue(Number(e.target.value) || 1)}
+                    aria-label={t.width}
+                    size="xs"
+                    className="w-20 text-center font-mono"
+                  />
+                </OptionField>
+                <OptionField label={t.height}>
+                  <Input
+                    type="number"
+                    min={1}
+                    max={20000}
+                    value={height}
+                    onChange={(e) => setHeightValue(Number(e.target.value) || 1)}
+                    aria-label={t.height}
+                    size="xs"
+                    className="w-20 text-center font-mono"
+                  />
+                </OptionField>
+                <button
+                  type="button"
+                  onClick={() => setLock(!lock)}
+                  aria-pressed={lock}
+                  className={cn(
+                    "inline-flex h-8 items-center gap-1.5 rounded-md border px-2 text-[11px] font-medium transition-colors duration-base ease-out",
+                    lock
+                      ? "border-accent bg-hover-bg text-foreground"
+                      : "border-border text-foreground-subtle hover:bg-hover-bg"
+                  )}
+                >
+                  {lock ? <Link2 className="h-3.5 w-3.5" /> : <Link2Off className="h-3.5 w-3.5" />}
+                  {t.lock}
+                </button>
+              </>
+            ) : (
+              <span className="font-mono text-[11px] text-foreground-subtle">
+                {t.output} {outWidth}×{outHeight}
+              </span>
+            )}
 
             <OptionField label={t.preset}>
               <Select
-                value={matchedPreset}
+                value=""
                 onValueChange={(value) => {
                   const preset = PRESETS.find((p) => p.label === value);
                   if (!preset) return;
-                  if (mode === "crop") setLock(false);
-                  applySize(preset.width, preset.height);
+                  if (mode === "crop") {
+                    const presetRatio = preset.width / preset.height;
+                    const matched = ASPECTS.find(
+                      (a) => a.value !== null && Math.abs(a.value - presetRatio) < 0.004
+                    );
+                    setAspect(matched ?? { key: "custom", value: presetRatio });
+                    setOutputWidth(preset.width);
+                    setCrop({ id: image.id, rect: fitRectToAspect(rect, presetRatio, bounds) });
+                  } else {
+                    setLock(false);
+                    applySize(preset.width, preset.height);
+                  }
                 }}
               >
                 <SelectTrigger size="xs" aria-label={t.preset} className="w-36">
@@ -253,37 +321,57 @@ export function ImageResizeTool() {
                 </SelectContent>
               </Select>
             </OptionField>
+
+            <Button
+              type="button"
+              size="xs"
+              className="ml-auto gap-1.5"
+              disabled={!preview}
+              onClick={() =>
+                preview &&
+                downloadBlob(
+                  preview.blob,
+                  `${baseName(image.name)}-${preview.width}x${preview.height}.${extensionFor(format)}`
+                )
+              }
+            >
+              <Download className="h-3.5 w-3.5" />
+              {t.download}
+            </Button>
           </OptionBar>
 
           {mode === "crop" && (
             <OptionBar>
-              <span className="text-xs font-medium text-foreground-muted">{t.anchor}</span>
-              <div
-                className={cn(
-                  "grid grid-cols-3 gap-1",
-                  cropNoop && "pointer-events-none opacity-40"
-                )}
-              >
-                {ANCHORS.map((option) => (
-                  <button
-                    key={option}
-                    type="button"
-                    onClick={() => setAnchor(option)}
-                    aria-label={option}
-                    aria-pressed={anchor === option}
-                    className={cn(
-                      "h-5 w-5 rounded-[4px] border transition-colors duration-base ease-out",
-                      anchor === option
-                        ? "border-accent bg-accent"
-                        : "border-border-strong hover:bg-hover-bg-strong"
-                    )}
-                  />
-                ))}
-              </div>
-              <span className="text-[11px] text-foreground-subtle">
-                {image.width}×{image.height} → {width}×{height}
-              </span>
-              {cropNoop && <span className="text-[11px] text-orange-fg">{t.cropNoop}</span>}
+              <OptionField label={t.ratio}>
+                <Segmented
+                  ariaLabel={t.ratio}
+                  value={aspect.key}
+                  onChange={(key) => {
+                    const next = ASPECTS.find((a) => a.key === key);
+                    if (next) applyAspect({ key: next.key, value: next.value });
+                  }}
+                  options={ASPECTS.map((a) => ({
+                    value: a.key,
+                    label: a.key === "free" ? t.free : a.label,
+                  }))}
+                />
+              </OptionField>
+
+              <OptionField label={t.outputWidth}>
+                <Input
+                  type="number"
+                  min={1}
+                  max={20000}
+                  value={outputWidth || ""}
+                  placeholder={t.outputAuto}
+                  onChange={(e) => setOutputWidth(clamp(Number(e.target.value) || 0, 0, 20000))}
+                  aria-label={t.outputWidth}
+                  size="xs"
+                  className="w-28 text-center font-mono"
+                />
+              </OptionField>
+
+              <span className="text-[11px] text-foreground-subtle">{t.dragHint}</span>
             </OptionBar>
           )}
 
@@ -331,43 +419,43 @@ export function ImageResizeTool() {
                 />
               </OptionField>
             )}
-
-            <Button
-              type="button"
-              size="xs"
-              className="ml-auto gap-1.5"
-              disabled={!preview}
-              onClick={() =>
-                preview &&
-                downloadBlob(
-                  preview.blob,
-                  `${baseName(image.name)}-${preview.width}x${preview.height}.${extensionFor(format)}`
-                )
-              }
-            >
-              <Download className="h-3.5 w-3.5" />
-              {t.download}
-            </Button>
           </OptionBar>
 
           <div className="overflow-hidden rounded-lg border border-border bg-surface">
             <header className="flex h-10 items-center gap-2 border-b border-border px-3">
               <span className="font-mono text-[11px] uppercase tracking-wide text-foreground-subtle">
-                {t.result}
+                {mode === "crop" ? t.cropArea : t.result}
               </span>
               <span className="text-[11px] text-foreground-subtle">
+                {mode === "crop" && outWidth !== Math.round(rect.width) && (
+                  <>
+                    {Math.round(rect.width)}×{Math.round(rect.height)} →{" "}
+                  </>
+                )}
                 {preview ? `${preview.width}×${preview.height} · ${formatBytes(preview.blob.size)}` : ""}
               </span>
               {working && <Loader2 className="ml-auto h-3.5 w-3.5 animate-spin text-foreground-subtle" />}
             </header>
             <div className="p-3">
-              {preview ? (
+              {mode === "crop" ? (
+                <div className="flex justify-center">
+                  <ImageCropper
+                    src={image.url}
+                    width={image.width}
+                    height={image.height}
+                    rect={rect}
+                    onChange={onCropChange}
+                    aspect={aspect.value}
+                  />
+                </div>
+              ) : preview ? (
                 <ImagePreview src={preview.url} alt={t.result} />
               ) : (
                 <p className="py-10 text-center text-sm text-foreground-subtle">{t.empty}</p>
               )}
             </div>
           </div>
+
           <p className="text-xs leading-relaxed text-foreground-subtle">{t.note}</p>
         </>
       )}
