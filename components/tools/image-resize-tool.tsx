@@ -13,7 +13,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ImageDrop, ImagePreview, useImageFiles } from "@/components/tools/image-drop";
-import { ImageCropper, fitRectToAspect, type CropRect } from "@/components/tools/image-cropper";
+import {
+  ImageCropper,
+  clampRect,
+  fitRectToAspect,
+  type CropRect,
+} from "@/components/tools/image-cropper";
 import { OptionBar, OptionField, Segmented } from "@/components/tools/tool-ui";
 import {
   baseName,
@@ -37,22 +42,19 @@ const COPY = {
     width: "宽",
     height: "高",
     lock: "锁定比例",
-    preset: "常用尺寸",
+    preset: "常见尺寸",
     custom: "自定义",
-    ratio: "裁剪比例",
+    ratio: "比例",
     free: "自由",
-    outputWidth: "输出宽度",
-    outputAuto: "同裁剪区域",
-    dragHint: "拖动裁剪框移动位置，拉四角调整大小",
+    dragHint: "拖动裁剪框移动，拉四角改大小",
     format: "输出格式",
     quality: "质量",
     background: "背景",
     download: "下载",
     result: "结果",
     cropArea: "裁剪区域",
-    output: "输出",
     empty: "调整尺寸后显示预览",
-    note: "裁剪：拖动裁剪框选区域，输出尺寸默认等于框内像素，填「输出宽度」可再缩放；缩放：整张图拉伸到目标尺寸。",
+    note: "裁剪：拖动裁剪框选区域，宽高可以直接输入或选常见尺寸，输出就是框内的像素；缩放：整张图拉伸到目标尺寸。",
   },
   en: {
     mode: "Mode",
@@ -63,10 +65,8 @@ const COPY = {
     lock: "Lock ratio",
     preset: "Presets",
     custom: "Custom",
-    ratio: "Crop ratio",
+    ratio: "Ratio",
     free: "Free",
-    outputWidth: "Output width",
-    outputAuto: "Same as crop",
     dragHint: "Drag the box to move it, pull a corner to resize",
     format: "Format",
     quality: "Quality",
@@ -74,9 +74,8 @@ const COPY = {
     download: "Download",
     result: "Result",
     cropArea: "Crop area",
-    output: "Output",
     empty: "Adjust the size to see the preview",
-    note: "Crop: drag a box over the image — the output matches the box unless you set an output width. Resize: the whole image is stretched to the target size.",
+    note: "Crop: drag a box over the image, type a size or pick a preset — the output is exactly what is inside the box. Resize: the whole image is stretched to the target size.",
   },
 };
 
@@ -84,7 +83,7 @@ const PRESETS: { label: string; width: number; height: number }[] = [
   { label: "1920 × 1080", width: 1920, height: 1080 },
   { label: "1280 × 720", width: 1280, height: 720 },
   { label: "1080 × 1080", width: 1080, height: 1080 },
-  { label: "800 × 800", width: 800, height: 800 },
+  { label: "800 × 600", width: 800, height: 600 },
   { label: "头像 512 × 512", width: 512, height: 512 },
   { label: "一寸 295 × 413", width: 295, height: 413 },
   { label: "二寸 413 × 579", width: 413, height: 579 },
@@ -96,6 +95,39 @@ const ASPECTS: { key: string; label: string; value: number | null }[] = [
   { key: "4:3", label: "4:3", value: 4 / 3 },
   { key: "16:9", label: "16:9", value: 16 / 9 },
 ];
+
+/** Number input that lets you type freely and only commits valid values. */
+function SizeInput({
+  value,
+  max,
+  onCommit,
+  label,
+}: {
+  value: number;
+  max: number;
+  onCommit: (value: number) => void;
+  label: string;
+}) {
+  const [draft, setDraft] = React.useState<string | null>(null);
+  return (
+    <Input
+      type="number"
+      min={8}
+      max={max}
+      value={draft ?? String(Math.round(value))}
+      onFocus={() => setDraft(String(Math.round(value)))}
+      onChange={(event) => {
+        setDraft(event.target.value);
+        const next = Number(event.target.value);
+        if (Number.isFinite(next) && next >= 8) onCommit(next);
+      }}
+      onBlur={() => setDraft(null)}
+      aria-label={label}
+      size="xs"
+      className="w-20 text-center font-mono"
+    />
+  );
+}
 
 export function ImageResizeTool() {
   const t = useCopy(COPY);
@@ -110,7 +142,6 @@ export function ImageResizeTool() {
     key: "free",
     value: null,
   });
-  const [outputWidth, setOutputWidth] = React.useState(0);
   const [format, setFormat] = React.useState<ImageFormat>("image/png");
   const [quality, setQuality] = React.useState(90);
   const [background, setBackground] = React.useState("#ffffff");
@@ -128,12 +159,8 @@ export function ImageResizeTool() {
       ? crop.rect
       : { x: 0, y: 0, width: bounds.width, height: bounds.height };
 
-  const outWidth =
-    mode === "crop" ? (outputWidth > 0 ? outputWidth : Math.round(rect.width)) : width;
-  const outHeight =
-    mode === "crop"
-      ? Math.max(1, Math.round((outWidth * rect.height) / Math.max(rect.width, 1)))
-      : height;
+  const outWidth = mode === "crop" ? Math.round(rect.width) : width;
+  const outHeight = mode === "crop" ? Math.round(rect.height) : height;
 
   const applySize = (nextWidth: number, nextHeight: number) => {
     if (!image) return;
@@ -155,6 +182,46 @@ export function ImageResizeTool() {
     if (image && next.value) {
       setCrop({ id: image.id, rect: fitRectToAspect(rect, next.value, bounds) });
     }
+  };
+
+  /** Resize the crop box from a typed value, honouring the locked ratio. */
+  const setCropSize = (dimension: "width" | "height", value: number) => {
+    if (!image) return;
+    const locked = aspect.value;
+    let nextWidth = dimension === "width" ? value : rect.width;
+    let nextHeight = dimension === "height" ? value : rect.height;
+    if (locked) {
+      if (dimension === "width") nextHeight = nextWidth / locked;
+      else nextWidth = nextHeight * locked;
+    }
+    nextWidth = clamp(nextWidth, 8, bounds.width);
+    nextHeight = clamp(nextHeight, 8, bounds.height);
+    setCrop({
+      id: image.id,
+      rect: clampRect({ x: rect.x, y: rect.y, width: nextWidth, height: nextHeight }, bounds),
+    });
+  };
+
+  const applyPreset = (preset: { width: number; height: number }) => {
+    if (!image) return;
+    if (mode === "resize") {
+      setLock(false);
+      applySize(preset.width, preset.height);
+      return;
+    }
+    // Crop: fit the preset inside the image without upscaling
+    const presetRatio = preset.width / preset.height;
+    const scale = Math.min(1, bounds.width / preset.width, bounds.height / preset.height);
+    const nextWidth = Math.max(8, Math.round(preset.width * scale));
+    const nextHeight = Math.max(8, Math.round(preset.height * scale));
+    const matched = ASPECTS.find(
+      (a) => a.value !== null && Math.abs(a.value - presetRatio) < 0.004
+    );
+    setAspect(matched ?? { key: "custom", value: presetRatio });
+    setCrop({
+      id: image.id,
+      rect: clampRect({ x: rect.x, y: rect.y, width: nextWidth, height: nextHeight }, bounds),
+    });
   };
 
   React.useEffect(() => {
@@ -284,9 +351,38 @@ export function ImageResizeTool() {
                 </button>
               </>
             ) : (
-              <span className="font-mono text-[11px] text-foreground-subtle">
-                {t.output} {outWidth}×{outHeight}
-              </span>
+              <>
+                <OptionField label={t.width}>
+                  <SizeInput
+                    value={rect.width}
+                    max={bounds.width}
+                    onCommit={(value) => setCropSize("width", value)}
+                    label={t.width}
+                  />
+                </OptionField>
+                <OptionField label={t.height}>
+                  <SizeInput
+                    value={rect.height}
+                    max={bounds.height}
+                    onCommit={(value) => setCropSize("height", value)}
+                    label={t.height}
+                  />
+                </OptionField>
+                <OptionField label={t.ratio}>
+                  <Segmented
+                    ariaLabel={t.ratio}
+                    value={aspect.key}
+                    onChange={(key) => {
+                      const next = ASPECTS.find((a) => a.key === key);
+                      if (next) applyAspect({ key: next.key, value: next.value });
+                    }}
+                    options={ASPECTS.map((a) => ({
+                      value: a.key,
+                      label: a.key === "free" ? t.free : a.label,
+                    }))}
+                  />
+                </OptionField>
+              </>
             )}
 
             <OptionField label={t.preset}>
@@ -294,19 +390,7 @@ export function ImageResizeTool() {
                 value=""
                 onValueChange={(value) => {
                   const preset = PRESETS.find((p) => p.label === value);
-                  if (!preset) return;
-                  if (mode === "crop") {
-                    const presetRatio = preset.width / preset.height;
-                    const matched = ASPECTS.find(
-                      (a) => a.value !== null && Math.abs(a.value - presetRatio) < 0.004
-                    );
-                    setAspect(matched ?? { key: "custom", value: presetRatio });
-                    setOutputWidth(preset.width);
-                    setCrop({ id: image.id, rect: fitRectToAspect(rect, presetRatio, bounds) });
-                  } else {
-                    setLock(false);
-                    applySize(preset.width, preset.height);
-                  }
+                  if (preset) applyPreset(preset);
                 }}
               >
                 <SelectTrigger size="xs" aria-label={t.preset} className="w-36">
@@ -322,58 +406,10 @@ export function ImageResizeTool() {
               </Select>
             </OptionField>
 
-            <Button
-              type="button"
-              size="xs"
-              className="ml-auto gap-1.5"
-              disabled={!preview}
-              onClick={() =>
-                preview &&
-                downloadBlob(
-                  preview.blob,
-                  `${baseName(image.name)}-${preview.width}x${preview.height}.${extensionFor(format)}`
-                )
-              }
-            >
-              <Download className="h-3.5 w-3.5" />
-              {t.download}
-            </Button>
-          </OptionBar>
-
-          {mode === "crop" && (
-            <OptionBar>
-              <OptionField label={t.ratio}>
-                <Segmented
-                  ariaLabel={t.ratio}
-                  value={aspect.key}
-                  onChange={(key) => {
-                    const next = ASPECTS.find((a) => a.key === key);
-                    if (next) applyAspect({ key: next.key, value: next.value });
-                  }}
-                  options={ASPECTS.map((a) => ({
-                    value: a.key,
-                    label: a.key === "free" ? t.free : a.label,
-                  }))}
-                />
-              </OptionField>
-
-              <OptionField label={t.outputWidth}>
-                <Input
-                  type="number"
-                  min={1}
-                  max={20000}
-                  value={outputWidth || ""}
-                  placeholder={t.outputAuto}
-                  onChange={(e) => setOutputWidth(clamp(Number(e.target.value) || 0, 0, 20000))}
-                  aria-label={t.outputWidth}
-                  size="xs"
-                  className="w-28 text-center font-mono"
-                />
-              </OptionField>
-
+            {mode === "crop" && (
               <span className="text-[11px] text-foreground-subtle">{t.dragHint}</span>
-            </OptionBar>
-          )}
+            )}
+          </OptionBar>
 
           <OptionBar>
             <OptionField label={t.format}>
@@ -419,6 +455,23 @@ export function ImageResizeTool() {
                 />
               </OptionField>
             )}
+
+            <Button
+              type="button"
+              size="xs"
+              className="ml-auto gap-1.5"
+              disabled={!preview}
+              onClick={() =>
+                preview &&
+                downloadBlob(
+                  preview.blob,
+                  `${baseName(image.name)}-${preview.width}x${preview.height}.${extensionFor(format)}`
+                )
+              }
+            >
+              <Download className="h-3.5 w-3.5" />
+              {t.download}
+            </Button>
           </OptionBar>
 
           <div className="overflow-hidden rounded-lg border border-border bg-surface">
@@ -427,11 +480,6 @@ export function ImageResizeTool() {
                 {mode === "crop" ? t.cropArea : t.result}
               </span>
               <span className="text-[11px] text-foreground-subtle">
-                {mode === "crop" && outWidth !== Math.round(rect.width) && (
-                  <>
-                    {Math.round(rect.width)}×{Math.round(rect.height)} →{" "}
-                  </>
-                )}
                 {preview ? `${preview.width}×${preview.height} · ${formatBytes(preview.blob.size)}` : ""}
               </span>
               {working && <Loader2 className="ml-auto h-3.5 w-3.5 animate-spin text-foreground-subtle" />}
