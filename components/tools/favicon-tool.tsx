@@ -169,8 +169,16 @@ export function FaviconTool() {
             {items.map((item) => (
               <div
                 key={item.size}
-                className="flex flex-col items-center gap-2 rounded-lg border border-border bg-surface p-3"
+                className="relative flex flex-col items-center gap-2 rounded-lg border border-border bg-surface p-3"
               >
+                <a
+                  href={item.url}
+                  download={`favicon-${item.size}x${item.size}.png`}
+                  aria-label={`favicon-${item.size}x${item.size}.png`}
+                  className="absolute right-1.5 top-1.5 grid h-6 w-6 place-items-center rounded-md text-foreground-faint transition-colors hover:bg-hover-bg hover:text-foreground"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                </a>
                 <div className="grid h-24 w-24 place-items-center rounded-md bg-hover-bg">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
@@ -187,13 +195,6 @@ export function FaviconTool() {
                     {formatBytes(item.bytes.byteLength)}
                   </p>
                 </div>
-                <a
-                  href={item.url}
-                  download={`favicon-${item.size}x${item.size}.png`}
-                  className="text-[11px] text-foreground-muted underline-offset-4 transition-colors hover:text-foreground hover:underline"
-                >
-                  PNG
-                </a>
               </div>
             ))}
           </div>
