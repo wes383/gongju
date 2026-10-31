@@ -317,6 +317,31 @@ export function convertAll(
 }
 
 /**
+ * Snap a sine or cosine back onto the values it can actually hit. Binary
+ * floating point spoils the exact ones: `Math.cos(Math.PI / 2)` is 6.1e-17,
+ * not 0, and `Math.sin(Math.PI)` is 1.2e-16 — printing those reads as a bug.
+ * Everything in between is left untouched.
+ */
+export function snapTrig(value: number): number {
+  if (Math.abs(value) < 1e-12) return 0;
+  if (Math.abs(value - 1) < 1e-12) return 1;
+  if (Math.abs(value + 1) < 1e-12) return -1;
+  return value;
+}
+
+/**
+ * Sine, cosine and tangent of an angle in degrees. Tangent is derived from the
+ * snapped pair rather than `Math.tan`, which is off by ~1e16 near 90° instead
+ * of being undefined there; `NaN` marks a right angle.
+ */
+export function trigOf(degrees: number): { sin: number; cos: number; tan: number } {
+  const radians = (degrees * Math.PI) / 180;
+  const sin = snapTrig(Math.sin(radians));
+  const cos = snapTrig(Math.cos(radians));
+  return { sin, cos, tan: cos === 0 ? NaN : sin / cos };
+}
+
+/**
  * Format a converted number: trim the float noise that any factor table
  * produces, and fall back to exponential notation at the extremes so the cell
  * does not turn into a wall of digits.

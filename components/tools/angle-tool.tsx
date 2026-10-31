@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { CopyButton } from "@/components/tools/tool-ui";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCopy, useLocale } from "@/components/locale-provider";
-import { convert, convertAll, formatNumber, getCategory } from "@/lib/units";
+import { convert, convertAll, formatNumber, getCategory, trigOf } from "@/lib/units";
 
 const COPY = {
   zh: {
@@ -14,6 +14,7 @@ const COPY = {
     all: "全部单位",
     trig: "三角函数",
     trigNote: "正弦、余弦、正切按换算后的角度计算；90° + k·180° 处正切无定义。",
+    notDefined: "无定义",
     invalid: "请输入数值",
     note: "1 圈 = 360° = 2π rad；百分度（grad）把一圈分成 400 份，多用于测量与坡度。",
   },
@@ -23,6 +24,7 @@ const COPY = {
     all: "All units",
     trig: "Trigonometry",
     trigNote: "Sine, cosine and tangent use the converted angle; tangent is undefined at 90° + k·180°.",
+    notDefined: "undefined",
     invalid: "Enter a number",
     note: "1 turn = 360° = 2π rad; a gradian (grad) splits a turn into 400 parts, common in surveying and slopes.",
   },
@@ -39,15 +41,19 @@ export function AngleTool() {
   const valid = value.trim() !== "" && Number.isFinite(parsed);
   const rows = valid ? convertAll("angle", parsed, from) : [];
   const degrees = valid ? convert("angle", parsed, from, "deg") : NaN;
-  const radians = (degrees * Math.PI) / 180;
+  const trigValues = trigOf(degrees);
+
+  // A right angle has no tangent; "—" would read as an empty cell
+  const formatTrig = (value: number) =>
+    !valid ? "—" : Number.isNaN(value) ? t.notDefined : formatNumber(value);
 
   const label = (unit: { zh: string; en: string; symbol: string }) =>
     `${unit.symbol} · ${locale === "zh" ? unit.zh : unit.en}`;
 
   const trig = [
-    { key: "sin", label: "sin", value: Math.sin(radians) },
-    { key: "cos", label: "cos", value: Math.cos(radians) },
-    { key: "tan", label: "tan", value: Math.abs(Math.cos(radians)) < 1e-12 ? NaN : Math.tan(radians) },
+    { key: "sin", label: "sin", value: trigValues.sin },
+    { key: "cos", label: "cos", value: trigValues.cos },
+    { key: "tan", label: "tan", value: trigValues.tan },
   ];
 
   return (
@@ -117,9 +123,11 @@ export function AngleTool() {
                 {item.label}
               </span>
               <span className="min-w-0 flex-1 break-all text-right font-mono text-xs text-foreground">
-                {valid ? formatNumber(item.value) : "—"}
+                {formatTrig(item.value)}
               </span>
-              {valid && <CopyButton value={formatNumber(item.value)} size="icon-xs" />}
+              {valid && Number.isFinite(item.value) && (
+                <CopyButton value={formatNumber(item.value)} size="icon-xs" />
+              )}
             </li>
           ))}
         </ul>

@@ -4,6 +4,7 @@ import {
   UNIT_CATEGORIES,
   convert,
   convertAll,
+  trigOf,
   formatNumber,
   formatReadable,
   getCategory,
@@ -125,5 +126,32 @@ describe("formatNumber", () => {
   it("groups thousands only in the readable variant", () => {
     expect(formatReadable(1234567.5, 8, "en")).toBe("1,234,567.5");
     expect(formatNumber(1234567.5)).toBe("1234567.5");
+  });
+});
+
+describe("trigOf", () => {
+  it("lands on the exact values a right angle has", () => {
+    const { sin, cos, tan } = trigOf(90);
+    expect(sin).toBe(1);
+    expect(cos).toBe(0);
+    // Not 1.6e16: a right angle has no tangent
+    expect(tan).toBeNaN();
+  });
+
+  it("cleans the float noise at every quadrant boundary", () => {
+    expect(trigOf(0)).toEqual({ sin: 0, cos: 1, tan: 0 });
+    const half = trigOf(180);
+    expect(half.sin).toBe(0);
+    expect(half.cos).toBe(-1);
+    expect(half.tan === 0).toBe(true);
+    expect(trigOf(270).cos).toBe(0);
+    expect(trigOf(270).tan).toBeNaN();
+    expect(trigOf(360).sin).toBe(0);
+  });
+
+  it("keeps genuine fractions intact", () => {
+    expect(trigOf(30).sin).toBeCloseTo(0.5, 12);
+    expect(trigOf(45).tan).toBeCloseTo(1, 12);
+    expect(trigOf(60).cos).toBeCloseTo(0.5, 12);
   });
 });
