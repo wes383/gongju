@@ -21,7 +21,8 @@ const COPY = {
     refresh: "刷新汇率",
     loading: "正在获取汇率…",
     inverse: "反向",
-    note: "汇率来自 Frankfurter，每个工作日更新一次。请求只发送货币代码，金额始终留在本机。",
+    noteBefore: "汇率来自 ",
+    noteAfter: "，每个工作日更新一次。请求只发送货币代码，金额始终留在本机。",
     invalid: "请输入金额",
   },
   en: {
@@ -34,7 +35,8 @@ const COPY = {
     refresh: "Refresh rate",
     loading: "Fetching rate…",
     inverse: "Inverse",
-    note: "Rates come from Frankfurter and update once per working day. Only the currency codes are sent; the amount stays on your device.",
+    noteBefore: "Rates come from ",
+    noteAfter: " and update once per working day. Only the currency codes are sent; the amount stays on your device.",
     invalid: "Enter an amount",
   },
 };
@@ -214,14 +216,18 @@ export function CurrencyTool() {
         </section>
       )}
 
-      <a
-        href="https://frankfurter.dev"
-        target="_blank"
-        rel="noreferrer"
-        className="text-[11px] leading-relaxed text-foreground-subtle underline decoration-border-strong underline-offset-2 transition-colors hover:text-foreground-muted"
-      >
-        {t.note}
-      </a>
+      <p className="text-[11px] leading-relaxed text-foreground-subtle">
+        {t.noteBefore}
+        <a
+          href="https://frankfurter.dev"
+          target="_blank"
+          rel="noreferrer"
+          className="text-foreground-muted underline decoration-border-strong underline-offset-2 transition-colors hover:text-foreground"
+        >
+          Frankfurter
+        </a>
+        {t.noteAfter}
+      </p>
     </div>
   );
 }
