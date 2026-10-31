@@ -1,5 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import {
+  Accessibility,
   BadgeDollarSign,
   Binary,
   Braces,
@@ -298,6 +299,16 @@ const encodingTools: ToolMeta[] = [
     },
     keywords: ["morse", "摩斯", "电码", "编码", "telegraph", "code"],
     icon: Radio,
+  }),
+  tool({
+    slug: "braille",
+    name: { zh: "盲文互转", en: "Braille Converter" },
+    description: {
+      zh: "中英文文本与盲文点字互转，可显示每个字符的点位编号",
+      en: "Convert English or Chinese text to braille and back, with optional dot numbers",
+    },
+    keywords: ["braille", "盲文", "点字", "盲文翻译", "无障碍", "accessibility"],
+    icon: Accessibility,
   }),
   tool({
     slug: "gzip",
