@@ -8,9 +8,13 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 type Angle = "deg" | "rad";
+type Mode = "standard" | "scientific";
 
 const COPY = {
   zh: {
+    mode: "计算器类型",
+    standard: "标准",
+    scientific: "科学",
     angle: "角度单位",
     deg: "角度",
     rad: "弧度",
@@ -25,12 +29,18 @@ const COPY = {
     clearHistory: "清空历史",
     second: "第二功能",
     note: "支持四则运算、幂、阶乘、三角与反三角、双曲、对数、常量 pi / e；点 2nd 切换到 asin / eˣ / 10ˣ / n 次根等，ans 表示上一次结果，括号会自动补齐。计算在浏览器内完成，表达式不会上传。",
+    standardNote:
+      "支持四则运算、百分号与正负号，括号会自动补齐。计算在浏览器内完成，表达式不会上传。",
     keys: {
       clear: "清空",
       back: "退格",
+      sign: "正负号",
     },
   },
   en: {
+    mode: "Calculator type",
+    standard: "Standard",
+    scientific: "Scientific",
     angle: "Angle unit",
     deg: "Degrees",
     rad: "Radians",
@@ -46,9 +56,12 @@ const COPY = {
     clearHistory: "Clear history",
     second: "Second function",
     note: "Handles arithmetic, powers, factorials, trigonometry and its inverses, hyperbolic functions, logarithms and the constants pi / e. Tap 2nd for asin / e^x / 10^x / nth root; ans is the previous result and brackets are closed for you. Everything runs in your browser, the expression is never uploaded.",
+    standardNote:
+      "Arithmetic, percent and a sign toggle; brackets are closed for you. Everything runs in your browser, the expression is never uploaded.",
     keys: {
       clear: "Clear",
       back: "Backspace",
+      sign: "Toggle sign",
     },
   },
 };
@@ -56,7 +69,7 @@ const COPY = {
 interface Key {
   label: string;
   insert?: string;
-  action?: "clear" | "back" | "equals" | "second";
+  action?: "clear" | "back" | "equals" | "second" | "sign";
   tone?: "accent" | "op" | "fn";
   /** Label + insert used while the 2nd layer is on */
   alt?: { label: string; insert: string };
@@ -108,6 +121,30 @@ const KEYS: Key[] = [
   { label: "⌫", action: "back", tone: "fn" },
 ];
 
+/** Plain four-function keypad: no functions, no 2nd layer */
+const STANDARD_KEYS: Key[] = [
+  { label: "C", action: "clear", tone: "fn" },
+  { label: "⌫", action: "back", tone: "fn" },
+  { label: "%", insert: "%", tone: "op" },
+  { label: "÷", insert: "/", tone: "op" },
+  { label: "7", insert: "7" },
+  { label: "8", insert: "8" },
+  { label: "9", insert: "9" },
+  { label: "×", insert: "*", tone: "op" },
+  { label: "4", insert: "4" },
+  { label: "5", insert: "5" },
+  { label: "6", insert: "6" },
+  { label: "−", insert: "-", tone: "op" },
+  { label: "1", insert: "1" },
+  { label: "2", insert: "2" },
+  { label: "3", insert: "3" },
+  { label: "+", insert: "+", tone: "op" },
+  { label: "±", action: "sign", tone: "fn" },
+  { label: "0", insert: "0" },
+  { label: ".", insert: "." },
+  { label: "=", action: "equals", tone: "accent" },
+];
+
 /** Close any brackets the user left open, so `sin(30` still evaluates. */
 function autoCloseParens(source: string) {
   let depth = 0;
@@ -124,6 +161,20 @@ function errorOffset(message: string) {
   return match ? Number(match[1]) : null;
 }
 
+/** Flip the sign of the trailing number; `2--5` and `2+-5` both parse in mathjs. */
+function toggleSign(source: string) {
+  const match = /(\d*\.?\d+)$/.exec(source);
+  if (!match) {
+    if (source === "") return "-";
+    // Already waiting for a minus, otherwise start a negative operand
+    return source.endsWith("-") ? source : `${source}-`;
+  }
+  const head = source.slice(0, match.index);
+  const digits = match[1];
+  const unaryMinus =
+    head.endsWith("-") && (head.length === 1 || /[+\-*/^(,]$/.test(head.slice(0, -1)));
+  return unaryMinus ? head.slice(0, -1) + digits : `${head}-${digits}`;
+}
 
 function formatResult(value: unknown): string {
   if (typeof value === "number") {
@@ -139,6 +190,7 @@ const DEG = Math.PI / 180;
 
 export function CalculatorTool() {
   const t = useCopy(COPY);
+  const [mode, setMode] = React.useState<Mode>("scientific");
   const [angle, setAngle] = React.useState<Angle>("deg");
   const [second, setSecond] = React.useState(false);
   const [expr, setExpr] = React.useState("");
@@ -221,6 +273,12 @@ export function CalculatorTool() {
       run();
       return;
     }
+    if (key.action === "sign") {
+      setExpr((prev) => toggleSign(prev));
+      setJustEvaluated(false);
+      setError(null);
+      return;
+    }
     if (!insert) return;
     setExpr((prev) => (justEvaluated ? insert : prev + insert));
     setJustEvaluated(false);
@@ -231,14 +289,28 @@ export function CalculatorTool() {
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center gap-3">
         <Segmented
-          ariaLabel={t.angle}
-          value={angle}
-          onChange={setAngle}
+          ariaLabel={t.mode}
+          value={mode}
+          onChange={(next) => {
+            setMode(next);
+            setSecond(false);
+          }}
           options={[
-            { value: "deg", label: t.deg },
-            { value: "rad", label: t.rad },
+            { value: "standard", label: t.standard },
+            { value: "scientific", label: t.scientific },
           ]}
         />
+        {mode === "scientific" && (
+          <Segmented
+            ariaLabel={t.angle}
+            value={angle}
+            onChange={setAngle}
+            options={[
+              { value: "deg", label: t.deg },
+              { value: "rad", label: t.rad },
+            ]}
+          />
+        )}
         <span className="ml-auto font-mono text-[11px] text-foreground-faint">
           {engine ? "" : t.loading}
         </span>
@@ -292,8 +364,13 @@ export function CalculatorTool() {
         </div>
       </div>
 
-      <div className="grid grid-cols-6 gap-1.5">
-        {KEYS.map((key) => {
+      <div
+        className={cn(
+          "grid gap-1.5",
+          mode === "standard" ? "grid-cols-4 gap-2" : "grid-cols-6"
+        )}
+      >
+        {(mode === "standard" ? STANDARD_KEYS : KEYS).map((key) => {
           const alt = second ? key.alt : undefined;
           const label = alt?.label ?? key.label;
           const isSecondKey = key.action === "second";
@@ -310,12 +387,15 @@ export function CalculatorTool() {
                   ? t.keys.clear
                   : key.action === "back"
                     ? t.keys.back
-                    : isSecondKey
-                      ? t.second
-                      : label
+                    : key.action === "sign"
+                      ? t.keys.sign
+                      : isSecondKey
+                        ? t.second
+                        : label
               }
               className={cn(
-                "flex h-11 items-center justify-center rounded-lg border border-border font-mono text-sm transition-colors active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40",
+                "flex items-center justify-center rounded-lg border border-border font-mono transition-colors active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40",
+                mode === "standard" ? "h-12 text-base" : "h-11 text-sm",
                 key.tone === "accent" &&
                   "border-transparent bg-accent text-accent-fg hover:bg-accent-hover",
                 key.tone === "op" && "bg-hover-bg text-foreground hover:bg-hover-bg-strong",
@@ -365,7 +445,9 @@ export function CalculatorTool() {
         </section>
       )}
 
-      <p className="text-xs leading-relaxed text-foreground-subtle">{t.note}</p>
+      <p className="text-xs leading-relaxed text-foreground-subtle">
+        {mode === "standard" ? t.standardNote : t.note}
+      </p>
     </div>
   );
 }
