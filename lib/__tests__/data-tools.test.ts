@@ -19,7 +19,16 @@ import {
   IGNORE_GROUPS,
   IGNORE_PRESETS,
 } from "@/lib/gitignore";
-import { buildIco, readIcoDirectory } from "@/lib/ico";
+import {
+  buildIco,
+  FAVICON_OPTIONAL_TARGETS,
+  FAVICON_SIZES,
+  FAVICON_TARGETS,
+  faviconManifest,
+  ICO_SIZES,
+  MASKABLE_INSET,
+  readIcoDirectory,
+} from "@/lib/ico";
 import { inferSchema, schemaFromSample, validateJson } from "@/lib/json-schema";
 import { generateMock } from "@/lib/mock";
 import { buildCreateTable, buildInserts, buildSql } from "@/lib/sql";
@@ -452,5 +461,38 @@ describe("ico writer", () => {
 
   it("rejects an empty icon", () => {
     expect(() => buildIco([])).toThrow();
+  });
+});
+
+describe("favicon export set", () => {
+  it("uses the conventional file names without duplicates", () => {
+    const all = [...FAVICON_TARGETS, ...FAVICON_OPTIONAL_TARGETS];
+    const names = all.map((target) => target.name);
+    expect(new Set(names).size).toBe(names.length);
+    expect(names).toContain("favicon.ico");
+    expect(names).toContain("apple-touch-icon.png");
+    expect(names).toContain("android-chrome-512x512.png");
+    expect(names).toContain("icon-512-maskable.png");
+  });
+
+  it("keeps ico sizes and raster targets in sync", () => {
+    expect(ICO_SIZES.every((size) => FAVICON_SIZES.includes(size))).toBe(true);
+    const raster = [...FAVICON_TARGETS, ...FAVICON_OPTIONAL_TARGETS].filter(
+      (target) => target.kind === "png" || target.kind === "maskable"
+    );
+    for (const target of raster) {
+      expect(FAVICON_SIZES).toContain(target.size);
+    }
+    expect(MASKABLE_INSET).toBeLessThan(1);
+  });
+
+  it("declares both maskable icons in the manifest", () => {
+    const manifest = JSON.parse(faviconManifest("#123456"));
+    const icons = manifest.icons as { src: string; purpose?: string }[];
+    expect(icons.filter((icon) => icon.purpose === "maskable").map((icon) => icon.src)).toEqual([
+      "/icon-192-maskable.png",
+      "/icon-512-maskable.png",
+    ]);
+    expect(manifest.theme_color).toBe("#123456");
   });
 });

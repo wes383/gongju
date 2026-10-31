@@ -60,16 +60,122 @@ export function readIcoDirectory(bytes: Uint8Array): { size: number; length: num
   return entries;
 }
 
-export const FAVICON_SIZES = [16, 32, 48, 64, 128, 180, 192, 512];
+export const FAVICON_SIZES = [16, 32, 48, 180, 192, 512];
 
 /** Sizes that go into a multi-resolution favicon.ico */
 export const ICO_SIZES = [16, 32, 48];
+
+/** Maskable artwork only fills 80% of the canvas, so the rest can be cropped */
+export const MASKABLE_INSET = 0.6;
+
+export type FaviconKind = "ico" | "png" | "svg" | "maskable" | "manifest";
+
+export interface FaviconTarget {
+  id: string;
+  /** File name written into the zip and used for single downloads */
+  name: string;
+  kind: FaviconKind;
+  /** Edge length in pixels, only for raster targets */
+  size?: number;
+  /** Fill an opaque backdrop first — iOS and Android do not like transparency */
+  background?: boolean;
+  purpose: { zh: string; en: string };
+}
+
+export const FAVICON_TARGETS: FaviconTarget[] = [
+  {
+    id: "ico",
+    name: "favicon.ico",
+    kind: "ico",
+    purpose: { zh: "浏览器标签页、旧版兼容", en: "Browser tabs, legacy support" },
+  },
+  {
+    id: "svg",
+    name: "favicon.svg",
+    kind: "svg",
+    purpose: { zh: "现代浏览器，可缩放", en: "Modern browsers, scalable" },
+  },
+  {
+    id: "16",
+    name: "favicon-16x16.png",
+    kind: "png",
+    size: 16,
+    purpose: { zh: "浏览器标签页", en: "Browser tab" },
+  },
+  {
+    id: "32",
+    name: "favicon-32x32.png",
+    kind: "png",
+    size: 32,
+    purpose: { zh: "标签页、高分屏", en: "Tab, high-DPI" },
+  },
+  {
+    id: "48",
+    name: "favicon-48x48.png",
+    kind: "png",
+    size: 48,
+    purpose: { zh: "搜索结果、高分辨率", en: "Search results, high-res" },
+  },
+  {
+    id: "apple",
+    name: "apple-touch-icon.png",
+    kind: "png",
+    size: 180,
+    background: true,
+    purpose: { zh: "iOS 添加到主屏幕", en: "iOS home screen" },
+  },
+  {
+    id: "192",
+    name: "android-chrome-192x192.png",
+    kind: "png",
+    size: 192,
+    purpose: { zh: "Android / PWA", en: "Android / PWA" },
+  },
+  {
+    id: "512",
+    name: "android-chrome-512x512.png",
+    kind: "png",
+    size: 512,
+    purpose: { zh: "PWA 安装图标", en: "PWA install icon" },
+  },
+  {
+    id: "manifest",
+    name: "site.webmanifest",
+    kind: "manifest",
+    purpose: { zh: "PWA 图标声明", en: "PWA icon manifest" },
+  },
+];
+
+export const FAVICON_OPTIONAL_TARGETS: FaviconTarget[] = [
+  {
+    id: "safari-pinned-tab",
+    name: "safari-pinned-tab.svg",
+    kind: "svg",
+    purpose: { zh: "Safari 固定标签页", en: "Safari pinned tab" },
+  },
+  {
+    id: "maskable-192",
+    name: "icon-192-maskable.png",
+    kind: "maskable",
+    size: 192,
+    background: true,
+    purpose: { zh: "Android 自适应图标", en: "Android adaptive icon" },
+  },
+  {
+    id: "maskable-512",
+    name: "icon-512-maskable.png",
+    kind: "maskable",
+    size: 512,
+    background: true,
+    purpose: { zh: "PWA 自适应图标", en: "PWA adaptive icon" },
+  },
+];
 
 /** Draw the bitmap onto a square canvas and export PNG bytes */
 export async function renderFaviconPng(
   source: ImageBitmap,
   size: number,
-  background?: string
+  options: { background?: string; scale?: number } = {}
 ): Promise<Uint8Array> {
   const canvas = document.createElement("canvas");
   canvas.width = size;
@@ -78,16 +184,24 @@ export async function renderFaviconPng(
   if (!ctx) throw new Error("canvasUnavailable");
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
-  if (background) {
-    ctx.fillStyle = background;
+  if (options.background) {
+    ctx.fillStyle = options.background;
     ctx.fillRect(0, 0, size, size);
   }
 
-  // Preserve the aspect ratio, centring the artwork
-  const scale = Math.min(size / source.width, size / source.height);
+  // Preserve the aspect ratio, centring the artwork. `scale` shrinks it so a
+  // maskable icon keeps its subject inside the crop-safe zone.
+  const box = Math.round(size * (options.scale ?? 1));
+  const scale = Math.min(box / source.width, box / source.height);
   const width = Math.max(1, Math.round(source.width * scale));
   const height = Math.max(1, Math.round(source.height * scale));
-  ctx.drawImage(source, Math.round((size - width) / 2), Math.round((size - height) / 2), width, height);
+  ctx.drawImage(
+    source,
+    Math.round((size - width) / 2),
+    Math.round((size - height) / 2),
+    width,
+    height
+  );
 
   const blob = await new Promise<Blob>((resolve, reject) => {
     canvas.toBlob((result) => {
@@ -102,9 +216,42 @@ export async function renderFaviconPng(
 export function faviconHtml(): string {
   return [
     '<link rel="icon" href="/favicon.ico" sizes="any">',
+    '<link rel="icon" type="image/svg+xml" href="/favicon.svg">',
     '<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">',
     '<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">',
     '<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">',
     '<link rel="manifest" href="/site.webmanifest">',
   ].join("\n");
 }
+
+/** Web app manifest wiring the two Android icons plus their maskable variants */
+export function faviconManifest(themeColor = "#ffffff"): string {
+  return JSON.stringify(
+    {
+      name: "",
+      short_name: "",
+      icons: [
+        { src: "/android-chrome-192x192.png", sizes: "192x192", type: "image/png" },
+        { src: "/android-chrome-512x512.png", sizes: "512x512", type: "image/png" },
+        {
+          src: "/icon-192-maskable.png",
+          sizes: "192x192",
+          type: "image/png",
+          purpose: "maskable",
+        },
+        {
+          src: "/icon-512-maskable.png",
+          sizes: "512x512",
+          type: "image/png",
+          purpose: "maskable",
+        },
+      ],
+      theme_color: themeColor,
+      background_color: themeColor,
+      display: "standalone",
+    },
+    null,
+    2
+  );
+}
+
