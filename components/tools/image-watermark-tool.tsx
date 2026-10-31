@@ -5,6 +5,13 @@ import { Download, Loader2 } from "lucide-react";
 import { useCopy } from "@/components/locale-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ImageDrop, ImagePreview, useImageFiles } from "@/components/tools/image-drop";
 import { OptionBar, OptionField, Toggle } from "@/components/tools/tool-ui";
 import {
@@ -19,6 +26,33 @@ import {
 } from "@/lib/image";
 import { cn } from "@/lib/utils";
 
+export type FontKey = "sans" | "serif" | "kai" | "mono";
+
+/**
+ * Each option is a cross-platform stack: the first name that exists on the
+ * user's system wins, so 宋体 picks Songti SC on macOS and SimSun on Windows.
+ */
+const FONTS: Record<FontKey, { stack: string; weight: number }> = {
+  sans: {
+    stack: 'ui-sans-serif, system-ui, -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif',
+    weight: 600,
+  },
+  serif: {
+    stack: '"Songti SC", SimSun, "Noto Serif SC", "Source Han Serif SC", serif',
+    weight: 500,
+  },
+  kai: {
+    stack: '"Kaiti SC", KaiTi, STKaiti, "Kaiti TC", serif',
+    weight: 400,
+  },
+  mono: {
+    stack: 'ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace',
+    weight: 600,
+  },
+};
+
+const WEIGHTS = [400, 500, 600, 700] as const;
+
 const COPY = {
   zh: {
     text: "水印文字",
@@ -26,6 +60,11 @@ const COPY = {
     size: "字号",
     color: "颜色",
     opacity: "不透明度",
+    font: "字体",
+    weight: "字重",
+    weights: { 400: "常规", 500: "中等", 600: "加粗", 700: "特粗" },
+    gap: "间距",
+    fonts: { sans: "黑体", serif: "宋体", kai: "楷体", mono: "等宽" },
     position: "位置",
     margin: "边距",
     rotate: "旋转",
@@ -41,6 +80,11 @@ const COPY = {
     size: "Size",
     color: "Color",
     opacity: "Opacity",
+    font: "Font",
+    weight: "Weight",
+    weights: { 400: "Regular", 500: "Medium", 600: "Semibold", 700: "Bold" },
+    gap: "Gap",
+    fonts: { sans: "Sans", serif: "Serif", kai: "Kai", mono: "Mono" },
     position: "Position",
     margin: "Margin",
     rotate: "Rotate",
@@ -61,6 +105,8 @@ export function ImageWatermarkTool() {
   const [size, setSize] = React.useState(5);
   const [color, setColor] = React.useState("#ffffff");
   const [opacity, setOpacity] = React.useState(70);
+  const [font, setFont] = React.useState<FontKey>("sans");
+  const [weight, setWeight] = React.useState(600);
   const [anchor, setAnchor] = React.useState<Anchor>("bottom-right");
   const [margin, setMargin] = React.useState(4);
   const [rotate, setRotate] = React.useState(0);
@@ -94,6 +140,8 @@ export function ImageWatermarkTool() {
           marginPercent: margin,
           rotate,
           tile,
+          font,
+          weight,
         });
         const blob = await canvasToBlob(canvas, "image/png");
         if (cancelled) return;
@@ -109,7 +157,7 @@ export function ImageWatermarkTool() {
       window.clearTimeout(timer);
       if (created) URL.revokeObjectURL(created);
     };
-  }, [image, text, size, color, opacity, anchor, margin, rotate, tile]);
+  }, [image, text, size, color, opacity, anchor, margin, rotate, tile, font, weight]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -161,6 +209,43 @@ export function ImageWatermarkTool() {
               />
             </OptionField>
 
+            <OptionField label={t.font}>
+              <Select
+                value={font}
+                onValueChange={(v) => {
+                  setFont(v as FontKey);
+                  // Start from the weight that font actually has on this system
+                  setWeight(FONTS[v as FontKey].weight);
+                }}
+              >
+                <SelectTrigger size="xs" aria-label={t.font} className="w-24">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {(Object.keys(FONTS) as FontKey[]).map((key) => (
+                    <SelectItem key={key} value={key}>
+                      {t.fonts[key]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </OptionField>
+
+            <OptionField label={t.weight}>
+              <Select value={String(weight)} onValueChange={(v) => setWeight(Number(v))}>
+                <SelectTrigger size="xs" aria-label={t.weight} className="w-24">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {WEIGHTS.map((w) => (
+                    <SelectItem key={w} value={String(w)}>
+                      {t.weights[w]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </OptionField>
+
             <OptionField label={t.opacity}>
               <input
                 type="range"
@@ -196,7 +281,7 @@ export function ImageWatermarkTool() {
               ))}
             </div>
 
-            <OptionField label={t.margin}>
+            <OptionField label={tile ? t.gap : t.margin}>
               <input
                 type="range"
                 min={0}
@@ -204,7 +289,7 @@ export function ImageWatermarkTool() {
                 step={1}
                 value={margin}
                 onChange={(e) => setMargin(Number(e.target.value))}
-                aria-label={t.margin}
+                aria-label={tile ? t.gap : t.margin}
                 className="w-20 accent-[var(--accent)]"
               />
               <span className="w-8 font-mono text-[11px] text-foreground-subtle">{margin}%</span>
@@ -278,13 +363,15 @@ function drawWatermark(
     marginPercent: number;
     rotate: number;
     tile: boolean;
+    font: FontKey;
+    weight: number;
   }
 ) {
   const ctx = canvas.getContext("2d");
   if (!ctx) return;
   const { width, height } = canvas;
   const fontSize = Math.max(8, Math.round((width * opts.sizePercent) / 100));
-  ctx.font = `600 ${fontSize}px ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif`;
+  ctx.font = `${opts.weight} ${fontSize}px ${FONTS[opts.font].stack}`;
   ctx.fillStyle = opts.color;
   ctx.globalAlpha = opts.opacity;
   ctx.textBaseline = "middle";
@@ -295,13 +382,14 @@ function drawWatermark(
   const angle = (opts.rotate * Math.PI) / 180;
 
   if (opts.tile) {
-    const stepX = textWidth + fontSize * 3;
-    const stepY = fontSize * 4;
-    for (let y = stepY / 2; y < height + stepY; y += stepY) {
+    // Margin doubles as the gap between repeats; rotation is honoured as-is
+    const stepX = textWidth + fontSize * 2 + margin;
+    const stepY = fontSize * 3 + margin;
+    for (let y = 0; y < height + stepY; y += stepY) {
       for (let x = -textWidth; x < width + textWidth; x += stepX) {
         ctx.save();
         ctx.translate(x + textWidth / 2, y);
-        ctx.rotate(angle || -Math.PI / 6);
+        ctx.rotate(angle);
         ctx.fillText(opts.text, -textWidth / 2, 0);
         ctx.restore();
       }
