@@ -86,6 +86,13 @@ import {
   ClipboardList,
   Dice5,
   Keyboard,
+  FileArchive,
+  FolderArchive,
+  Quote,
+  Banknote,
+  FileCheck2,
+  Gauge,
+  ScanText,
   Laptop,
   NotebookPen,
   Radio,
@@ -281,6 +288,26 @@ const encodingTools: ToolMeta[] = [
     },
     keywords: ["morse", "摩斯", "电码", "编码", "telegraph", "code"],
     icon: Radio,
+  }),
+  tool({
+    slug: "gzip",
+    name: { zh: "GZIP 压缩 / 解压", en: "GZIP Compress / Decompress" },
+    description: {
+      zh: "文本与 .gz 双向转换，显示压缩率并可下载",
+      en: "Convert text to gzip and back, with the ratio and a download",
+    },
+    keywords: ["gzip", "压缩", "解压", "deflate", "compress", "解压缩"],
+    icon: FileArchive,
+  }),
+  tool({
+    slug: "zip",
+    name: { zh: "ZIP 压缩 / 解压", en: "ZIP Compress / Unzip" },
+    description: {
+      zh: "多文件打包成 ZIP，或查看、取出压缩包里的文件",
+      en: "Bundle files into a ZIP, or list and extract what is inside one",
+    },
+    keywords: ["zip", "压缩包", "打包", "unzip", "解压", "archive"],
+    icon: FolderArchive,
   }),
 ];
 
@@ -478,6 +505,26 @@ const textTools: ToolMeta[] = [
     keywords: ["regex", "正则", "表达式", "速查", "cheatsheet", "pattern"],
     icon: Regex,
   }),
+  textTool({
+    slug: "string-escape",
+    name: { zh: "字符串转义 / 反转义", en: "String Escape / Unescape" },
+    description: {
+      zh: "JSON、JavaScript、HTML、URL 四种格式的转义与还原",
+      en: "Escape and unescape JSON, JavaScript, HTML and URL strings",
+    },
+    keywords: ["escape", "转义", "反转义", "unescape", "反斜杠", "escape string"],
+    icon: Quote,
+  }),
+  textTool({
+    slug: "number-to-chinese",
+    name: { zh: "数字转中文大写", en: "Number to Chinese" },
+    description: {
+      zh: "人民币金额大写与中文读法，适合发票、合同",
+      en: "Financial capitals and the spoken reading, for invoices and contracts",
+    },
+    keywords: ["大写", "金额", "人民币", "中文数字", "rmb", "chinese number"],
+    icon: Banknote,
+  }),
 ];
 
 const datetimeTools: ToolMeta[] = [
@@ -623,6 +670,16 @@ const hashTools: ToolMeta[] = [
     },
     keywords: ["强度", "strength", "密码", "安全", "熵"],
     icon: ShieldCheck,
+  }),
+  hashTool({
+    slug: "file-hash",
+    name: { zh: "文件哈希", en: "File Hash" },
+    description: {
+      zh: "上传文件算出 MD5、SHA-1、SHA-256 等摘要，大文件流式读取",
+      en: "Hash a file with MD5, SHA-1, SHA-256 and more, streamed in slices",
+    },
+    keywords: ["file hash", "文件哈希", "校验", "checksum", "sha256", "md5", "文件校验"],
+    icon: FileCheck2,
   }),
 ];
 
@@ -1083,6 +1140,16 @@ const convertTools: ToolMeta[] = [
     keywords: ["calculator", "计算器", "科学", "sin", "log", "math", "表达式"],
     icon: Calculator,
   }),
+  convertTool({
+    slug: "data-speed",
+    name: { zh: "数据传输速度换算", en: "Data Transfer Speed" },
+    description: {
+      zh: "Mbit/s 与 MB/s 互转，并估算文件下载耗时",
+      en: "Convert between Mbit/s and MB/s, and estimate how long a download takes",
+    },
+    keywords: ["网速", "mbps", "mb/s", "带宽", "下载速度", "speed"],
+    icon: Gauge,
+  }),
 ];
 
 const pdfTools: ToolMeta[] = [
@@ -1155,6 +1222,16 @@ const pdfTools: ToolMeta[] = [
     },
     keywords: ["pdf", "元数据", "属性", "标题", "作者", "metadata", "info"],
     icon: FileDigit,
+  }),
+  pdfTool({
+    slug: "pdf-text",
+    name: { zh: "PDF 文本提取", en: "Extract PDF Text" },
+    description: {
+      zh: "把 PDF 里的文字层提取成纯文本，可下载 .txt",
+      en: "Pull the text layer out of a PDF and download it as plain text",
+    },
+    keywords: ["pdf", "提取文字", "文本", "extract text", "txt", "复制"],
+    icon: ScanText,
   }),
 ];
 

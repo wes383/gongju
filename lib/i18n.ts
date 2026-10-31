@@ -140,6 +140,12 @@ const zh: Dict = {
     "pdf.empty": "这个 PDF 里没有任何页面",
     "pdf.badRange": "页码范围不合法，请检查是否超出总页数",
     "pdf.canvasUnavailable": "当前浏览器无法创建画布，请更换浏览器后重试",
+    "escape.invalidJson": "这段内容不是合法的转义序列，检查反斜杠是否成对",
+    "escape.invalidUrl": "百分号编码不完整，例如 %E4 后面应跟两个十六进制位",
+    "gzip.invalid": "无法解压：这不像是有效的 gzip 数据",
+    "zip.invalid": "无法读取这个 ZIP，文件可能已损坏或不是标准格式",
+    "zip.empty": "这个压缩包里没有文件",
+    "pdfText.empty": "这个 PDF 里没有可提取的文字，可能是扫描件",
   },
 };
 
@@ -222,6 +228,12 @@ const en: Dict = {
     "pdf.empty": "This PDF has no pages",
     "pdf.badRange": "Invalid page range — check for pages beyond the last one",
     "pdf.canvasUnavailable": "This browser cannot create a canvas, try another browser",
+    "escape.invalidJson": "Not a valid escape sequence — check that the backslashes pair up",
+    "escape.invalidUrl": "Incomplete percent-encoding, e.g. %E4 needs two hex digits after it",
+    "gzip.invalid": "Cannot decompress: this does not look like gzip data",
+    "zip.invalid": "Cannot read this ZIP — the file may be corrupt or in another format",
+    "zip.empty": "This archive contains no files",
+    "pdfText.empty": "No selectable text in this PDF — it is probably a scan",
   },
 };
 
