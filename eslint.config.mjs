@@ -30,6 +30,8 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Reference implementation, excluded from this project's lint and typecheck
     "orkest-ui/**",
+    // One-off build scripts, run with node and not shipped
+    "scripts/**",
   ]),
 ]);
 

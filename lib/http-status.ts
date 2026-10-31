@@ -3,6 +3,8 @@ export interface HttpStatus {
   name: string;
   zh: string;
   en: string;
+  /** Vendor or server specific, not registered with IANA */
+  nonStandard?: boolean;
 }
 
 /** Common HTTP status codes with a one-line explanation in both languages. */
@@ -62,6 +64,11 @@ export const HTTP_STATUS: HttpStatus[] = [
   { code: 431, name: "Request Header Fields Too Large", zh: "请求头过大。头部总大小超出限制。", en: "Request Header Fields Too Large. Header size exceeds the limit." },
   { code: 451, name: "Unavailable For Legal Reasons", zh: "因法律原因不可用。内容被审查或封禁。", en: "Unavailable For Legal Reasons. Blocked for legal or censorship reasons." },
 
+  { code: 420, name: "Enhance Your Calm", zh: "冷静一下。Twitter 早期用于限流，非标准状态码。", en: "Enhance Your Calm. Twitter's old rate-limit code; not standard.", nonStandard: true },
+  { code: 444, name: "No Response", zh: "无响应。nginx 直接关闭连接，不返回任何内容。", en: "No Response. nginx closes the connection without replying.", nonStandard: true },
+  { code: 449, name: "Retry With", zh: "需要补充信息。微软提出，要求客户端带更多信息重试。", en: "Retry With. Microsoft's hint to retry with more information.", nonStandard: true },
+  { code: 499, name: "Client Closed Request", zh: "客户端主动断开。nginx 记录，通常说明用户等不及关掉了页面。", en: "Client Closed Request. Logged by nginx when the client hangs up first.", nonStandard: true },
+
   { code: 500, name: "Internal Server Error", zh: "服务器内部错误。代码抛异常了，看服务端日志。", en: "Internal Server Error. The server threw; check its logs." },
   { code: 501, name: "Not Implemented", zh: "未实现。服务端不支持该请求方法。", en: "Not Implemented. The server does not support this method." },
   { code: 502, name: "Bad Gateway", zh: "网关错误。网关从上游收到无效响应，常见于后端服务挂了。", en: "Bad Gateway. A gateway got an invalid response from upstream." },
@@ -73,6 +80,18 @@ export const HTTP_STATUS: HttpStatus[] = [
   { code: 508, name: "Loop Detected", zh: "检测到循环。WebDAV 处理时发现无限循环。", en: "Loop Detected. WebDAV hit an infinite loop." },
   { code: 510, name: "Not Extended", zh: "未扩展。需要进一步扩展请求。", en: "Not Extended. Further extensions to the request are required." },
   { code: 511, name: "Network Authentication Required", zh: "需要网络认证。常见于公共 WiFi 的登录门户。", en: "Network Authentication Required. Typical of a public WiFi captive portal." },
+  { code: 509, name: "Bandwidth Limit Exceeded", zh: "带宽超限。cPanel 主机常见，站点当月流量用完了。", en: "Bandwidth Limit Exceeded. cPanel hosts use this when the monthly quota is gone.", nonStandard: true },
+  { code: 520, name: "Unknown Error", zh: "未知错误。Cloudflare 从源站收到空响应或异常响应。", en: "Unknown Error. Cloudflare got an empty or malformed response from the origin.", nonStandard: true },
+  { code: 521, name: "Web Server Is Down", zh: "源站宕机。Cloudflare 无法与源站建立连接。", en: "Web Server Is Down. Cloudflare cannot connect to the origin.", nonStandard: true },
+  { code: 522, name: "Connection Timed Out", zh: "连接超时。Cloudflare 与源站的 TCP 握手超时。", en: "Connection Timed Out. The TCP handshake with the origin timed out.", nonStandard: true },
+  { code: 523, name: "Origin Is Unreachable", zh: "源站不可达。通常是 DNS 或路由问题。", en: "Origin Is Unreachable. Usually a DNS or routing problem.", nonStandard: true },
+  { code: 524, name: "A Timeout Occurred", zh: "响应超时。连接建立了，但源站没在 100 秒内返回。", en: "A Timeout Occurred. Connected, but the origin did not answer within 100 seconds.", nonStandard: true },
+  { code: 525, name: "SSL Handshake Failed", zh: "SSL 握手失败。Cloudflare 与源站的 HTTPS 协商失败。", en: "SSL Handshake Failed. The TLS negotiation with the origin failed.", nonStandard: true },
+  { code: 526, name: "Invalid SSL Certificate", zh: "证书无效。源站证书过期、域名不匹配或不受信任。", en: "Invalid SSL Certificate. The origin certificate is expired, mismatched or untrusted.", nonStandard: true },
+  { code: 527, name: "Railgun Error", zh: "Railgun 错误。Cloudflare 的 Railgun 连接中断（已弃用）。", en: "Railgun Error. The Railgun connection broke (deprecated).", nonStandard: true },
+  { code: 530, name: "Site is Frozen", zh: "站点被冻结。Pantheon 主机用于表示站点暂停服务。", en: "Site is Frozen. Pantheon uses this for a suspended site.", nonStandard: true },
+  { code: 598, name: "Network Read Timeout", zh: "网络读超时。代理读取上游响应超时，非标准。", en: "Network Read Timeout. A proxy timed out reading upstream; not standard.", nonStandard: true },
+  { code: 599, name: "Network Connect Timeout", zh: "网络连接超时。代理连接上游超时，非标准。", en: "Network Connect Timeout. A proxy timed out connecting upstream; not standard.", nonStandard: true },
 ];
 
 export const STATUS_CLASSES: { id: string; label: string; range: string }[] = [

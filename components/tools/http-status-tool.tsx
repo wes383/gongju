@@ -11,14 +11,16 @@ const COPY = {
   zh: {
     search: "搜索状态码或说明",
     empty: "没有匹配的状态码",
-    note: "状态码分五类：1xx 信息、2xx 成功、3xx 重定向、4xx 客户端错误、5xx 服务端错误。",
+    note: "状态码分五类：1xx 信息、2xx 成功、3xx 重定向、4xx 客户端错误、5xx 服务端错误。标「非标准」的是厂商或服务器私有码（Cloudflare、nginx、cPanel 等），不在 IANA 注册表里。",
     total: (n: number) => `共 ${n} 个状态码`,
+    nonStandard: "非标准",
   },
   en: {
     search: "Search by code or description",
     empty: "No matching status code",
-    note: "Status codes fall into five classes: 1xx informational, 2xx success, 3xx redirect, 4xx client error, 5xx server error.",
+    note: "Status codes fall into five classes: 1xx informational, 2xx success, 3xx redirect, 4xx client error, 5xx server error. Codes marked non-standard are vendor or server private (Cloudflare, nginx, cPanel) and are not in the IANA registry.",
     total: (n: number) => `${n} codes`,
+    nonStandard: "Non-standard",
   },
 };
 
@@ -87,7 +89,14 @@ export function HttpStatusTool() {
                           {item.code}
                         </span>
                         <div className="min-w-0 flex-1">
-                          <p className="font-mono text-xs text-foreground">{item.name}</p>
+                          <p className="flex flex-wrap items-center gap-2">
+                            <span className="font-mono text-xs text-foreground">{item.name}</span>
+                            {item.nonStandard && (
+                              <span className="rounded-full bg-hover-bg-strong px-1.5 py-0.5 text-[10px] text-foreground-subtle">
+                                {t.nonStandard}
+                              </span>
+                            )}
+                          </p>
                           <p className="mt-0.5 text-xs leading-relaxed text-foreground-muted">
                             {item.zh}
                           </p>
