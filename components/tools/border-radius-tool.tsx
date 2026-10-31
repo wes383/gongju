@@ -92,7 +92,7 @@ export function BorderRadiusTool() {
       <div className="grid gap-3 lg:grid-cols-[1fr_320px]">
         <div className="flex min-h-[260px] items-center justify-center rounded-lg border border-border bg-surface p-6">
           <div
-            className="h-40 w-56 border border-border-strong bg-gradient-to-br from-accent to-accent/40"
+            className="h-40 w-56 bg-foreground/80"
             style={{
               borderRadius: `${corners.tl}px ${corners.tr}px ${corners.br}px ${corners.bl}px`,
             }}
