@@ -82,6 +82,12 @@ import {
   Network,
   Rows3,
   Type,
+  Cake,
+  ClipboardList,
+  Dice5,
+  Keyboard,
+  NotebookPen,
+  Radio,
   Wand2,
 } from "lucide-react";
 import type { Locale } from "@/lib/i18n";
@@ -132,6 +138,7 @@ const devTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: 
 const netTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "network" });
 const convertTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "convert" });
 const pdfTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "pdf" });
+const miscTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "misc" });
 
 const encodingTools: ToolMeta[] = [
   tool({
@@ -1080,6 +1087,119 @@ const pdfTools: ToolMeta[] = [
   }),
 ];
 
+const miscTools: ToolMeta[] = [
+  miscTool({
+    slug: "random-number",
+    name: { zh: "随机数生成器", en: "Random Number Generator" },
+    description: {
+      zh: "按范围和数量生成随机整数或小数，可要求不重复",
+      en: "Generate random integers or decimals across a range, optionally unique",
+    },
+    keywords: ["random", "number", "随机数", "随机", "integer", "decimal", "生成"],
+    icon: Dice5,
+  }),
+  miscTool({
+    slug: "dice",
+    name: { zh: "掷骰子 / 抽签", en: "Dice & Draw" },
+    description: {
+      zh: "掷任意面数的骰子，或从名单里随机抽出几个人",
+      en: "Roll dice with any number of sides, or draw names from a list",
+    },
+    keywords: ["dice", "骰子", "抽签", "随机", "roll", "draw", "lottery"],
+    icon: Dices,
+  }),
+  miscTool({
+    slug: "calculator",
+    name: { zh: "科学计算器", en: "Scientific Calculator" },
+    description: {
+      zh: "支持三角函数、对数、阶乘与常量的表达式计算器",
+      en: "Expression calculator with trigonometry, logs, factorials and constants",
+    },
+    keywords: ["calculator", "计算器", "科学", "sin", "log", "math", "表达式"],
+    icon: Calculator,
+  }),
+  miscTool({
+    slug: "age",
+    name: { zh: "年龄计算器", en: "Age Calculator" },
+    description: {
+      zh: "按日期算出周岁、总天数、下次生日与星座",
+      en: "Work out exact age, days lived, next birthday and zodiac sign",
+    },
+    keywords: ["age", "年龄", "生日", "周岁", "birthday", "zodiac", "星座"],
+    icon: Cake,
+  }),
+  miscTool({
+    slug: "device-info",
+    name: { zh: "设备信息", en: "Device Info" },
+    description: {
+      zh: "查看屏幕分辨率、像素比、视口尺寸、CPU 与网络信息",
+      en: "Inspect screen resolution, pixel ratio, viewport size, CPU and network",
+    },
+    keywords: ["device", "屏幕", "分辨率", "视口", "dpr", "ua", "设备", "分辨率"],
+    icon: MonitorSmartphone,
+  }),
+  miscTool({
+    slug: "clipboard-history",
+    name: { zh: "剪贴板历史", en: "Clipboard History" },
+    description: {
+      zh: "记录本页复制粘贴过的文本，随时回取",
+      en: "Keep the text you copied or pasted on this page, ready to reuse",
+    },
+    keywords: ["clipboard", "剪贴板", "历史", "paste", "copy", "粘贴", "复制"],
+    icon: ClipboardList,
+  }),
+  miscTool({
+    slug: "notes",
+    name: { zh: "记事本", en: "Notepad" },
+    description: {
+      zh: "保存在本机的多标签笔记，支持搜索与导出",
+      en: "Local notes with search and export, saved on this device",
+    },
+    keywords: ["notes", "记事本", "笔记", "notepad", "memo", "便签"],
+    icon: NotebookPen,
+  }),
+  miscTool({
+    slug: "morse",
+    name: { zh: "摩斯电码", en: "Morse Code" },
+    description: {
+      zh: "文本与摩斯电码互转，可播放提示音",
+      en: "Convert text to and from Morse code, with audio playback",
+    },
+    keywords: ["morse", "摩斯", "电码", "编码", "telegraph", "code"],
+    icon: Radio,
+  }),
+  miscTool({
+    slug: "ascii-table",
+    name: { zh: "ASCII 码表", en: "ASCII Table" },
+    description: {
+      zh: "0–127 与 Latin-1 的字符对照，含各进制与 HTML 实体",
+      en: "Character reference for 0–127 and Latin-1, with bases and HTML entities",
+    },
+    keywords: ["ascii", "码表", "字符", "进制", "unicode", "table", "对照表"],
+    icon: Binary,
+  }),
+  miscTool({
+    slug: "regex-cheatsheet",
+    name: { zh: "正则速查表", en: "Regex Cheatsheet" },
+    description: {
+      zh: "JavaScript 正则语法速查，按类别分组并可搜索",
+      en: "Searchable JavaScript regex syntax reference, grouped by category",
+    },
+    keywords: ["regex", "正则", "表达式", "速查", "cheatsheet", "pattern"],
+    icon: Regex,
+  }),
+  miscTool({
+    slug: "key-event",
+    name: { zh: "键盘按键查看", en: "Key Event Inspector" },
+    description: {
+      zh: "查看按键的 key、code、keyCode 与修饰键状态",
+      en: "Inspect the key, code, keyCode and modifiers of any keystroke",
+    },
+    keywords: ["keyboard", "键盘", "按键", "keycode", "event", "快捷键"],
+    icon: Keyboard,
+  }),
+];
+
 export const categories: CategoryMeta[] = [
   {
     id: "encoding",
@@ -1205,11 +1325,11 @@ export const categories: CategoryMeta[] = [
     id: "misc",
     name: { zh: "其他实用工具", en: "Misc" },
     description: {
-      zh: "随机数、计算器、摩斯电码、速查表",
-      en: "Random numbers, calculators, Morse code and cheat sheets",
+      zh: "随机数、计算器、摩斯电码、记事本与速查表",
+      en: "Random numbers, calculators, Morse code, notes and cheat sheets",
     },
     icon: Dices,
-    tools: [],
+    tools: miscTools,
   },
 ];
 
