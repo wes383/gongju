@@ -130,6 +130,12 @@ const zh: Dict = {
     "ip.badPrefix": "前缀长度不合法（IPv4 最大 32，IPv6 最大 128）",
     "header.tooMany": "请求头太多，一次最多解析 {0} 条",
     "currency.unreachable": "无法获取汇率：网络不可用或服务暂时没有响应，请稍后重试",
+    "pdf.notPdf": "只能处理 PDF 文件，请换成 .pdf 格式",
+    "pdf.invalid": "无法解析这个 PDF，文件可能已损坏或不是标准格式",
+    "pdf.encrypted": "这个 PDF 有密码保护，请先解除加密后再试",
+    "pdf.empty": "这个 PDF 里没有任何页面",
+    "pdf.badRange": "页码范围不合法，请检查是否超出总页数",
+    "pdf.canvasUnavailable": "当前浏览器无法创建画布，请更换浏览器后重试",
   },
 };
 
@@ -204,6 +210,12 @@ const en: Dict = {
     "ip.badPrefix": "Invalid prefix length (32 for IPv4, 128 for IPv6)",
     "header.tooMany": "Too many headers, {0} at a time is the limit",
     "currency.unreachable": "Could not fetch the rate: the network is down or the service is not responding, try again later",
+    "pdf.notPdf": "Only PDF files are supported — pick a .pdf file",
+    "pdf.invalid": "Could not parse this PDF, the file may be corrupted or not a standard PDF",
+    "pdf.encrypted": "This PDF is password protected, remove the encryption first",
+    "pdf.empty": "This PDF has no pages",
+    "pdf.badRange": "Invalid page range — check for pages beyond the last one",
+    "pdf.canvasUnavailable": "This browser cannot create a canvas, try another browser",
   },
 };
 

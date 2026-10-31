@@ -14,8 +14,10 @@ import {
   Eraser,
   FileCode2,
   FileDiff,
+  FileDigit,
   FileJson,
   GitCompare,
+  FileStack,
   FileText,
   Fingerprint,
   Globe,
@@ -24,9 +26,11 @@ import {
   ImageDown,
   ImagePlus,
   ImageUpscale,
+  Images,
   FileImage,
   Stamp,
   ScanEye,
+  Scissors,
   Grid3x3,
   Layers,
   Pipette,
@@ -38,6 +42,7 @@ import {
   Link2,
   ListFilter,
   Lock,
+  Merge,
   Palette,
   SwatchBook,
   Contrast,
@@ -126,6 +131,7 @@ const qrTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "
 const devTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "dev" });
 const netTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "network" });
 const convertTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "convert" });
+const pdfTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "pdf" });
 
 const encodingTools: ToolMeta[] = [
   tool({
@@ -1001,6 +1007,79 @@ const convertTools: ToolMeta[] = [
   }),
 ];
 
+const pdfTools: ToolMeta[] = [
+  pdfTool({
+    slug: "pdf-merge",
+    name: { zh: "PDF 合并", en: "Merge PDFs" },
+    description: {
+      zh: "把多个 PDF 按顺序拼成一个文件，可调整先后次序",
+      en: "Join several PDFs into one file, in the order you choose",
+    },
+    keywords: ["pdf", "合并", "拼接", "merge", "combine", "join"],
+    icon: Merge,
+  }),
+  pdfTool({
+    slug: "pdf-split",
+    name: { zh: "PDF 拆分", en: "Split PDF" },
+    description: {
+      zh: "每 N 页拆一份，或按页码范围拆成多个文件",
+      en: "Split every N pages, or cut along custom page ranges",
+    },
+    keywords: ["pdf", "拆分", "分割", "分页", "split", "extract"],
+    icon: Scissors,
+  }),
+  pdfTool({
+    slug: "pdf-organize",
+    name: { zh: "PDF 页面整理", en: "Organize PDF Pages" },
+    description: {
+      zh: "缩略图预览，旋转或删除任意页面后导出",
+      en: "Preview thumbnails, rotate or delete pages, then export",
+    },
+    keywords: ["pdf", "旋转", "删除页面", "排序", "rotate", "delete", "organize"],
+    icon: FileStack,
+  }),
+  pdfTool({
+    slug: "images-to-pdf",
+    name: { zh: "图片转 PDF", en: "Images to PDF" },
+    description: {
+      zh: "多张图片合成一个 PDF，可设置页面尺寸与页边距",
+      en: "Combine images into one PDF with a choice of page size and margins",
+    },
+    keywords: ["图片", "转pdf", "合成", "jpg", "png", "images", "to pdf"],
+    icon: Images,
+  }),
+  pdfTool({
+    slug: "pdf-to-image",
+    name: { zh: "PDF 转图片", en: "PDF to Images" },
+    description: {
+      zh: "按指定 DPI 把页面渲染成 PNG / JPEG，支持页码筛选",
+      en: "Rasterise pages to PNG or JPEG at a chosen DPI, with page filtering",
+    },
+    keywords: ["pdf", "转图片", "截图", "png", "jpg", "dpi", "render"],
+    icon: FileImage,
+  }),
+  pdfTool({
+    slug: "pdf-watermark",
+    name: { zh: "PDF 加水印", en: "Watermark PDF" },
+    description: {
+      zh: "给页面叠加文字水印，支持中文、平铺、旋转与透明度",
+      en: "Stamp text watermarks with tiling, rotation and opacity, Chinese included",
+    },
+    keywords: ["pdf", "水印", "标记", "watermark", "stamp"],
+    icon: Stamp,
+  }),
+  pdfTool({
+    slug: "pdf-metadata",
+    name: { zh: "PDF 元数据", en: "PDF Metadata" },
+    description: {
+      zh: "查看页数、尺寸与版本，并编辑标题、作者等信息",
+      en: "Inspect pages, size and version, then edit title, author and more",
+    },
+    keywords: ["pdf", "元数据", "属性", "标题", "作者", "metadata", "info"],
+    icon: FileDigit,
+  }),
+];
+
 export const categories: CategoryMeta[] = [
   {
     id: "encoding",
@@ -1120,7 +1199,7 @@ export const categories: CategoryMeta[] = [
       en: "Merge, split, convert to images and watermark",
     },
     icon: FileText,
-    tools: [],
+    tools: pdfTools,
   },
   {
     id: "misc",
