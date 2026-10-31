@@ -204,6 +204,23 @@ function formatResult(value: unknown): string {
 
 const DEG = Math.PI / 180;
 
+/** Trig overrides for the degree mode plus the shared `ans` symbol. */
+function buildScope(angle: Angle, ans: number) {
+  return {
+    ...(angle === "deg"
+      ? {
+          sin: (x: number) => Math.sin(x * DEG),
+          cos: (x: number) => Math.cos(x * DEG),
+          tan: (x: number) => Math.tan(x * DEG),
+          asin: (x: number) => Math.asin(x) / DEG,
+          acos: (x: number) => Math.acos(x) / DEG,
+          atan: (x: number) => Math.atan(x) / DEG,
+        }
+      : {}),
+    ans,
+  };
+}
+
 export function CalculatorTool() {
   const t = useCopy(COPY);
   const [mode, setMode] = React.useState<Mode>("scientific");
@@ -232,35 +249,23 @@ export function CalculatorTool() {
     };
   }, []);
 
-  const scope = React.useMemo(
-    () => ({
-      ...(angle === "deg"
-        ? {
-            sin: (x: number) => Math.sin(x * DEG),
-            cos: (x: number) => Math.cos(x * DEG),
-            tan: (x: number) => Math.tan(x * DEG),
-            asin: (x: number) => Math.asin(x) / DEG,
-            acos: (x: number) => Math.acos(x) / DEG,
-            atan: (x: number) => Math.atan(x) / DEG,
-          }
-        : {}),
-      ans: lastAns ?? 0,
-    }),
-    [angle, lastAns]
-  );
-
-  const run = () => {
+  /**
+   * `angleMode` is passed explicitly so switching the unit can re-evaluate with
+   * the new scope in the same click (state updates are not visible yet).
+   * Re-runs triggered by a unit switch are not pushed to the history.
+   */
+  const run = (angleMode: Angle = angle, record = true) => {
     if (!engine) return;
     const source = expr.trim();
     if (!source) return;
     try {
-      const value = engine(autoCloseParens(normalizeExpression(source, angle)), { ...scope });
+      const value = engine(autoCloseParens(normalizeExpression(source, angleMode)), buildScope(angleMode, lastAns ?? 0));
       const text = formatResult(value);
       setResult(text);
       setError(null);
       setJustEvaluated(true);
       setLastAns(typeof value === "number" && Number.isFinite(value) ? value : null);
-      setHistory((prev) => [{ expr: source, result: text }, ...prev].slice(0, 10));
+      if (record) setHistory((prev) => [{ expr: source, result: text }, ...prev].slice(0, 10));
     } catch (raw) {
       const offset = errorOffset(raw instanceof Error ? raw.message : "");
       setError(offset === null ? t.invalid : t.invalidAt(offset));
@@ -320,7 +325,11 @@ export function CalculatorTool() {
           <Segmented
             ariaLabel={t.angle}
             value={angle}
-            onChange={setAngle}
+            onChange={(next) => {
+              setAngle(next);
+              // Only re-run when the shown result belongs to the current input
+              if (justEvaluated) run(next, false);
+            }}
             options={[
               { value: "deg", label: t.deg },
               { value: "rad", label: t.rad },
