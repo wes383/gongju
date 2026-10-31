@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { PdfDrop, usePdfFiles, type PdfEntry } from "@/components/tools/pdf-drop";
 import { PdfOutputList, usePdfOutputs } from "@/components/tools/pdf-output";
 import { baseName, formatBytes } from "@/lib/files";
-import { openPdfBytes, savePdf } from "@/lib/pdf";
+import { openPdfBytes, readPdfDate, savePdf } from "@/lib/pdf";
 import { pageSizeLabel } from "@/lib/pdf-pages";
 
 const COPY = {
@@ -66,13 +66,22 @@ type Field = (typeof TEXT_FIELDS)[number];
 
 type Draft = Record<Field, string>;
 
+/** pdf-lib throws when an info value is not a string, so one bad field must not blank the form. */
+function readText(read: () => string | undefined): string {
+  try {
+    return read() ?? "";
+  } catch {
+    return "";
+  }
+}
+
 function readMetadata(doc: PDFDocument): Draft {
   return {
-    title: doc.getTitle() ?? "",
-    author: doc.getAuthor() ?? "",
-    subject: doc.getSubject() ?? "",
-    keywords: doc.getKeywords() ?? "",
-    creator: doc.getCreator() ?? "",
+    title: readText(() => doc.getTitle()),
+    author: readText(() => doc.getAuthor()),
+    subject: readText(() => doc.getSubject()),
+    keywords: readText(() => doc.getKeywords()),
+    creator: readText(() => doc.getCreator()),
   };
 }
 
@@ -83,7 +92,7 @@ function pdfVersion(bytes: Uint8Array): string {
   return match ? match[1] : "—";
 }
 
-function formatDate(value: Date | undefined): string {
+function formatDate(value: Date | null): string {
   if (!value || Number.isNaN(value.getTime())) return "—";
   const pad = (n: number) => String(n).padStart(2, "0");
   return `${value.getFullYear()}-${pad(value.getMonth() + 1)}-${pad(value.getDate())} ${pad(
@@ -174,8 +183,8 @@ function MetadataPanel({ entry, onError }: { entry: PdfEntry; onError: (error: u
         />
         <InfoRow label={t.version} value={version} />
         <InfoRow label={t.producer} value={doc.getProducer() || "—"} truncate />
-        <InfoRow label={t.created} value={formatDate(doc.getCreationDate())} />
-        <InfoRow label={t.modified} value={formatDate(doc.getModificationDate())} />
+        <InfoRow label={t.created} value={formatDate(readPdfDate(doc, "CreationDate"))} />
+        <InfoRow label={t.modified} value={formatDate(readPdfDate(doc, "ModDate"))} />
       </div>
 
       <section className="rounded-lg border border-border bg-surface p-4">

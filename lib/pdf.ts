@@ -4,8 +4,16 @@
  * Everything runs in the browser, files never leave the device.
  */
 
-import { PDFDocument, type PDFPage } from "pdf-lib";
+import {
+  PDFDict,
+  PDFDocument,
+  PDFHexString,
+  PDFName,
+  PDFString,
+  type PDFPage,
+} from "pdf-lib";
 import { codedError, isCodedError } from "@/lib/errors";
+import { parsePdfDate } from "@/lib/pdf-date";
 
 export interface OpenedPdf {
   name: string;
@@ -65,6 +73,22 @@ export async function rebuildPdf(
     if (prepare) await prepare(page, indices[i]);
   }
   return out;
+}
+
+/**
+ * Read `CreationDate` / `ModDate` straight from the info dictionary.
+ *
+ * `doc.getCreationDate()` throws when a producer writes a date pdf-lib's strict
+ * parser dislikes, so the raw string is decoded here instead.
+ */
+export function readPdfDate(doc: PDFDocument, key: "CreationDate" | "ModDate"): Date | null {
+  const info = doc.context.lookup(doc.context.trailerInfo.Info);
+  if (!(info instanceof PDFDict)) return null;
+  const value = info.lookup(PDFName.of(key));
+  if (value instanceof PDFString || value instanceof PDFHexString) {
+    return parsePdfDate(value.decodeText());
+  }
+  return null;
 }
 
 /** Render text onto a transparent canvas so any script (CJK included) can be stamped. */
