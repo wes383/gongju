@@ -71,9 +71,14 @@ const TABLE: Record<string, string> = {
   "）": "-.--.-",
 };
 
-const REVERSE = new Map<string, string>(
-  Object.entries(TABLE).map(([char, code]) => [code, char])
-);
+/**
+ * First entry wins, so a code shared by an ASCII character and its full-width
+ * alias (`.-.-.-` is both `.` and `。`) decodes back to the ASCII one.
+ */
+const REVERSE = new Map<string, string>();
+for (const [char, code] of Object.entries(TABLE)) {
+  if (!REVERSE.has(code)) REVERSE.set(code, char);
+}
 
 export interface MorseEncoded {
   code: string;
@@ -147,6 +152,36 @@ export function decodeMorse(code: string): MorseDecoded {
     .join("\n");
 
   return { text, unsupported: [...new Set(unsupported)] };
+}
+
+export interface MorseEntry {
+  char: string;
+  code: string;
+}
+
+export interface MorseChart {
+  letters: MorseEntry[];
+  digits: MorseEntry[];
+  punctuation: MorseEntry[];
+}
+
+/**
+ * The table grouped for display.
+ *
+ * Derived from `TABLE` so the chart can never drift from what the converter
+ * actually accepts; the full-width punctuation aliases are skipped because they
+ * carry the same code as their ASCII counterpart.
+ */
+export function morseChart(): MorseChart {
+  const keys = Object.keys(TABLE).filter((char) => /^[\x20-\x7E]$/.test(char));
+  const pick = (chars: string[]): MorseEntry[] =>
+    chars.map((char) => ({ char, code: TABLE[char] }));
+
+  return {
+    letters: pick(keys.filter((char) => /^[A-Z]$/.test(char))),
+    digits: pick(keys.filter((char) => /^[0-9]$/.test(char))),
+    punctuation: pick(keys.filter((char) => !/^[A-Z0-9]$/.test(char))),
+  };
 }
 
 /** A rough duration estimate in seconds for the player, at `wpm` words per minute. */

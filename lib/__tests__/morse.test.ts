@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { decodeMorse, encodeMorse, morseDuration } from "@/lib/morse";
+import { decodeMorse, encodeMorse, morseChart, morseDuration } from "@/lib/morse";
 import { asciiEntries, htmlEntity } from "@/lib/ascii";
 
 describe("encodeMorse", () => {
@@ -44,6 +44,28 @@ describe("decodeMorse", () => {
 
   it("splits words on a bare slash without surrounding spaces", () => {
     expect(decodeMorse("..../.-").text).toBe("H A");
+  });
+});
+
+describe("morseChart", () => {
+  it("groups letters, digits and punctuation", () => {
+    const chart = morseChart();
+    expect(chart.letters).toHaveLength(26);
+    expect(chart.digits).toHaveLength(10);
+    expect(chart.letters[0]).toEqual({ char: "A", code: ".-" });
+    expect(chart.punctuation.some((entry) => entry.char === "." && entry.code === ".-.-.-")).toBe(
+      true
+    );
+  });
+
+  it("matches what the encoder accepts", () => {
+    const chart = morseChart();
+    const all = [...chart.letters, ...chart.digits, ...chart.punctuation];
+    // Every charted character must round-trip through the converter
+    for (const entry of all) {
+      expect(encodeMorse(entry.char).code).toBe(entry.code);
+      expect(decodeMorse(entry.code).text).toBe(entry.char);
+    }
   });
 });
 

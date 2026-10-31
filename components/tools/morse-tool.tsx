@@ -5,7 +5,7 @@ import { Volume2 } from "lucide-react";
 import { useCopy } from "@/components/locale-provider";
 import { Button } from "@/components/ui/button";
 import { DualPane, SampleButton } from "@/components/tools/tool-ui";
-import { decodeMorse, encodeMorse } from "@/lib/morse";
+import { decodeMorse, encodeMorse, morseChart } from "@/lib/morse";
 
 const COPY = {
   zh: {
@@ -20,6 +20,11 @@ const COPY = {
     unsupported: (chars: string) => `这些字符没有对应摩斯码，已跳过：${chars}`,
     invalid: (codes: string) => `这些码无法识别：${codes}`,
     note: "字母之间用空格分隔，单词之间用 / 分隔。播放使用 700 Hz 提示音、约 12 词/分钟的节奏，需要浏览器允许播放声音。",
+    chart: "速查表",
+    chartHint: "点击任意一行填入摩斯码",
+    letters: "字母",
+    digits: "数字",
+    punctuation: "标点",
   },
   en: {
     text: "Text",
@@ -33,6 +38,11 @@ const COPY = {
     unsupported: (chars: string) => `No Morse code for these characters, skipped: ${chars}`,
     invalid: (codes: string) => `Unrecognised code: ${codes}`,
     note: "Separate letters with a space and words with a slash. Playback uses a 700 Hz tone at roughly 12 words per minute and needs the browser's audio permission.",
+    chart: "Quick reference",
+    chartHint: "Click a row to append its code",
+    letters: "Letters",
+    digits: "Digits",
+    punctuation: "Punctuation",
   },
 };
 
@@ -49,6 +59,16 @@ export function MorseTool() {
   const decoding = looksLikeMorse(input.trim());
   const encoded = React.useMemo(() => encodeMorse(input), [input]);
   const decoded = React.useMemo(() => decodeMorse(input), [input]);
+  const chart = React.useMemo(() => morseChart(), []);
+
+  /** Append a code from the chart; a text side gets replaced rather than mixed. */
+  const insertCode = (code: string) => {
+    setInput((prev) => {
+      const trimmed = prev.trimEnd();
+      if (!trimmed) return code;
+      return looksLikeMorse(trimmed) ? `${trimmed} ${code}` : code;
+    });
+  };
 
   const output = decoding ? decoded.text : encoded.code;
   const unsupported = decoding ? decoded.unsupported : encoded.unsupported;
@@ -131,6 +151,40 @@ export function MorseTool() {
       )}
 
       <p className="text-xs leading-relaxed text-foreground-subtle">{t.note}</p>
+
+      <section className="overflow-hidden rounded-lg border border-border bg-surface">
+        <header className="flex flex-wrap items-baseline gap-x-2 gap-y-1 border-b border-border px-4 py-2">
+          <h2 className="text-xs font-medium text-foreground-muted">{t.chart}</h2>
+          <span className="text-[11px] text-foreground-faint">{t.chartHint}</span>
+        </header>
+        <div className="flex flex-col gap-4 px-4 py-3">
+          {[
+            { label: t.letters, entries: chart.letters },
+            { label: t.digits, entries: chart.digits },
+            { label: t.punctuation, entries: chart.punctuation },
+          ].map((group) => (
+            <div key={group.label} className="flex flex-col gap-1.5">
+              <p className="text-[11px] text-foreground-faint">{group.label}</p>
+              <div className="grid gap-1 [grid-template-columns:repeat(auto-fill,minmax(52px,1fr))]">
+                {group.entries.map((entry) => (
+                  <button
+                    key={entry.char}
+                    type="button"
+                    onClick={() => insertCode(entry.code)}
+                    title={`${entry.char} → ${entry.code}`}
+                    className="flex flex-col items-center gap-1 rounded border border-border bg-background px-1 py-1.5 transition-colors hover:border-accent hover:bg-hover-bg"
+                  >
+                    <span className="text-xs font-medium text-foreground">{entry.char}</span>
+                    <span className="font-mono text-[10px] leading-none text-foreground-subtle">
+                      {entry.code}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }
