@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ImageDrop, ImagePreview, useImageFiles } from "@/components/tools/image-drop";
-import { OptionBar, OptionField, Toggle } from "@/components/tools/tool-ui";
+import { OptionBar, OptionField, Segmented, Toggle } from "@/components/tools/tool-ui";
 import {
   ANCHORS,
   baseName,
@@ -26,32 +26,44 @@ import {
 } from "@/lib/image";
 import { cn } from "@/lib/utils";
 
-export type FontKey = "sans" | "serif" | "kai" | "mono";
+export type FontKey = "sans" | "serif";
 
 /**
- * Each option is a cross-platform stack: the first name that exists on the
- * user's system wins, so 宋体 picks Songti SC on macOS and SimSun on Windows.
+ * Fonts come from the site's own webfonts, loaded only for this route.
+ * Latin face first, CJK face second: Inter / Playfair have no 汉字, so the
+ * browser falls through to Noto Sans SC / Noto Serif SC for those glyphs.
  */
-const FONTS: Record<FontKey, { stack: string; weight: number }> = {
+const FONTS: Record<
+  FontKey,
+  { latinVar: string; cjkVar: string; fallback: string; weight: number }
+> = {
   sans: {
-    stack: 'ui-sans-serif, system-ui, -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif',
-    weight: 600,
-  },
-  serif: {
-    stack: '"Songti SC", SimSun, "Noto Serif SC", "Source Han Serif SC", serif',
+    latinVar: "--font-inter",
+    cjkVar: "--font-noto-sans-sc",
+    fallback:
+      'ui-sans-serif, system-ui, -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif',
     weight: 500,
   },
-  kai: {
-    stack: '"Kaiti SC", KaiTi, STKaiti, "Kaiti TC", serif',
+  serif: {
+    latinVar: "--font-playfair",
+    cjkVar: "--font-noto-serif-sc",
+    fallback: '"Songti SC", SimSun, "Noto Serif SC", serif',
     weight: 400,
-  },
-  mono: {
-    stack: 'ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace',
-    weight: 600,
   },
 };
 
-const WEIGHTS = [400, 500, 600, 700] as const;
+const WEIGHTS = [400, 500, 700] as const;
+
+/** Read the real family names out of the CSS variables next/font generates. */
+function familyFor(el: HTMLElement | null, kind: FontKey): string {
+  const spec = FONTS[kind];
+  if (typeof window === "undefined" || !el) return spec.fallback;
+  const css = getComputedStyle(el);
+  const latin = css.getPropertyValue(spec.latinVar).trim();
+  const cjk = css.getPropertyValue(spec.cjkVar).trim();
+  const stack = [latin, cjk].filter(Boolean).join(", ");
+  return stack ? `${stack}, ${spec.fallback}` : spec.fallback;
+}
 
 const COPY = {
   zh: {
@@ -62,9 +74,9 @@ const COPY = {
     opacity: "不透明度",
     font: "字体",
     weight: "字重",
-    weights: { 400: "常规", 500: "中等", 600: "加粗", 700: "特粗" },
+    weights: { 400: "常规", 500: "中等", 700: "加粗" },
     gap: "间距",
-    fonts: { sans: "黑体", serif: "宋体", kai: "楷体", mono: "等宽" },
+    fonts: { sans: "无衬线", serif: "衬线" },
     position: "位置",
     margin: "边距",
     rotate: "旋转",
@@ -82,9 +94,9 @@ const COPY = {
     opacity: "Opacity",
     font: "Font",
     weight: "Weight",
-    weights: { 400: "Regular", 500: "Medium", 600: "Semibold", 700: "Bold" },
+    weights: { 400: "Regular", 500: "Medium", 700: "Bold" },
     gap: "Gap",
-    fonts: { sans: "Sans", serif: "Serif", kai: "Kai", mono: "Mono" },
+    fonts: { sans: "Sans", serif: "Serif" },
     position: "Position",
     margin: "Margin",
     rotate: "Rotate",
@@ -98,6 +110,7 @@ const COPY = {
 
 export function ImageWatermarkTool() {
   const t = useCopy(COPY);
+  const rootRef = React.useRef<HTMLDivElement>(null);
   const { images, add, remove, clear, error, loading } = useImageFiles();
   const image = images[0];
 
@@ -106,7 +119,7 @@ export function ImageWatermarkTool() {
   const [color, setColor] = React.useState("#ffffff");
   const [opacity, setOpacity] = React.useState(70);
   const [font, setFont] = React.useState<FontKey>("sans");
-  const [weight, setWeight] = React.useState(600);
+  const [weight, setWeight] = React.useState(500);
   const [anchor, setAnchor] = React.useState<Anchor>("bottom-right");
   const [margin, setMargin] = React.useState(4);
   const [rotate, setRotate] = React.useState(0);
@@ -125,6 +138,13 @@ export function ImageWatermarkTool() {
       }
       setWorking(true);
       try {
+        const family = familyFor(rootRef.current, font);
+        // Canvas silently falls back if the face is not ready yet
+        try {
+          await document.fonts.load(`${weight} 16px ${family}`);
+        } catch {
+          /* keep the fallback stack */
+        }
         const img = await decodeFile(image.file);
         const canvas = renderImage(img, {
           width: img.naturalWidth,
@@ -140,7 +160,7 @@ export function ImageWatermarkTool() {
           marginPercent: margin,
           rotate,
           tile,
-          font,
+          family,
           weight,
         });
         const blob = await canvasToBlob(canvas, "image/png");
@@ -160,7 +180,7 @@ export function ImageWatermarkTool() {
   }, [image, text, size, color, opacity, anchor, margin, rotate, tile, font, weight]);
 
   return (
-    <div className="flex flex-col gap-4">
+    <div ref={rootRef} className="flex flex-col gap-4">
       <ImageDrop
         images={images}
         onAdd={add}
@@ -210,25 +230,19 @@ export function ImageWatermarkTool() {
             </OptionField>
 
             <OptionField label={t.font}>
-              <Select
+              <Segmented
+                ariaLabel={t.font}
                 value={font}
-                onValueChange={(v) => {
-                  setFont(v as FontKey);
-                  // Start from the weight that font actually has on this system
-                  setWeight(FONTS[v as FontKey].weight);
+                onChange={(next) => {
+                  setFont(next);
+                  // Adopt the weight that face is actually loaded with
+                  setWeight(FONTS[next].weight);
                 }}
-              >
-                <SelectTrigger size="xs" aria-label={t.font} className="w-24">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {(Object.keys(FONTS) as FontKey[]).map((key) => (
-                    <SelectItem key={key} value={key}>
-                      {t.fonts[key]}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                options={[
+                  { value: "sans", label: t.fonts.sans },
+                  { value: "serif", label: t.fonts.serif },
+                ]}
+              />
             </OptionField>
 
             <OptionField label={t.weight}>
@@ -363,7 +377,7 @@ function drawWatermark(
     marginPercent: number;
     rotate: number;
     tile: boolean;
-    font: FontKey;
+    family: string;
     weight: number;
   }
 ) {
@@ -371,7 +385,7 @@ function drawWatermark(
   if (!ctx) return;
   const { width, height } = canvas;
   const fontSize = Math.max(8, Math.round((width * opts.sizePercent) / 100));
-  ctx.font = `${opts.weight} ${fontSize}px ${FONTS[opts.font].stack}`;
+  ctx.font = `${opts.weight} ${fontSize}px ${opts.family}`;
   ctx.fillStyle = opts.color;
   ctx.globalAlpha = opts.opacity;
   ctx.textBaseline = "middle";
