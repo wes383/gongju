@@ -117,7 +117,9 @@ const SelectContent = React.forwardRef<
               "![scrollbar-width:auto]",
               compact ? "p-0.5" : "p-1",
               position === "popper" &&
-                "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]"
+                // No `min-w-[var(--radix-select-trigger-width)]`: a wide trigger
+                // with short labels would leave a big empty strip on the right.
+                "h-[var(--radix-select-trigger-height)] w-full"
             )}
           >
             {children}
