@@ -458,12 +458,12 @@ const datetimeTools: ToolMeta[] = [
   }),
   dateTool({
     slug: "cron",
-    name: { zh: "Cron 表达式解析", en: "Cron Expression Parser" },
+    name: { zh: "Cron 表达式解析/生成", en: "Cron Parser / Builder" },
     description: {
-      zh: "把 Cron 表达式翻译成中文描述，并算出接下来几次运行时间",
-      en: "Explain a cron expression in plain language and list the next runs",
+      zh: "把 Cron 表达式翻译成中文描述并算出接下来几次运行，也能用可视化选项反推出表达式",
+      en: "Explain a cron expression and list the next runs, or build one with visual pickers",
     },
-    keywords: ["cron", "crontab", "定时", "表达式", "schedule"],
+    keywords: ["cron", "crontab", "定时", "表达式", "schedule", "生成", "builder"],
     icon: CalendarClock,
   }),
   dateTool({
