@@ -33,7 +33,7 @@ const COPY = {
     custom: "补充规则",
     customPlaceholder: "每行一条，例如 public/uploads/ 或 *.psd",
     lines: "行",
-    note: "规则取自 github/gitignore 官方模板（CC0）：语言、框架、项目类型各自一份模板，编辑器、操作系统与通用工具放在 Global 分类，本地再补充模板缺失的规则。冷门语言与专用工具的模板收在「其它模板」里，展开即可选用。选中的分类按组拼接并去重，`!` 开头的例外规则保留，补充规则追加在末尾。",
+    note: "规则取自 github/gitignore 官方模板（CC0），选中后自动拼接去重，`!` 例外和补充规则都会保留。冷门模板收在「其它模板」里。",
   },
   en: {
     presets: "Presets",
@@ -49,7 +49,7 @@ const COPY = {
     custom: "Extra rules",
     customPlaceholder: "One per line, e.g. public/uploads/ or *.psd",
     lines: "lines",
-    note: "Patterns come from the official github/gitignore templates (CC0): one file per language, framework or project type, with editors, operating systems and tools under Global; a few rules are added locally where upstream has no template. Niche languages and dedicated tools live under “Other templates”, one click to unfold. Selected groups are merged and de-duplicated, `!` exceptions are kept and extra rules are appended verbatim.",
+    note: "Patterns come from the official github/gitignore templates (CC0). Selected groups are merged and de-duplicated, keeping `!` exceptions and your extra rules. Niche templates live under “Other templates”.",
   },
 };
 
