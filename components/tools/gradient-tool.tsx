@@ -1,11 +1,12 @@
 "use client";
 
 import * as React from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Shuffle, Trash2 } from "lucide-react";
 import { useCopy } from "@/components/locale-provider";
 import { Button } from "@/components/ui/button";
 import { ColorField } from "@/components/tools/color-field";
 import { CopyButton, OptionBar, OptionField, Segmented } from "@/components/tools/tool-ui";
+import { hslToRgb, parseColor, randomHex, rgbToHex, rgbToHsl } from "@/lib/color";
 
 const COPY = {
   zh: {
@@ -15,6 +16,7 @@ const COPY = {
     conic: "锥形",
     angle: "角度",
     stops: "色标",
+    random: "随机",
     add: "添加色标",
     remove: "删除",
     preview: "预览",
@@ -28,6 +30,7 @@ const COPY = {
     conic: "Conic",
     angle: "Angle",
     stops: "Stops",
+    random: "Random",
     add: "Add stop",
     remove: "Remove",
     preview: "Preview",
@@ -66,6 +69,25 @@ export function GradientTool() {
         : `conic-gradient(from ${angle}deg, ${stopList})`;
 
   const css = `background: ${gradient};`;
+
+  /** Random but harmonious: one hue, spread across the existing stops. */
+  const randomize = () => {
+    const rgb = parseColor(randomHex());
+    if (!rgb) return;
+    const base = rgbToHsl(rgb);
+    const sat = Math.min(88, Math.max(50, base.s || 70));
+    const light = Math.min(60, Math.max(42, base.l || 52));
+    // Keep the spread narrow enough to stay pleasant (30°–69°)
+    const span = 30 + Math.round(base.h % 40);
+    setStops((prev) =>
+      prev.map((stop, index) => {
+        const t = prev.length === 1 ? 0 : index / (prev.length - 1);
+        const h = (base.h + span * t) % 360;
+        return { ...stop, color: rgbToHex(hslToRgb({ h, s: sat, l: light + t * 6 })) };
+      })
+    );
+    setAngle(Math.round(base.h % 180));
+  };
 
   const update = (id: string, patch: Partial<Stop>) =>
     setStops((prev) => prev.map((s) => (s.id === id ? { ...s, ...patch } : s)));
@@ -106,6 +128,17 @@ export function GradientTool() {
           variant="outline"
           size="xs"
           className="ml-auto gap-1.5"
+          onClick={randomize}
+        >
+          <Shuffle className="h-3.5 w-3.5" />
+          {t.random}
+        </Button>
+
+        <Button
+          type="button"
+          variant="outline"
+          size="xs"
+          className="gap-1.5"
           disabled={stops.length >= 6}
           onClick={() =>
             setStops((prev) => [
