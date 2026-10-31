@@ -91,6 +91,7 @@ export function JsonMockTool() {
 
   const input = source === "schema" ? schemaText : sampleText;
   const countValue = clampCount(count);
+  const textStyle: "zh" | "en" = locale === "zh" ? style : "en";
 
   const resolved = React.useMemo(() => {
     const parsed = parseJson(input);
@@ -113,13 +114,13 @@ export function JsonMockTool() {
     if (!resolved.schema) return { text: "", error: null as string | null };
     try {
       return {
-        text: mockJson(resolved.schema, { count: countValue, seed, locale: style }),
+        text: mockJson(resolved.schema, { count: countValue, seed, locale: textStyle }),
         error: null as string | null,
       };
     } catch (error) {
       return { text: "", error: error instanceof Error ? error.message : String(error) };
     }
-  }, [resolved.schema, countValue, seed, style]);
+  }, [resolved.schema, countValue, seed, textStyle]);
   const output = generated.text;
 
   return (
@@ -153,15 +154,18 @@ export function JsonMockTool() {
           size="xs"
           className="w-16 text-center font-mono"
         />
-        <Segmented
-          ariaLabel={t.language}
-          value={style}
-          onChange={setStyle}
-          options={[
-            { value: "zh", label: "中文" },
-            { value: "en", label: "EN" },
-          ]}
-        />
+        {/* 英文界面下固定生成英文内容，不需要这组切换 */}
+        {locale === "zh" && (
+          <Segmented
+            ariaLabel={t.language}
+            value={style}
+            onChange={setStyle}
+            options={[
+              { value: "zh", label: "中文" },
+              { value: "en", label: "EN" },
+            ]}
+          />
+        )}
         <Button
           type="button"
           variant="ghost"
