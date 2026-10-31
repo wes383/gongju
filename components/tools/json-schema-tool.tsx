@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { CheckCircle2, Loader2, ShieldCheck, Wand2, XCircle } from "lucide-react";
+import { CheckCircle2, Loader2, ShieldCheck, XCircle } from "lucide-react";
 import {
   CopyButton,
   DualPane,
@@ -224,14 +224,7 @@ export function JsonSchemaTool() {
           inputPlaceholder={t.dataPlaceholder}
           outputHighlight={generated.text ? highlightJson(generated.text) : undefined}
           inputActions={
-            <button
-              type="button"
-              onClick={() => setSample(SCHEMA_SAMPLE)}
-              className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] text-foreground-muted transition-colors hover:bg-hover-bg hover:text-foreground"
-            >
-              <Wand2 className="h-3 w-3" />
-              {t.sample}
-            </button>
+            <SampleButton onClick={() => setSample(SCHEMA_SAMPLE)} label={t.sample} />
           }
           outputActions={<CopyButton value={generated.text} />}
           onClear={() => setSample("")}
