@@ -39,6 +39,14 @@ import {
   ListFilter,
   Lock,
   Palette,
+  SwatchBook,
+  Contrast,
+  Glasses,
+  Shuffle,
+  Blend,
+  Square,
+  SquareRoundCorner,
+  LayoutGrid,
   Pilcrow,
   QrCode,
   Regex,
@@ -95,6 +103,7 @@ const textTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category:
 const dateTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "datetime" });
 const hashTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "hash" });
 const imageTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "image" });
+const colorTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "color" });
 
 const encodingTools: ToolMeta[] = [
   tool({
@@ -654,6 +663,119 @@ const imageTools: ToolMeta[] = [
   }),
 ];
 
+const colorTools: ToolMeta[] = [
+  colorTool({
+    slug: "color-converter",
+    name: { zh: "颜色转换器", en: "Color Converter" },
+    description: {
+      zh: "HEX / RGB / HSL / HSV / CMYK 互转，粘贴任意写法都能识别",
+      en: "Convert between HEX, RGB, HSL, HSV and CMYK — paste any notation",
+    },
+    keywords: ["颜色", "color", "hex", "rgb", "hsl", "hsv", "cmyk", "转换"],
+    icon: Palette,
+  }),
+  colorTool({
+    slug: "color-palette",
+    name: { zh: "调色板生成", en: "Color Palette" },
+    description: {
+      zh: "按互补、类似、三角等规则生成和谐配色，并导出 CSS 变量",
+      en: "Generate harmonious palettes — complementary, analogous, triadic and more — with CSS variables",
+    },
+    keywords: ["配色", "调色板", "palette", "和谐色", "互补", "scheme"],
+    icon: SwatchBook,
+  }),
+  colorTool({
+    slug: "contrast-checker",
+    name: { zh: "对比度检查", en: "Contrast Checker" },
+    description: {
+      zh: "按 WCAG 计算文字与背景的对比度，标注 AA / AAA 是否达标",
+      en: "WCAG contrast ratio between text and background, with AA and AAA verdicts",
+    },
+    keywords: ["对比度", "contrast", "wcag", "无障碍", "a11y", "可读性"],
+    icon: Contrast,
+  }),
+  colorTool({
+    slug: "color-blindness",
+    name: { zh: "色盲模拟", en: "Color Blindness" },
+    description: {
+      zh: "模拟红色盲、绿色盲、蓝色盲与全色盲下的颜色表现",
+      en: "See a colour as protanopia, deuteranopia, tritanopia and achromatopsia would",
+    },
+    keywords: ["色盲", "色弱", "color blindness", "无障碍", "模拟"],
+    icon: Glasses,
+  }),
+  colorTool({
+    slug: "random-color",
+    name: { zh: "随机颜色", en: "Random Colors" },
+    description: {
+      zh: "批量生成随机颜色，可切换 HEX / RGB / HSL 输出",
+      en: "Batch-generate random colours and copy them as HEX, RGB or HSL",
+    },
+    keywords: ["随机颜色", "random", "配色", "色板", "生成"],
+    icon: Shuffle,
+  }),
+  colorTool({
+    slug: "gradient",
+    name: { zh: "渐变生成器", en: "Gradient Generator" },
+    description: {
+      zh: "线性 / 径向 / 锥形渐变，可加色标并复制 CSS",
+      en: "Linear, radial and conic gradients with editable stops and copy-ready CSS",
+    },
+    keywords: ["渐变", "gradient", "linear", "radial", "css", "背景"],
+    icon: Blend,
+  }),
+  colorTool({
+    slug: "box-shadow",
+    name: { zh: "阴影生成器", en: "Shadow Generator" },
+    description: {
+      zh: "可视化调盒阴影与文字阴影，支持 inset",
+      en: "Tune box and text shadows visually, with inset support",
+    },
+    keywords: ["阴影", "shadow", "box-shadow", "text-shadow", "css"],
+    icon: SquareRoundCorner,
+  }),
+  colorTool({
+    slug: "glassmorphism",
+    name: { zh: "毛玻璃生成器", en: "Glassmorphism" },
+    description: {
+      zh: "调毛玻璃效果：模糊、透明度、描边与圆角",
+      en: "Build a glassmorphism panel: blur, opacity, border and radius",
+    },
+    keywords: ["毛玻璃", "glassmorphism", "blur", "backdrop-filter", "css"],
+    icon: Layers,
+  }),
+  colorTool({
+    slug: "border-radius",
+    name: { zh: "圆角生成器", en: "Border Radius" },
+    description: {
+      zh: "四角独立调节圆角，实时预览并复制 CSS",
+      en: "Adjust each corner independently with a live preview and copy-ready CSS",
+    },
+    keywords: ["圆角", "border-radius", "css", "圆角图片"],
+    icon: Square,
+  }),
+  colorTool({
+    slug: "flexbox",
+    name: { zh: "Flexbox / Grid 可视化", en: "Flexbox & Grid Playground" },
+    description: {
+      zh: "可视化调整对齐、换行与间距，生成布局 CSS",
+      en: "Tune direction, wrap, alignment and gap visually, then copy the layout CSS",
+    },
+    keywords: ["flexbox", "grid", "布局", "对齐", "css", "justify"],
+    icon: LayoutGrid,
+  }),
+  colorTool({
+    slug: "css-unit",
+    name: { zh: "CSS 单位转换", en: "CSS Unit Converter" },
+    description: {
+      zh: "px / rem / em / pt / % 等单位互转，可设根字号",
+      en: "Convert between px, rem, em, pt and % with a configurable root size",
+    },
+    keywords: ["单位", "px", "rem", "em", "pt", "css", "换算"],
+    icon: Ruler,
+  }),
+];
+
 export const categories: CategoryMeta[] = [
   {
     id: "encoding",
@@ -723,7 +845,7 @@ export const categories: CategoryMeta[] = [
       en: "Pickers, gradients, shadows and contrast checks",
     },
     icon: Palette,
-    tools: [],
+    tools: colorTools,
   },
   {
     id: "qrcode",
