@@ -58,7 +58,6 @@ const GROUPS: CheatGroup[] = [
       { syntax: "{n}", zh: "恰好出现 n 次", en: "Exactly n times", example: "\\d{4}" },
       { syntax: "{n,}", zh: "至少出现 n 次", en: "At least n times" },
       { syntax: "{n,m}", zh: "出现 n 到 m 次", en: "Between n and m times" },
-      { syntax: "{n,m}", zh: "出现 n 到 m 次", en: "Between n and m times" },
       { syntax: "*?", zh: "任意量词后加 ? 即懒惰匹配，尽可能少地匹配", en: "Add ? to any quantifier to make it lazy, matching as little as possible", example: "<.+?>" },
     ],
   },
