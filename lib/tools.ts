@@ -54,6 +54,12 @@ import {
   ScanQrCode,
   Regex,
   Ruler,
+  ArrowLeftRight,
+  Coins,
+  Percent,
+  HeartPulse,
+  HardDrive,
+  Triangle,
   Search,
   ShieldCheck,
   SortAsc,
@@ -119,6 +125,7 @@ const colorTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category
 const qrTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "qrcode" });
 const devTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "dev" });
 const netTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "network" });
+const convertTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "convert" });
 
 const encodingTools: ToolMeta[] = [
   tool({
@@ -930,6 +937,70 @@ const networkTools: ToolMeta[] = [
   }),
 ];
 
+
+const convertTools: ToolMeta[] = [
+  convertTool({
+    slug: "unit-convert",
+    name: { zh: "单位换算", en: "Unit Converter" },
+    description: {
+      zh: "长度、重量、温度、面积、体积、速度、压力、能量、功率九类单位互转",
+      en: "Convert length, mass, temperature, area, volume, speed, pressure, energy and power",
+    },
+    keywords: ["单位", "换算", "长度", "重量", "温度", "面积", "体积", "速度", "unit"],
+    icon: ArrowLeftRight,
+  }),
+  convertTool({
+    slug: "currency",
+    name: { zh: "汇率换算", en: "Currency Converter" },
+    description: {
+      zh: "按 Frankfurter 官方汇率换算货币，每个工作日更新，无需 API Key",
+      en: "Convert currencies with Frankfurter rates, updated every working day, no API key",
+    },
+    keywords: ["汇率", "货币", "换算", "美元", "人民币", "currency", "exchange"],
+    icon: Coins,
+  }),
+  convertTool({
+    slug: "percentage",
+    name: { zh: "百分比计算", en: "Percentage Calculator" },
+    description: {
+      zh: "占比、百分比值、变化率与增减四种算法，附公式说明",
+      en: "Share, percent of a number, change rate and increase/decrease, with the formula shown",
+    },
+    keywords: ["百分比", "占比", "变化率", "增长", "percentage", "percent"],
+    icon: Percent,
+  }),
+  convertTool({
+    slug: "bmi",
+    name: { zh: "BMI 计算", en: "BMI Calculator" },
+    description: {
+      zh: "按 WHO 与中国标准计算 BMI、分级和对应身高的正常体重区间",
+      en: "BMI, its band and the healthy weight range, under both WHO and Chinese standards",
+    },
+    keywords: ["bmi", "体重", "身高", "肥胖", "健康", "weight"],
+    icon: HeartPulse,
+  }),
+  convertTool({
+    slug: "data-size",
+    name: { zh: "文件大小换算", en: "Data Size Converter" },
+    description: {
+      zh: "字节、KB 与 KiB 互转，看清 1000 进制与 1024 进制的差别",
+      en: "Convert bytes, KB and KiB, and see where decimal and binary units diverge",
+    },
+    keywords: ["字节", "kb", "mb", "gb", "kib", "存储", "文件大小", "byte"],
+    icon: HardDrive,
+  }),
+  convertTool({
+    slug: "angle",
+    name: { zh: "角度换算", en: "Angle Converter" },
+    description: {
+      zh: "度、弧度、百分度、圈、角分、角秒互转，并给出 sin / cos / tan",
+      en: "Convert degrees, radians, gradians, turns and arc units, with sin / cos / tan",
+    },
+    keywords: ["角度", "弧度", "度", "rad", "deg", "三角函数", "angle"],
+    icon: Triangle,
+  }),
+];
+
 export const categories: CategoryMeta[] = [
   {
     id: "encoding",
@@ -1039,7 +1110,7 @@ export const categories: CategoryMeta[] = [
       en: "Units, currency, percentages and BMI",
     },
     icon: Ruler,
-    tools: [],
+    tools: convertTools,
   },
   {
     id: "pdf",
