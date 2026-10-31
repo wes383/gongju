@@ -129,7 +129,7 @@ const zh: Dict = {
     "ip.invalid": "不是合法的 IP 地址，IPv4 需要四段 0–255，IPv6 用冒号分组",
     "ip.badPrefix": "前缀长度不合法（IPv4 最大 32，IPv6 最大 128）",
     "header.tooMany": "请求头太多，一次最多解析 {0} 条",
-    "currency.unreachable": "无法获取汇率：网络不可用或 Frankfurter 暂时没响应，请稍后重试",
+    "currency.unreachable": "无法获取汇率：网络不可用或服务暂时没有响应，请稍后重试",
   },
 };
 
@@ -203,7 +203,7 @@ const en: Dict = {
     "ip.invalid": "Not a valid IP address: IPv4 needs four 0–255 octets, IPv6 uses colon groups",
     "ip.badPrefix": "Invalid prefix length (32 for IPv4, 128 for IPv6)",
     "header.tooMany": "Too many headers, {0} at a time is the limit",
-    "currency.unreachable": "Could not fetch the rate: the network is down or Frankfurter is not responding, try again later",
+    "currency.unreachable": "Could not fetch the rate: the network is down or the service is not responding, try again later",
   },
 };
 
