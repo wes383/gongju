@@ -106,6 +106,13 @@ export function ToolDirectory() {
 
   const searching = query.trim() !== "";
 
+  // Entering a search unfolds everything once so matches are visible, then the
+  // user is free to fold again while the query is still active.
+  const changeQuery = (next: string) => {
+    if (!searching && next.trim() !== "") setCollapsed([]);
+    setQuery(next);
+  };
+
   const groups = React.useMemo(() => {
     const q = query.trim();
     return categories
@@ -181,7 +188,7 @@ export function ToolDirectory() {
             ref={inputRef}
             type="text"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => changeQuery(e.target.value)}
             placeholder={t.searchPlaceholder}
             aria-label={t.searchPlaceholder}
             spellCheck={false}
@@ -209,8 +216,7 @@ export function ToolDirectory() {
       <div className="mt-8 flex flex-col gap-8">
         {groups.map((cat, index) => {
           const Icon = cat.icon;
-          // While searching everything stays open, so matches are never hidden
-          const isCollapsed = !searching && collapsed.includes(cat.id);
+          const isCollapsed = collapsed.includes(cat.id);
 
           return (
             <section key={cat.id} className="flex flex-col gap-3">
@@ -237,9 +243,7 @@ export function ToolDirectory() {
                 </button>
                 {index === 0 && (
                   <div className="flex shrink-0 -translate-y-0.5 items-center gap-2">
-                    {/* While searching every category is forced open, so bulk
-                        toggling would either do nothing or hide matches. */}
-                    {!searching && bulkToggle}
+                    {bulkToggle}
                     {viewToggle}
                   </div>
                 )}
