@@ -21,6 +21,17 @@ import {
   Globe,
   Hash,
   Image as ImageIcon,
+  ImageDown,
+  ImagePlus,
+  ImageUpscale,
+  FileImage,
+  Stamp,
+  ScanEye,
+  Grid3x3,
+  Layers,
+  Pipette,
+  Columns2,
+  Frame,
   KeyRound,
   Languages,
   ListTree,
@@ -83,6 +94,7 @@ const jsonTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category:
 const textTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "text" });
 const dateTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "datetime" });
 const hashTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "hash" });
+const imageTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "image" });
 
 const encodingTools: ToolMeta[] = [
   tool({
@@ -529,6 +541,119 @@ const hashTools: ToolMeta[] = [
   }),
 ];
 
+const imageTools: ToolMeta[] = [
+  imageTool({
+    slug: "image-compress",
+    name: { zh: "图片压缩", en: "Image Compressor" },
+    description: {
+      zh: "压缩到指定体积，可限制最大边长，支持批量与打包下载",
+      en: "Compress to a target size, cap the longest edge, batch it and download a zip",
+    },
+    keywords: ["压缩", "compress", "图片压缩", "瘦身", "kb", "webp"],
+    icon: ImageDown,
+  }),
+  imageTool({
+    slug: "image-convert",
+    name: { zh: "图片格式转换", en: "Image Converter" },
+    description: {
+      zh: "JPG / PNG / WebP / AVIF 批量互转，可调质量",
+      en: "Batch convert between JPG, PNG, WebP and AVIF with adjustable quality",
+    },
+    keywords: ["格式", "convert", "jpg", "png", "webp", "avif", "转换"],
+    icon: ImagePlus,
+  }),
+  imageTool({
+    slug: "image-resize",
+    name: { zh: "图片缩放 / 裁剪", en: "Resize & Crop" },
+    description: {
+      zh: "按尺寸缩放或按比例裁剪，附常用与证件照预设",
+      en: "Scale to exact dimensions or crop to a ratio, with common and ID-photo presets",
+    },
+    keywords: ["缩放", "裁剪", "resize", "crop", "尺寸", "证件照", "一寸"],
+    icon: ImageUpscale,
+  }),
+  imageTool({
+    slug: "image-base64",
+    name: { zh: "图片转 Base64", en: "Image to Base64" },
+    description: {
+      zh: "图片与 Base64 / Data URL / CSS 互转，也能把 Base64 还原成图片",
+      en: "Convert images to Base64, Data URLs or CSS, and turn Base64 back into an image",
+    },
+    keywords: ["base64", "data url", "图片", "内联", "image"],
+    icon: FileImage,
+  }),
+  imageTool({
+    slug: "image-watermark",
+    name: { zh: "图片加水印", en: "Image Watermark" },
+    description: {
+      zh: "文字水印，可调位置、透明度、旋转与平铺",
+      en: "Add a text watermark with position, opacity, rotation and tiling controls",
+    },
+    keywords: ["水印", "watermark", "版权", "文字", "平铺"],
+    icon: Stamp,
+  }),
+  imageTool({
+    slug: "image-exif",
+    name: { zh: "EXIF 查看 / 清除", en: "EXIF Viewer & Remover" },
+    description: {
+      zh: "读取相机、拍摄参数与 GPS 坐标，一键去除全部元数据",
+      en: "Read camera, exposure and GPS data, then strip every metadata block in one click",
+    },
+    keywords: ["exif", "元数据", "gps", "隐私", "拍摄参数", "清除"],
+    icon: ScanEye,
+  }),
+  imageTool({
+    slug: "image-split",
+    name: { zh: "九宫格切图", en: "Image Grid Splitter" },
+    description: {
+      zh: "按行列把图片切成等分小块，打包下载",
+      en: "Cut an image into equal tiles by rows and columns, then download them as a zip",
+    },
+    keywords: ["九宫格", "切图", "split", "grid", "朋友圈", "拼图"],
+    icon: Grid3x3,
+  }),
+  imageTool({
+    slug: "image-collage",
+    name: { zh: "长图拼接", en: "Image Stitcher" },
+    description: {
+      zh: "多张图片纵向或横向拼成一张长图，可调间距与对齐",
+      en: "Stitch several images into one long picture, vertically or horizontally",
+    },
+    keywords: ["拼接", "长图", "collage", "merge", "合并", "拼图"],
+    icon: Layers,
+  }),
+  imageTool({
+    slug: "image-color",
+    name: { zh: "图片取色", en: "Color Picker from Image" },
+    description: {
+      zh: "点击取色，自动提取主要颜色与 HEX / RGB / HSL",
+      en: "Click to sample a pixel, and extract the dominant palette with HEX, RGB and HSL",
+    },
+    keywords: ["取色", "color", "palette", "配色", "吸管", "主色"],
+    icon: Pipette,
+  }),
+  imageTool({
+    slug: "image-compare",
+    name: { zh: "图片对比", en: "Image Compare" },
+    description: {
+      zh: "拖动分割线对比两张图，或并排查看",
+      en: "Drag a divider to compare two images, or view them side by side",
+    },
+    keywords: ["对比", "compare", "差异", "修图", "before after"],
+    icon: Columns2,
+  }),
+  imageTool({
+    slug: "image-frame",
+    name: { zh: "图片圆角 / 边框", en: "Rounded Corners & Border" },
+    description: {
+      zh: "给图片加圆角、边框、留白与阴影，导出 PNG",
+      en: "Round the corners, add a border, padding or shadow, and export as PNG",
+    },
+    keywords: ["圆角", "边框", "frame", "圆角图片", "阴影", "留白"],
+    icon: Frame,
+  }),
+];
+
 export const categories: CategoryMeta[] = [
   {
     id: "encoding",
@@ -588,7 +713,7 @@ export const categories: CategoryMeta[] = [
       en: "Compress, convert, crop, watermark and pick colors",
     },
     icon: ImageIcon,
-    tools: [],
+    tools: imageTools,
   },
   {
     id: "color",
