@@ -27,8 +27,7 @@ const COPY = {
     noMatch: "没有匹配的分类",
     custom: "补充规则",
     customPlaceholder: "每行一条，例如 public/uploads/ 或 *.psd",
-    downloadHint: "浏览器不允许下载以点开头的文件名，保存后重命名为 .gitignore",
-    note: "选中的分类会按组拼接、去重，`!` 开头的例外规则会保留；补充规则原样追加在末尾。浏览器会把以点开头的文件名改掉，所以下载得到的文件叫 `gitignore`，放进项目根目录后重命名为 `.gitignore` 即可。",
+    note: "选中的分类会按组拼接、去重，`!` 开头的例外规则会保留；补充规则原样追加在末尾。生成的是标准 .gitignore 文本，可下载后放到项目根目录。",
   },
   en: {
     stacks: "Pick your stack",
@@ -41,9 +40,7 @@ const COPY = {
     noMatch: "No matching groups",
     custom: "Extra rules",
     customPlaceholder: "One per line, e.g. public/uploads/ or *.psd",
-    downloadHint:
-      "Browsers cannot save names starting with a dot — rename the download to .gitignore",
-    note: "Selected groups are merged and de-duplicated while keeping `!` exceptions; extra rules are appended verbatim. Browsers strip the leading dot, so the download is named `gitignore` — rename it to `.gitignore` in your project root.",
+    note: "Selected groups are merged and de-duplicated while keeping `!` exceptions; extra rules are appended verbatim. The result is a plain .gitignore you can download into the project root.",
   },
 };
 
@@ -162,12 +159,10 @@ export function GitignoreTool() {
                 disabled={!output}
                 onClick={() =>
                   downloadBlob(
-                    // octet-stream 能避免 Chrome 按 text/plain 补上 .txt
-                    new Blob([output], { type: "application/octet-stream" }),
-                    "gitignore"
+                    new Blob([output], { type: "text/plain;charset=utf-8" }),
+                    ".gitignore"
                   )
                 }
-                title={t.downloadHint}
                 className="gap-1.5 text-foreground-muted"
               >
                 <Download className="h-3.5 w-3.5" />
