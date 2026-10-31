@@ -47,6 +47,7 @@ export function ImageSplitTool() {
   const [rows, setRows] = React.useState(3);
   const [cols, setCols] = React.useState(3);
   const [busy, setBusy] = React.useState(false);
+  const resultsRef = React.useRef<HTMLDivElement>(null);
 
   const run = async () => {
     if (!image) return;
@@ -74,6 +75,10 @@ export function ImageSplitTool() {
         }
       }
       replace(drafts);
+      // Jump to the tiles so the result is visible without scrolling by hand
+      window.setTimeout(() => {
+        resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 80);
     } finally {
       setBusy(false);
     }
@@ -172,7 +177,9 @@ export function ImageSplitTool() {
             </div>
           </div>
 
-          <OutputList outputs={outputs} zipName={`${baseName(image.name)}-tiles.zip`} />
+          <div ref={resultsRef} className="scroll-mt-4">
+            <OutputList outputs={outputs} zipName={`${baseName(image.name)}-tiles.zip`} />
+          </div>
           <p className="text-xs leading-relaxed text-foreground-subtle">{t.note}</p>
         </>
       )}
