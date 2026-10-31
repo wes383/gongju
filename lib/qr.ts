@@ -99,15 +99,31 @@ export function qrSvg(text: string, opts: QrOptions): Promise<string> {
   });
 }
 
-/** Decode a QR code from raw image data using jsQR. */
-export async function decodeQrFromImage(source: CanvasImageSource, width: number, height: number) {
+export interface SourceRect {
+  sx: number;
+  sy: number;
+  sw: number;
+  sh: number;
+}
+
+/**
+ * Decode a QR code from an image, video frame or canvas.
+ * Pass `crop` to decode a zoomed-in region, which helps when the code is small.
+ */
+export async function decodeQrFromImage(
+  source: CanvasImageSource,
+  width: number,
+  height: number,
+  crop?: SourceRect
+) {
   const { default: jsQR } = await import("jsqr");
   const canvas = document.createElement("canvas");
   canvas.width = width;
   canvas.height = height;
   const ctx = canvas.getContext("2d", { willReadFrequently: true });
   if (!ctx) return null;
-  ctx.drawImage(source, 0, 0, width, height);
+  if (crop) ctx.drawImage(source, crop.sx, crop.sy, crop.sw, crop.sh, 0, 0, width, height);
+  else ctx.drawImage(source, 0, 0, width, height);
   const image = ctx.getImageData(0, 0, width, height);
   return jsQR(image.data, image.width, image.height, { inversionAttempts: "attemptBoth" });
 }
