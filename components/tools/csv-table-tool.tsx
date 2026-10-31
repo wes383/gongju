@@ -226,7 +226,7 @@ export function CsvTableTool() {
   return (
     <div className="flex flex-col gap-3">
       {!table ? (
-        <div className="overflow-hidden rounded-lg border border-border bg-surface">
+        <div className="flex flex-col gap-2">
           <FilePicker
             files={files}
             accept=".csv,.tsv,.txt,text/csv,text/tab-separated-values,text/plain"
@@ -249,7 +249,7 @@ export function CsvTableTool() {
             }}
           />
 
-          <div className="border-t border-border px-3 py-2.5">
+          <div className="px-0.5">
             <div className="flex flex-wrap items-center gap-2">
               <Button
                 type="button"
