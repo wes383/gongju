@@ -85,9 +85,10 @@ export const ANCHORS: Anchor[] = [
 ];
 
 function anchorFactors(anchor: Anchor): { fx: number; fy: number } {
-  const [vertical, horizontal] = anchor.split("-");
-  const fy = vertical === "top" ? 0 : vertical === "bottom" ? 1 : 0.5;
-  const fx = horizontal === "left" ? 0 : horizontal === "right" ? 1 : 0.5;
+  // "left" / "right" / "top" / "bottom" have no dash, so splitting on "-"
+  // would read them as the vertical axis and fall back to the centre.
+  const fy = anchor.startsWith("top") ? 0 : anchor.startsWith("bottom") ? 1 : 0.5;
+  const fx = anchor.endsWith("left") ? 0 : anchor.endsWith("right") ? 1 : 0.5;
   return { fx, fy };
 }
 

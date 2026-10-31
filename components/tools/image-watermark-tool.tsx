@@ -411,9 +411,10 @@ function drawWatermark(
     return;
   }
 
-  const [vertical, horizontal] = opts.anchor.split("-");
-  const fx = horizontal === "left" ? 0 : horizontal === "right" ? 1 : 0.5;
-  const fy = vertical === "top" ? 0 : vertical === "bottom" ? 1 : 0.5;
+  // "left" / "right" have no dash: startsWith/endsWith handles both those and
+  // the compound anchors ("top-left"), where split("-") would misread the axis.
+  const fx = opts.anchor.endsWith("left") ? 0 : opts.anchor.endsWith("right") ? 1 : 0.5;
+  const fy = opts.anchor.startsWith("top") ? 0 : opts.anchor.startsWith("bottom") ? 1 : 0.5;
   const x = margin + (width - margin * 2 - textWidth) * fx;
   const y = margin + (height - margin * 2 - fontSize) * fy + fontSize / 2;
 
