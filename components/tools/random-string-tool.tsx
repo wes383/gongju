@@ -137,6 +137,7 @@ export function RandomStringTool() {
             aria-label={t.alphabet}
             spellCheck={false}
             className="font-mono text-sm"
+            size="xs"
           />
         </div>
       )}

@@ -112,6 +112,7 @@ export function TimestampTool() {
           aria-label={t.inputLabel}
           spellCheck={false}
           className="font-mono text-sm"
+          size="xs"
         />
         <Button type="button" variant="outline" size="sm" onClick={fillNow} className="shrink-0 gap-1.5">
           <Clock className="h-3.5 w-3.5" />

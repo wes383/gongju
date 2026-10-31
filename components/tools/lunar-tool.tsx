@@ -212,6 +212,7 @@ export function LunarTool() {
               onChange={(e) => setSolarInput(e.target.value)}
               aria-label={t.solarDate}
               className="w-44 font-mono text-sm"
+              size="xs"
             />
             <Button
               type="button"
@@ -236,11 +237,12 @@ export function LunarTool() {
                 onChange={(e) => changeYear(Number(e.target.value))}
                 aria-label={t.year}
                 className="w-20 text-center font-mono text-sm"
+                size="xs"
               />
               <span className="text-xs text-foreground-subtle">{t.year}</span>
             </div>
             <Select value={String(month)} onValueChange={(v) => setMonth(Number(v))}>
-              <SelectTrigger size="md" aria-label={t.month} className="w-32">
+              <SelectTrigger size="xs" aria-label={t.month} className="w-32">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -252,7 +254,7 @@ export function LunarTool() {
               </SelectContent>
             </Select>
             <Select value={String(day)} onValueChange={(v) => setDay(Number(v))}>
-              <SelectTrigger size="md" aria-label={t.day} className="w-32">
+              <SelectTrigger size="xs" aria-label={t.day} className="w-32">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

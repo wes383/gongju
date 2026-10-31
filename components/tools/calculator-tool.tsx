@@ -222,7 +222,7 @@ export function CalculatorTool() {
             spellCheck={false}
             autoComplete="off"
             aria-label={t.expr}
-            size="md"
+            size="xs"
             className="font-mono"
           />
         </label>

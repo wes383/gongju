@@ -99,7 +99,7 @@ export function JsonPathTool() {
           spellCheck={false}
           aria-label={t.pathLabel}
           className="min-w-[240px] flex-1 font-mono text-sm"
-          size="sm"
+          size="xs"
         />
       </OptionBar>
 

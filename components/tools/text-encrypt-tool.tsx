@@ -112,7 +112,7 @@ export function TextEncryptTool() {
             placeholder={t.passwordPlaceholder}
             aria-label={t.password}
             autoComplete="off"
-            size="sm"
+            size="xs"
             className="w-56"
           />
         </div>

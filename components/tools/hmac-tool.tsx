@@ -128,6 +128,7 @@ export function HmacTool() {
             aria-label={t.key}
             spellCheck={false}
             className="font-mono text-sm"
+            size="xs"
           />
         </div>
         <div className="flex flex-col gap-2">

@@ -166,6 +166,7 @@ export function BmiTool() {
                 onChange={(e) => setCm(e.target.value)}
                 inputMode="decimal"
                 className="w-24 font-mono text-sm"
+                size="xs"
               />
               <span className="text-xs text-foreground-subtle">{t.cm}</span>
             </span>
@@ -177,6 +178,7 @@ export function BmiTool() {
                 inputMode="numeric"
                 aria-label={t.ft}
                 className="w-16 font-mono text-sm"
+                size="xs"
               />
               <span className="text-xs text-foreground-subtle">{t.ft}</span>
               <Input
@@ -185,6 +187,7 @@ export function BmiTool() {
                 inputMode="decimal"
                 aria-label={t.in}
                 className="w-16 font-mono text-sm"
+                size="xs"
               />
               <span className="text-xs text-foreground-subtle">{t.in}</span>
             </span>
@@ -199,6 +202,7 @@ export function BmiTool() {
               onChange={(e) => (system === "metric" ? setKg(e.target.value) : setLb(e.target.value))}
               inputMode="decimal"
               className="w-24 font-mono text-sm"
+              size="xs"
             />
             <span className="text-xs text-foreground-subtle">
               {system === "metric" ? t.kg : t.lb}

@@ -130,7 +130,7 @@ export function TimezoneTool() {
             searchPlaceholder={t.searchZone}
             emptyText={t.noZone}
             aria-label={t.sourceZone}
-            size="sm"
+            size="xs"
             className="w-52"
           />
         </div>
@@ -140,6 +140,7 @@ export function TimezoneTool() {
           onChange={(e) => setValue(e.target.value)}
           aria-label={t.moment}
           className="font-mono text-sm sm:w-60"
+          size="xs"
         />
         <Button type="button" variant="outline" size="sm" onClick={fillNow} className="gap-1.5">
           <Clock className="h-3.5 w-3.5" />
@@ -162,7 +163,7 @@ export function TimezoneTool() {
                 searchPlaceholder={t.searchZone}
                 emptyText={t.noZone}
                 aria-label={t.targetZone}
-                size="sm"
+                size="xs"
                 className="w-52"
               />
               <span className="ml-auto font-mono text-[11px] text-foreground-faint">

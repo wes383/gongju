@@ -91,6 +91,7 @@ export function DateDiffTool() {
           onChange={(e) => setFrom(e.target.value)}
           aria-label={t.from}
           className="w-60 font-mono text-sm"
+          size="xs"
         />
         <Button
           type="button"
@@ -112,6 +113,7 @@ export function DateDiffTool() {
           onChange={(e) => setTo(e.target.value)}
           aria-label={t.to}
           className="w-60 font-mono text-sm"
+          size="xs"
         />
         <Button
           type="button"

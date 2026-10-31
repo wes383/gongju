@@ -214,6 +214,7 @@ export function CronTool() {
             aria-label={t.expression}
             spellCheck={false}
             className="font-mono text-sm"
+            size="xs"
           />
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="text-xs text-foreground-subtle">{t.presets}</span>

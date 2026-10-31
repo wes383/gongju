@@ -237,6 +237,7 @@ function Field({
           inputMode="decimal"
           spellCheck={false}
           className="w-28 font-mono text-sm"
+          size="xs"
         />
         {suffix && <span className="text-xs text-foreground-subtle">{suffix}</span>}
       </span>

@@ -152,6 +152,7 @@ export function CurrencyTool() {
           inputMode="decimal"
           spellCheck={false}
           className="font-mono text-sm sm:w-40"
+          size="xs"
         />
 
         <div className="flex flex-1 items-center gap-2">
@@ -163,7 +164,7 @@ export function CurrencyTool() {
             searchPlaceholder={t.search}
             emptyText={t.empty}
             aria-label={t.from}
-            size="sm"
+            size="xs"
             className="min-w-0 flex-1"
           />
 
@@ -177,7 +178,7 @@ export function CurrencyTool() {
             searchPlaceholder={t.search}
             emptyText={t.empty}
             aria-label={t.to}
-            size="sm"
+            size="xs"
             className="min-w-0 flex-1"
           />
         </div>

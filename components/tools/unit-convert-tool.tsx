@@ -98,11 +98,12 @@ export function UnitConvertTool() {
           inputMode="decimal"
           spellCheck={false}
           className="font-mono text-sm sm:w-40"
+          size="xs"
         />
 
         <div className="flex flex-1 items-center gap-2">
           <Select value={from} onValueChange={(next) => setPair((prev) => ({ ...prev, [categoryId]: [next, to] }))}>
-            <SelectTrigger size="sm" aria-label={t.from} className="flex-1">
+            <SelectTrigger size="xs" aria-label={t.from} className="flex-1">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -117,7 +118,7 @@ export function UnitConvertTool() {
           <SwapButton onClick={swap} />
 
           <Select value={to} onValueChange={(next) => setPair((prev) => ({ ...prev, [categoryId]: [from, next] }))}>
-            <SelectTrigger size="sm" aria-label={t.to} className="flex-1">
+            <SelectTrigger size="xs" aria-label={t.to} className="flex-1">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

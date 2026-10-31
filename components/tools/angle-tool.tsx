@@ -67,12 +67,13 @@ export function AngleTool() {
             inputMode="decimal"
             spellCheck={false}
             className="font-mono text-sm sm:w-40"
+            size="xs"
           />
         </label>
         <label className="flex flex-1 flex-col gap-1">
           <span className="text-[11px] font-medium text-foreground-subtle">{t.unit}</span>
           <Select value={from} onValueChange={setFrom}>
-            <SelectTrigger size="sm" aria-label={t.unit} className="sm:max-w-56">
+            <SelectTrigger size="xs" aria-label={t.unit} className="sm:max-w-56">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

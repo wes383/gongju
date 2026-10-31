@@ -49,7 +49,7 @@ export function HttpStatusTool() {
           onChange={(e) => setQuery(e.target.value)}
           placeholder={t.search}
           aria-label={t.search}
-          size="sm"
+          size="xs"
           className="w-full max-w-sm"
         />
         <span className="ml-auto text-[11px] text-foreground-subtle">

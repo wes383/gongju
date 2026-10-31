@@ -226,7 +226,7 @@ export function QrcodeTool() {
               onChange={(e) => setUrl(e.target.value)}
               placeholder={t.urlPlaceholder}
               aria-label={t.url}
-              size="sm"
+              size="xs"
             />
           )}
 
@@ -237,7 +237,7 @@ export function QrcodeTool() {
                 <Input
                   value={wifi.ssid}
                   onChange={(e) => setWifi({ ...wifi, ssid: e.target.value })}
-                  size="sm"
+                  size="xs"
                 />
               </label>
               <label className="flex flex-col gap-1 text-xs text-foreground-muted">
@@ -246,7 +246,7 @@ export function QrcodeTool() {
                   value={wifi.password}
                   onChange={(e) => setWifi({ ...wifi, password: e.target.value })}
                   disabled={wifi.encryption === "nopass"}
-                  size="sm"
+                  size="xs"
                 />
               </label>
               <label className="flex flex-col gap-1 text-xs text-foreground-muted">
@@ -290,7 +290,7 @@ export function QrcodeTool() {
                   <Input
                     value={vcard[key]}
                     onChange={(e) => setVcard({ ...vcard, [key]: e.target.value })}
-                    size="sm"
+                    size="xs"
                   />
                 </label>
               ))}

@@ -111,6 +111,7 @@ export function PasswordStrengthTool() {
             autoComplete="off"
             spellCheck={false}
             className="font-mono text-sm"
+            size="xs"
           />
           <Button
             type="button"

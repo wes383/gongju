@@ -115,6 +115,7 @@ export function RadixTool() {
         spellCheck={false}
         className="font-mono text-base"
         aria-label={t.inputBase}
+        size="xs"
       />
 
       {error && input.trim() !== "" && <ErrorNote>{errorText(error, locale)}</ErrorNote>}

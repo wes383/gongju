@@ -151,6 +151,7 @@ export function IpTool() {
             aria-label="IP"
             spellCheck={false}
             className="font-mono text-sm"
+            size="xs"
           />
           <ClearButton onClick={() => setInput("")} />
         </div>

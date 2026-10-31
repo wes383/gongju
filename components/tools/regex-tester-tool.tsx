@@ -293,6 +293,7 @@ export function RegexTesterTool() {
             aria-label={t.replace}
             spellCheck={false}
             className="m-3 font-mono text-sm"
+            size="xs"
           />
         </div>
 

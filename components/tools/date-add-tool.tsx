@@ -115,6 +115,7 @@ export function DateAddTool() {
           onChange={(e) => setValue(e.target.value)}
           aria-label={t.base}
           className="w-60 font-mono text-sm"
+          size="xs"
         />
         <span className="text-xs font-medium text-foreground-muted">{t.amount}</span>
         <Input
@@ -123,6 +124,7 @@ export function DateAddTool() {
           onChange={(e) => setAmount(Number(e.target.value) || 0)}
           aria-label={t.amount}
           className="w-20 text-center font-mono"
+          size="xs"
         />
         <Segmented
           ariaLabel={t.result}
