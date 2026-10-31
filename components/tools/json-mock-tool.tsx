@@ -173,7 +173,6 @@ export function JsonMockTool() {
                 ? setSchemaText(MOCK_SAMPLE_SCHEMA)
                 : setSampleText(JSON_SAMPLE)
             }
-            label={t.source}
           />
         }
         outputActions={
