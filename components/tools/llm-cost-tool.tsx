@@ -70,18 +70,20 @@ function Field({
   onChange: (next: string) => void;
 }) {
   return (
-    <label className="flex items-center gap-2">
-      <span className="w-24 shrink-0 text-xs text-foreground-muted">{label}</span>
-      <Input
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        inputMode="decimal"
-        spellCheck={false}
-        aria-label={label}
-        size="xs"
-        className="font-mono text-sm"
-      />
-      <span className="w-28 shrink-0 text-[11px] text-foreground-faint">{suffix}</span>
+    <label className="flex min-w-0 flex-col gap-1.5">
+      <span className="truncate text-[11px] text-foreground-muted">{label}</span>
+      <span className="flex min-w-0 items-center gap-2">
+        <Input
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          inputMode="decimal"
+          spellCheck={false}
+          aria-label={label}
+          size="xs"
+          className="min-w-0 font-mono text-sm"
+        />
+        <span className="shrink-0 text-[11px] text-foreground-faint">{suffix}</span>
+      </span>
     </label>
   );
 }
@@ -154,9 +156,8 @@ export function LlmCostTool() {
               ]}
             />
           )}
-          <span className="text-[11px] text-foreground-faint">{t.perMillion}</span>
         </header>
-        <div className="grid gap-x-6 gap-y-3 px-4 py-3.5">
+        <div className="grid gap-x-6 gap-y-4 px-4 py-4 sm:grid-cols-2 lg:grid-cols-3">
           <Field label={t.inputPrice} suffix={t.perMillion} value={inputPrice} onChange={setInputPrice} />
           <Field label={t.outputPrice} suffix={t.perMillion} value={outputPrice} onChange={setOutputPrice} />
         </div>
@@ -166,7 +167,7 @@ export function LlmCostTool() {
         <header className="border-b border-border px-4 py-2.5">
           <span className="text-xs font-medium text-foreground-muted">{t.usage}</span>
         </header>
-        <div className="grid gap-x-6 gap-y-3 px-4 py-3.5">
+        <div className="grid gap-x-6 gap-y-4 px-4 py-4 sm:grid-cols-2 lg:grid-cols-3">
           <Field label={t.inputTokens} suffix="tokens" value={inputTokens} onChange={setInputTokens} />
           <Field label={t.outputTokens} suffix="tokens" value={outputTokens} onChange={setOutputTokens} />
           <Field label={t.requests} suffix={t.times} value={requests} onChange={setRequests} />
