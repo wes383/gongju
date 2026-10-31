@@ -1,8 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { Flag, Maximize2, Minimize2, Pause, Play, RotateCcw } from "lucide-react";
+import { Flag, Maximize2, Minimize2, Moon, Pause, Play, RotateCcw, Sun } from "lucide-react";
 import { useCopy } from "@/components/locale-provider";
+import { useAppTheme } from "@/components/theme-provider";
 import { OptionBar, Segmented } from "@/components/tools/tool-ui";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -24,6 +25,8 @@ const COPY = {
     finished: "时间到",
     fullscreen: "全屏",
     exitFullscreen: "退出全屏",
+    toLight: "切换到浅色主题",
+    toDark: "切换到深色主题",
     lap: "计次",
     lapIndex: "第",
     lapTimes: "计次记录",
@@ -49,6 +52,8 @@ const COPY = {
     finished: "Time's up",
     fullscreen: "Full screen",
     exitFullscreen: "Exit full screen",
+    toLight: "Switch to light theme",
+    toDark: "Switch to dark theme",
     lap: "Lap",
     lapIndex: "Lap",
     lapTimes: "Laps",
@@ -93,8 +98,15 @@ function splitCountdown(ms: number) {
 
 const PRESETS = [60_000, 300_000, 600_000, 1_500_000, 3_600_000];
 
-function Colon() {
-  return <span className="text-2xl text-foreground-subtle">:</span>;
+/** No-op subscription; only used to detect that we are on the client */
+const subscribeNoop = () => () => {};
+
+function Colon({ style }: { style?: React.CSSProperties }) {
+  return (
+    <span className="text-2xl text-foreground-subtle" style={style}>
+      :
+    </span>
+  );
 }
 
 /** Inline editable segment: looks like the big display, behaves like an input */
@@ -102,11 +114,13 @@ function TimeField({
   value,
   max,
   label,
+  style,
   onChange,
 }: {
   value: number;
   max: number;
   label: string;
+  style?: React.CSSProperties;
   onChange: (value: number) => void;
 }) {
   return (
@@ -119,6 +133,7 @@ function TimeField({
       onChange={(e) => onChange(Number(e.target.value))}
       onFocus={(e) => e.currentTarget.select()}
       aria-label={label}
+      style={style}
       className="w-[2.1ch] rounded-md bg-transparent text-center font-display text-6xl font-semibold tabular-nums text-foreground outline-none transition-colors [appearance:textfield] hover:bg-hover-bg focus:bg-hover-bg focus:text-accent [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
     />
   );
@@ -185,12 +200,27 @@ export function CountdownTool() {
   /* ── full screen ─────────────────────────────────────────── */
   const timerRef = React.useRef<HTMLDivElement>(null);
   const [fullscreen, setFullscreen] = React.useState(false);
+  const { resolvedTheme, setTheme } = useAppTheme();
+  const mounted = React.useSyncExternalStore(
+    subscribeNoop,
+    () => true,
+    () => false
+  );
+  const dark = mounted ? resolvedTheme === "dark" : false;
 
   React.useEffect(() => {
     const onChange = () => setFullscreen(document.fullscreenElement !== null);
     document.addEventListener("fullscreenchange", onChange);
     return () => document.removeEventListener("fullscreenchange", onChange);
   }, []);
+
+  // The page keeps a stable scrollbar gutter; inside fullscreen that gutter
+  // shows up as a strip of the black ::backdrop on the right edge.
+  React.useEffect(() => {
+    const root = document.documentElement;
+    root.classList.toggle("is-timer-fullscreen", fullscreen);
+    return () => root.classList.remove("is-timer-fullscreen");
+  }, [fullscreen]);
 
   const toggleFullscreen = async () => {
     try {
@@ -250,6 +280,15 @@ export function CountdownTool() {
 
   const watch = splitStopwatch(elapsed);
 
+  // Sizes are real font sizes (not a `scale` transform) so the enlarged digits
+  // still take up layout space and never overlap the progress bar below.
+  const digitStyle: React.CSSProperties | undefined = fullscreen
+    ? { fontSize: "clamp(3rem, min(17vh, 12vw), 14rem)" }
+    : undefined;
+  const colonStyle: React.CSSProperties | undefined = fullscreen
+    ? { fontSize: "clamp(1.2rem, min(6.5vh, 4.5vw), 5rem)" }
+    : undefined;
+
   return (
     <div className="flex flex-col gap-4">
       <OptionBar>
@@ -307,7 +346,7 @@ export function CountdownTool() {
                 variant="ghost"
                 size="sm"
                 onClick={resetCountdown}
-                disabled={running || remainingMs === durationMs}
+                disabled={!running && remainingMs === durationMs}
                 className="gap-1.5"
               >
                 <RotateCcw className="h-3.5 w-3.5" />
@@ -362,45 +401,55 @@ export function CountdownTool() {
           ref={timerRef}
           className={cn(
             "relative flex flex-col items-center gap-6 rounded-lg border border-border bg-surface px-6 py-14",
-            fullscreen && "justify-center rounded-none border-0 bg-background px-10 py-0"
+            fullscreen &&
+              "h-screen w-full justify-center gap-10 rounded-none border-0 bg-background px-10 py-0"
           )}
         >
           {fullscreen && (
-            <button
-              type="button"
-              onClick={toggleFullscreen}
-              aria-label={t.exitFullscreen}
-              title={t.exitFullscreen}
-              className="absolute right-6 top-6 grid h-10 w-10 place-items-center rounded-full text-foreground-subtle transition-colors hover:bg-hover-bg hover:text-foreground"
-            >
-              <Minimize2 className="h-5 w-5" />
-            </button>
+            <div className="absolute right-6 top-6 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setTheme(dark ? "light" : "dark")}
+                aria-label={dark ? t.toLight : t.toDark}
+                title={dark ? t.toLight : t.toDark}
+                className="grid h-10 w-10 place-items-center rounded-full text-foreground-subtle transition-colors hover:bg-hover-bg hover:text-foreground"
+              >
+                {dark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+              </button>
+              <button
+                type="button"
+                onClick={toggleFullscreen}
+                aria-label={t.exitFullscreen}
+                title={t.exitFullscreen}
+                className="grid h-10 w-10 place-items-center rounded-full text-foreground-subtle transition-colors hover:bg-hover-bg hover:text-foreground"
+              >
+                <Minimize2 className="h-5 w-5" />
+              </button>
+            </div>
           )}
           {editing ? (
-            <div
-              className={cn(
-                "flex items-baseline gap-1 font-display tabular-nums text-foreground",
-                fullscreen && "scale-150 sm:scale-[2]"
-              )}
-            >
+            <div className="flex items-baseline gap-1 font-display tabular-nums text-foreground">
               <TimeField
                 value={durationParts.h}
                 max={99}
                 label={t.hours}
+                style={digitStyle}
                 onChange={(v) => setPart("h", v)}
               />
-              <Colon />
+              <Colon style={colonStyle} />
               <TimeField
                 value={durationParts.m}
                 max={59}
                 label={t.minutes}
+                style={digitStyle}
                 onChange={(v) => setPart("m", v)}
               />
-              <Colon />
+              <Colon style={colonStyle} />
               <TimeField
                 value={durationParts.s}
                 max={59}
                 label={t.seconds}
+                style={digitStyle}
                 onChange={(v) => setPart("s", v)}
               />
             </div>
@@ -408,26 +457,35 @@ export function CountdownTool() {
             <div
               className={cn(
                 "flex items-baseline gap-1 font-display tabular-nums",
-                finished ? "text-accent" : "text-foreground",
-                fullscreen && "scale-150 sm:scale-[2.5]"
+                finished ? "text-accent" : "text-foreground"
               )}
             >
               {countdown.h > 0 && (
                 <>
-                  <span className="text-6xl font-semibold">{countdown.h}</span>
-                  <span className="mr-2 text-2xl text-foreground-subtle">:</span>
+                  <span className="text-6xl font-semibold" style={digitStyle}>
+                    {countdown.h}
+                  </span>
+                  <span className="mr-2 text-2xl text-foreground-subtle" style={colonStyle}>
+                    :
+                  </span>
                 </>
               )}
-              <span className="text-6xl font-semibold">{countdown.m}</span>
-              <span className="text-2xl text-foreground-subtle">:</span>
-              <span className="text-6xl font-semibold">{countdown.s}</span>
+              <span className="text-6xl font-semibold" style={digitStyle}>
+                {countdown.m}
+              </span>
+              <span className="text-2xl text-foreground-subtle" style={colonStyle}>
+                :
+              </span>
+              <span className="text-6xl font-semibold" style={digitStyle}>
+                {countdown.s}
+              </span>
             </div>
           )}
 
           <div
             className={cn(
               "h-1 w-full max-w-md overflow-hidden rounded-full bg-hover-bg",
-              fullscreen && "max-w-xl"
+              fullscreen && "max-w-2xl"
             )}
           >
             <div
@@ -437,6 +495,33 @@ export function CountdownTool() {
           </div>
 
           {finished && <span className="text-sm font-medium text-accent">{t.finished}</span>}
+
+          {fullscreen && (
+            <div className="absolute inset-x-0 bottom-10 flex flex-wrap items-center justify-center gap-3">
+              <Button
+                type="button"
+                variant={running ? "outline" : "default"}
+                size="lg"
+                onClick={toggleCountdown}
+                disabled={!running && remainingMs <= 0}
+                className="gap-2"
+              >
+                {running ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                {running ? t.pause : remainingMs < durationMs ? t.resume : t.start}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="lg"
+                onClick={resetCountdown}
+                disabled={!running && remainingMs === durationMs}
+                className="gap-2"
+              >
+                <RotateCcw className="h-4 w-4" />
+                {t.reset}
+              </Button>
+            </div>
+          )}
         </div>
       ) : (
         <div className="flex flex-col gap-4">

@@ -518,6 +518,20 @@ html.dark.high-contrast {
     scrollbar-gutter: stable;
   }
 
+  /* A fullscreen element is sized to the viewport, so the reserved gutter would
+     surface as a strip of the black ::backdrop along the right edge. */
+  html.is-timer-fullscreen,
+  html.is-timer-fullscreen body {
+    overflow: hidden;
+    scrollbar-gutter: auto;
+  }
+
+  /* Match the backdrop to the page so any 1px seam blends in, and follow the
+     theme when it is switched from inside fullscreen. */
+  html.is-timer-fullscreen ::backdrop {
+    background: var(--background);
+  }
+
   body {
     background: var(--background);
     color: var(--foreground);
