@@ -4,10 +4,17 @@ import * as React from "react";
 import { RefreshCw } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { CopyButton, ErrorNote, SwapButton } from "@/components/tools/tool-ui";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Combobox, type ComboboxOption } from "@/components/ui/combobox";
 import { useCopy, useLocale } from "@/components/locale-provider";
 import { errorText } from "@/lib/errors";
-import { CURRENCIES, fetchRate, type RateQuote } from "@/lib/currency";
+import {
+  CURRENCY_CODES,
+  fetchRate,
+  mergeCodes,
+  refreshCodes,
+  toCurrency,
+  type RateQuote,
+} from "@/lib/currency";
 import { cn } from "@/lib/utils";
 
 const COPY = {
@@ -21,6 +28,8 @@ const COPY = {
     refresh: "刷新汇率",
     loading: "正在获取汇率…",
     inverse: "反向",
+    search: "搜索币种",
+    empty: "没有匹配的币种",
     noteBefore: "汇率来自 ",
     noteAfter: "，每个工作日更新一次。请求只发送货币代码，金额始终留在本机。",
     invalid: "请输入金额",
@@ -35,6 +44,8 @@ const COPY = {
     refresh: "Refresh rate",
     loading: "Fetching rate…",
     inverse: "Inverse",
+    search: "Search currencies",
+    empty: "No currency matches",
     noteBefore: "Rates come from ",
     noteAfter: " and update once per working day. Only the currency codes are sent; the amount stays on your device.",
     invalid: "Enter an amount",
@@ -44,14 +55,12 @@ const COPY = {
 const DEFAULT_FROM = "USD";
 const DEFAULT_TO = "CNY";
 
-function currencyOf(code: string) {
-  return CURRENCIES.find((item) => item.code === code) ?? CURRENCIES[0];
-}
-
 export function CurrencyTool() {
   const t = useCopy(COPY);
   const locale = useLocale();
   const [amount, setAmount] = React.useState("100");
+  // The baked-in list renders immediately; the live one only widens it later
+  const [codes, setCodes] = React.useState(CURRENCY_CODES);
   const [from, setFrom] = React.useState(DEFAULT_FROM);
   const [to, setTo] = React.useState(DEFAULT_TO);
   const [nonce, setNonce] = React.useState(0);
@@ -63,6 +72,19 @@ export function CurrencyTool() {
   const [failure, setFailure] = React.useState<{ from: string; to: string; error: unknown } | null>(
     null
   );
+
+  React.useEffect(() => {
+    let cancelled = false;
+    refreshCodes().then((live) => {
+      if (cancelled || !live) return;
+      const next = mergeCodes(CURRENCY_CODES, live);
+      // Same-length means the source settled on the list we already ship
+      if (next.length !== CURRENCY_CODES.length) setCodes(next);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   React.useEffect(() => {
     let cancelled = false;
@@ -98,10 +120,22 @@ export function CurrencyTool() {
     }).format(value);
   };
 
-  const label = (code: string) => {
-    const item = currencyOf(code);
-    return `${item.code} ${locale === "zh" ? item.zh : item.en}`;
-  };
+  const options: ComboboxOption[] = React.useMemo(
+    () =>
+      codes.map((code) => {
+        const item = toCurrency(code, locale);
+        return {
+          value: code,
+          label: `${code} ${item.name}`,
+          keywords: [item.name, item.symbol],
+        };
+      }),
+    [codes, locale]
+  );
+
+  const target = toCurrency(to, locale);
+  // Only show a symbol when it is a real glyph; for most codes Intl echoes it
+  const showsSymbol = target.symbol !== target.code;
 
   const swap = () => {
     setFrom(to);
@@ -121,33 +155,31 @@ export function CurrencyTool() {
         />
 
         <div className="flex flex-1 items-center gap-2">
-          <Select value={from} onValueChange={setFrom}>
-            <SelectTrigger size="sm" aria-label={t.from} className="flex-1">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {CURRENCIES.map((item) => (
-                <SelectItem key={item.code} value={item.code}>
-                  {label(item.code)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Combobox
+            options={options}
+            value={from}
+            onValueChange={setFrom}
+            placeholder={t.from}
+            searchPlaceholder={t.search}
+            emptyText={t.empty}
+            aria-label={t.from}
+            size="sm"
+            className="min-w-0 flex-1"
+          />
 
           <SwapButton onClick={swap} />
 
-          <Select value={to} onValueChange={setTo}>
-            <SelectTrigger size="sm" aria-label={t.to} className="flex-1">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {CURRENCIES.map((item) => (
-                <SelectItem key={item.code} value={item.code}>
-                  {label(item.code)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Combobox
+            options={options}
+            value={to}
+            onValueChange={setTo}
+            placeholder={t.to}
+            searchPlaceholder={t.search}
+            emptyText={t.empty}
+            aria-label={t.to}
+            size="sm"
+            className="min-w-0 flex-1"
+          />
         </div>
       </div>
 
@@ -183,7 +215,9 @@ export function CurrencyTool() {
               <p className="text-sm text-foreground-subtle">{t.loading}</p>
             ) : (
               <p className="flex flex-wrap items-baseline gap-2">
-                <span className="text-lg text-foreground-muted">{currencyOf(to).symbol}</span>
+                {showsSymbol && (
+                  <span className="text-lg text-foreground-muted">{target.symbol}</span>
+                )}
                 <span className="break-all font-mono text-2xl font-medium text-foreground">
                   {valid ? formatMoney(converted) : "—"}
                 </span>
