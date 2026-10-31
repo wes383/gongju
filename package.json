@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "gen:gitignore": "node scripts/build-gitignore.mjs"
   },
   "dependencies": {
     "@radix-ui/react-checkbox": "^1.4.1",

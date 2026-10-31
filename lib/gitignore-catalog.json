@@ -1,0 +1,402 @@
+{
+  "groups": [
+    {
+      "id": "node",
+      "category": "language",
+      "template": "Node",
+      "label": { "zh": "JavaScript / Node.js", "en": "JavaScript / Node.js" }
+    },
+    {
+      "id": "typescript",
+      "category": "language",
+      "patterns": ["*.tsbuildinfo", ".tsbuildinfo"],
+      "label": { "zh": "TypeScript", "en": "TypeScript" }
+    },
+    {
+      "id": "python",
+      "category": "language",
+      "template": "Python",
+      "label": { "zh": "Python", "en": "Python" }
+    },
+    {
+      "id": "java",
+      "category": "language",
+      "template": "Java",
+      "patterns": ["target/", "hs_err_pid*", "replay_pid*"],
+      "label": { "zh": "Java", "en": "Java" }
+    },
+    {
+      "id": "go",
+      "category": "language",
+      "template": "Go",
+      "label": { "zh": "Go", "en": "Go" }
+    },
+    {
+      "id": "rust",
+      "category": "language",
+      "template": "Rust",
+      "label": { "zh": "Rust", "en": "Rust" }
+    },
+    {
+      "id": "cpp",
+      "category": "language",
+      "template": "C++",
+      "label": { "zh": "C / C++", "en": "C / C++" }
+    },
+    {
+      "id": "csharp",
+      "category": "language",
+      "template": "Dotnet",
+      "label": { "zh": "C# / .NET", "en": "C# / .NET" }
+    },
+    {
+      "id": "php",
+      "category": "language",
+      "template": "Composer",
+      "patterns": ["storage/*.key", ".phpunit.result.cache", ".php-cs-fixer.cache"],
+      "label": { "zh": "PHP", "en": "PHP" }
+    },
+    {
+      "id": "ruby",
+      "category": "language",
+      "template": "Ruby",
+      "label": { "zh": "Ruby", "en": "Ruby" }
+    },
+    {
+      "id": "swift",
+      "category": "language",
+      "template": "Swift",
+      "label": { "zh": "Swift", "en": "Swift" }
+    },
+    {
+      "id": "kotlin",
+      "category": "language",
+      "template": "Kotlin",
+      "label": { "zh": "Kotlin", "en": "Kotlin" }
+    },
+    {
+      "id": "dart",
+      "category": "language",
+      "template": "Dart",
+      "label": { "zh": "Dart", "en": "Dart" }
+    },
+    {
+      "id": "r",
+      "category": "language",
+      "template": "R",
+      "label": { "zh": "R", "en": "R" }
+    },
+    {
+      "id": "julia",
+      "category": "language",
+      "template": "Julia",
+      "label": { "zh": "Julia", "en": "Julia" }
+    },
+    {
+      "id": "elixir",
+      "category": "language",
+      "template": "Elixir",
+      "label": { "zh": "Elixir / Erlang", "en": "Elixir / Erlang" }
+    },
+    {
+      "id": "scala",
+      "category": "language",
+      "template": "Scala",
+      "label": { "zh": "Scala", "en": "Scala" }
+    },
+    {
+      "id": "perl",
+      "category": "language",
+      "template": "Perl",
+      "label": { "zh": "Perl", "en": "Perl" }
+    },
+    {
+      "id": "lua",
+      "category": "language",
+      "template": "Lua",
+      "label": { "zh": "Lua", "en": "Lua" }
+    },
+
+    {
+      "id": "next",
+      "category": "framework",
+      "template": "Nextjs",
+      "label": { "zh": "Next.js", "en": "Next.js" }
+    },
+    {
+      "id": "vite",
+      "category": "framework",
+      "patterns": ["dist/", "dist-ssr/", ".vite/", "*.local"],
+      "label": { "zh": "Vite", "en": "Vite" }
+    },
+    {
+      "id": "react-native",
+      "category": "framework",
+      "patterns": [
+        ".expo/",
+        ".expo-shared/",
+        "android/.gradle/",
+        "android/app/build/",
+        "ios/build/",
+        "ios/Pods/",
+        "*.jks",
+        "*.keystore"
+      ],
+      "label": { "zh": "React Native / Expo", "en": "React Native / Expo" }
+    },
+    {
+      "id": "android",
+      "category": "framework",
+      "template": "Android",
+      "label": { "zh": "Android", "en": "Android" }
+    },
+    {
+      "id": "flutter",
+      "category": "framework",
+      "template": "Flutter",
+      "label": { "zh": "Flutter", "en": "Flutter" }
+    },
+    {
+      "id": "frontend",
+      "category": "framework",
+      "template": "Angular",
+      "patterns": [".svelte-kit/", ".nuxt/", ".astro/", ".output/", "storybook-static/"],
+      "label": { "zh": "其它前端框架", "en": "Other frontend" }
+    },
+
+    {
+      "id": "vscode",
+      "category": "ide",
+      "template": "Global/VisualStudioCode",
+      "label": { "zh": "VS Code", "en": "VS Code" }
+    },
+    {
+      "id": "jetbrains",
+      "category": "ide",
+      "template": "Global/JetBrains",
+      "label": { "zh": "JetBrains", "en": "JetBrains" }
+    },
+    {
+      "id": "visualstudio",
+      "category": "ide",
+      "template": "VisualStudio",
+      "label": { "zh": "Visual Studio", "en": "Visual Studio" }
+    },
+    {
+      "id": "eclipse",
+      "category": "ide",
+      "template": "Global/Eclipse",
+      "label": { "zh": "Eclipse", "en": "Eclipse" }
+    },
+    {
+      "id": "xcode",
+      "category": "ide",
+      "template": "Global/Xcode",
+      "label": { "zh": "Xcode", "en": "Xcode" }
+    },
+    {
+      "id": "vim",
+      "category": "ide",
+      "template": "Global/Vim",
+      "label": { "zh": "Vim", "en": "Vim" }
+    },
+    {
+      "id": "emacs",
+      "category": "ide",
+      "template": "Global/Emacs",
+      "label": { "zh": "Emacs", "en": "Emacs" }
+    },
+    {
+      "id": "sublime",
+      "category": "ide",
+      "template": "Global/SublimeText",
+      "label": { "zh": "Sublime Text", "en": "Sublime Text" }
+    },
+    {
+      "id": "zed",
+      "category": "ide",
+      "template": "Global/Zed",
+      "label": { "zh": "Zed", "en": "Zed" }
+    },
+    {
+      "id": "cursor",
+      "category": "ide",
+      "template": "Global/Cursor",
+      "label": { "zh": "Cursor", "en": "Cursor" }
+    },
+
+    {
+      "id": "macos",
+      "category": "os",
+      "template": "Global/macOS",
+      "label": { "zh": "macOS", "en": "macOS" }
+    },
+    {
+      "id": "windows",
+      "category": "os",
+      "template": "Global/Windows",
+      "label": { "zh": "Windows", "en": "Windows" }
+    },
+    {
+      "id": "linux",
+      "category": "os",
+      "template": "Global/Linux",
+      "label": { "zh": "Linux", "en": "Linux" }
+    },
+
+    {
+      "id": "maven",
+      "category": "build",
+      "template": "Maven",
+      "label": { "zh": "Maven", "en": "Maven" }
+    },
+    {
+      "id": "gradle",
+      "category": "build",
+      "template": "Gradle",
+      "label": { "zh": "Gradle", "en": "Gradle" }
+    },
+    {
+      "id": "cmake",
+      "category": "build",
+      "template": "CMake",
+      "label": { "zh": "CMake", "en": "CMake" }
+    },
+    {
+      "id": "webpack",
+      "category": "build",
+      "patterns": ["dist/", ".cache-loader/"],
+      "label": { "zh": "Webpack", "en": "Webpack" }
+    },
+
+    {
+      "id": "terraform",
+      "category": "devops",
+      "template": "Terraform",
+      "label": { "zh": "Terraform", "en": "Terraform" }
+    },
+    {
+      "id": "serverless",
+      "category": "devops",
+      "patterns": [".serverless/", ".serverless_plugins/", ".aws-sam/"],
+      "label": { "zh": "Serverless", "en": "Serverless" }
+    },
+    {
+      "id": "ansible",
+      "category": "devops",
+      "template": "Global/Ansible",
+      "label": { "zh": "Ansible", "en": "Ansible" }
+    },
+    {
+      "id": "packer",
+      "category": "devops",
+      "template": "Packer",
+      "label": { "zh": "Packer", "en": "Packer" }
+    },
+    {
+      "id": "helm",
+      "category": "devops",
+      "patterns": ["charts/*.tgz"],
+      "label": { "zh": "Helm", "en": "Helm" }
+    },
+
+    {
+      "id": "jupyter",
+      "category": "project",
+      "patterns": [".ipynb_checkpoints/", "*.nbconvert.ipynb", ".virtual_documents/"],
+      "label": { "zh": "Jupyter", "en": "Jupyter" }
+    },
+    {
+      "id": "unity",
+      "category": "project",
+      "template": "Unity",
+      "label": { "zh": "Unity", "en": "Unity" }
+    },
+    {
+      "id": "unreal",
+      "category": "project",
+      "template": "UnrealEngine",
+      "label": { "zh": "Unreal Engine", "en": "Unreal Engine" }
+    },
+    {
+      "id": "godot",
+      "category": "project",
+      "template": "Godot",
+      "label": { "zh": "Godot", "en": "Godot" }
+    },
+    {
+      "id": "hugo",
+      "category": "project",
+      "patterns": ["public/", "resources/_gen/", ".hugo_build.lock"],
+      "label": { "zh": "Hugo", "en": "Hugo" }
+    },
+    {
+      "id": "jekyll",
+      "category": "project",
+      "template": "Jekyll",
+      "label": { "zh": "Jekyll", "en": "Jekyll" }
+    },
+    {
+      "id": "wordpress",
+      "category": "project",
+      "template": "WordPress",
+      "label": { "zh": "WordPress", "en": "WordPress" }
+    },
+    {
+      "id": "latex",
+      "category": "project",
+      "template": "TeX",
+      "label": { "zh": "LaTeX", "en": "LaTeX" }
+    },
+
+    {
+      "id": "dotenv",
+      "category": "general",
+      "patterns": [".env*", "!.env.example", "!.env.sample", "!.env.template"],
+      "label": { "zh": "环境变量", "en": "Env files" }
+    },
+    {
+      "id": "secrets",
+      "category": "general",
+      "patterns": ["*.pem", "*.key", "*.p12", "*.pfx", "id_rsa", "id_ed25519"],
+      "label": { "zh": "密钥文件", "en": "Key files" }
+    },
+    {
+      "id": "logs",
+      "category": "general",
+      "patterns": ["logs/", "*.log", "*.pid", "*.seed"],
+      "label": { "zh": "日志", "en": "Logs" }
+    },
+    {
+      "id": "cache",
+      "category": "general",
+      "patterns": [".cache/", ".turbo/", ".parcel-cache/", ".eslintcache", ".stylelintcache"],
+      "label": { "zh": "构建缓存", "en": "Build cache" }
+    },
+    {
+      "id": "coverage",
+      "category": "general",
+      "patterns": ["coverage/", ".nyc_output/", "*.lcov", "junit.xml"],
+      "label": { "zh": "测试覆盖率", "en": "Coverage" }
+    },
+    {
+      "id": "database",
+      "category": "general",
+      "patterns": ["*.sqlite", "*.sqlite3", "*.db", "*.db-journal", "*.sqlite-wal", "dump.rdb"],
+      "label": { "zh": "本地数据库", "en": "Local database" }
+    },
+    {
+      "id": "temp",
+      "category": "general",
+      "template": "Global/Backup",
+      "patterns": [".history/"],
+      "label": { "zh": "临时文件", "en": "Temp files" }
+    },
+    {
+      "id": "archives",
+      "category": "general",
+      "template": "Global/Archives",
+      "label": { "zh": "压缩包", "en": "Archives" }
+    }
+  ]
+}

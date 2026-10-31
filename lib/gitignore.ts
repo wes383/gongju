@@ -1,7 +1,14 @@
 /**
- * .gitignore composer: a catalogue of language / framework / editor / OS blocks
- * grouped by category, plus shortcut presets that pick several blocks at once.
+ * .gitignore composer.
+ *
+ * The pattern data lives in lib/gitignore-templates.ts, generated from the
+ * upstream github/gitignore templates (one file per language / framework /
+ * project type, plus `Global/` for editors, operating systems and tools).
+ * The catalogue in lib/gitignore-catalog.json maps each upstream template to a
+ * category, a bilingual label and optional extra patterns we add on top.
  */
+import catalog from "./gitignore-catalog.json";
+import { GITIGNORE_TEMPLATES } from "./gitignore-templates";
 
 export type IgnoreCategoryId =
   | "language"
@@ -31,6 +38,14 @@ export interface IgnorePreset {
   groups: string[];
 }
 
+interface CatalogGroup {
+  id: string;
+  category: IgnoreCategoryId;
+  label: { zh: string; en: string };
+  template?: string;
+  patterns?: string[];
+}
+
 export const IGNORE_CATEGORIES: IgnoreCategory[] = [
   { id: "language", label: { zh: "编程语言", en: "Languages" } },
   { id: "framework", label: { zh: "框架与平台", en: "Frameworks & Platforms" } },
@@ -42,480 +57,14 @@ export const IGNORE_CATEGORIES: IgnoreCategory[] = [
   { id: "general", label: { zh: "通用规则", en: "General Rules" } },
 ];
 
-export const IGNORE_GROUPS: IgnoreGroup[] = [
-  // ---------------------------------------------------------------- languages
-  {
-    id: "node",
-    category: "language",
-    label: { zh: "JavaScript / Node.js", en: "JavaScript / Node.js" },
-    patterns: [
-      "node_modules/",
-      ".pnpm-store/",
-      ".yarn/",
-      "npm-debug.log*",
-      "yarn-debug.log*",
-      "yarn-error.log*",
-      ".pnp.*",
-    ],
-  },
-  {
-    id: "typescript",
-    category: "language",
-    label: { zh: "TypeScript", en: "TypeScript" },
-    patterns: ["*.tsbuildinfo", ".tsbuildinfo"],
-  },
-  {
-    id: "python",
-    category: "language",
-    label: { zh: "Python", en: "Python" },
-    patterns: [
-      "__pycache__/",
-      "*.py[cod]",
-      ".venv/",
-      "venv/",
-      ".tox/",
-      "*.egg-info/",
-      ".pytest_cache/",
-      ".mypy_cache/",
-      ".ruff_cache/",
-    ],
-  },
-  {
-    id: "java",
-    category: "language",
-    label: { zh: "Java", en: "Java" },
-    patterns: ["*.class", "target/", "hs_err_pid*", "replay_pid*"],
-  },
-  {
-    id: "go",
-    category: "language",
-    label: { zh: "Go", en: "Go" },
-    patterns: ["*.exe", "*.test", "*.out", "coverage.txt"],
-  },
-  {
-    id: "rust",
-    category: "language",
-    label: { zh: "Rust", en: "Rust" },
-    patterns: ["target/", "**/*.rs.bk"],
-  },
-  {
-    id: "cpp",
-    category: "language",
-    label: { zh: "C / C++", en: "C / C++" },
-    patterns: ["*.o", "*.obj", "*.so", "*.a", "*.dylib", "*.dll", "*.pdb", "cmake-build-*/"],
-  },
-  {
-    id: "csharp",
-    category: "language",
-    label: { zh: "C# / .NET", en: "C# / .NET" },
-    patterns: ["bin/", "obj/", "*.user", "*.suo", "*.nupkg", "packages/"],
-  },
-  {
-    id: "php",
-    category: "language",
-    label: { zh: "PHP", en: "PHP" },
-    patterns: ["vendor/", "storage/*.key", ".phpunit.result.cache", ".php-cs-fixer.cache"],
-  },
-  {
-    id: "ruby",
-    category: "language",
-    label: { zh: "Ruby", en: "Ruby" },
-    patterns: [".bundle/", "log/", "tmp/", "vendor/bundle/", ".byebug_history"],
-  },
-  {
-    id: "swift",
-    category: "language",
-    label: { zh: "Swift", en: "Swift" },
-    patterns: [".build/", "Pods/", "*.dSYM", "*.dSYM.zip", ".swiftpm/"],
-  },
-  {
-    id: "kotlin",
-    category: "language",
-    label: { zh: "Kotlin", en: "Kotlin" },
-    patterns: [".kotlin/", "*.hprof"],
-  },
-  {
-    id: "dart",
-    category: "language",
-    label: { zh: "Dart / Flutter", en: "Dart / Flutter" },
-    patterns: [
-      ".dart_tool/",
-      ".flutter-plugins",
-      ".flutter-plugins-dependencies",
-      "*.g.dart",
-      "*.freezed.dart",
-      "build/",
-    ],
-  },
-  {
-    id: "r",
-    category: "language",
-    label: { zh: "R", en: "R" },
-    patterns: [".Rhistory", ".Rapp.history", ".RData", ".Ruserdata", ".Rproj.user/"],
-  },
-  {
-    id: "julia",
-    category: "language",
-    label: { zh: "Julia", en: "Julia" },
-    patterns: [".julia/", "*.jl.cov", "*.jl.*.cov", "*.jl.mem"],
-  },
-  {
-    id: "elixir",
-    category: "language",
-    label: { zh: "Elixir / Erlang", en: "Elixir / Erlang" },
-    patterns: ["_build/", "deps/", "erl_crash.dump", "*.ez", ".elixir_ls/"],
-  },
-  {
-    id: "scala",
-    category: "language",
-    label: { zh: "Scala", en: "Scala" },
-    patterns: [".bloop/", ".metals/", ".scala-build/", "project/target/", "project/project/"],
-  },
-  {
-    id: "perl",
-    category: "language",
-    label: { zh: "Perl", en: "Perl" },
-    patterns: ["blib/", "pm_to_blib", "*.pm.bak"],
-  },
-  {
-    id: "lua",
-    category: "language",
-    label: { zh: "Lua", en: "Lua" },
-    patterns: ["*.luac", "luac.out"],
-  },
-
-  // --------------------------------------------------------------- frameworks
-  {
-    id: "next",
-    category: "framework",
-    label: { zh: "Next.js", en: "Next.js" },
-    patterns: [".next/", "out/", "next-env.d.ts", ".vercel"],
-  },
-  {
-    id: "vite",
-    category: "framework",
-    label: { zh: "Vite", en: "Vite" },
-    patterns: ["dist/", "dist-ssr/", ".vite/", "*.local"],
-  },
-  {
-    id: "react-native",
-    category: "framework",
-    label: { zh: "React Native / Expo", en: "React Native / Expo" },
-    patterns: [
-      ".expo/",
-      ".expo-shared/",
-      "android/.gradle/",
-      "android/app/build/",
-      "ios/build/",
-      "ios/Pods/",
-      "*.jks",
-      "*.keystore",
-    ],
-  },
-  {
-    id: "android",
-    category: "framework",
-    label: { zh: "Android", en: "Android" },
-    patterns: [
-      "local.properties",
-      "captures/",
-      ".externalNativeBuild/",
-      ".cxx/",
-      "*.apk",
-      "*.aab",
-      "*.jks",
-      "*.keystore",
-    ],
-  },
-  {
-    id: "frontend",
-    category: "framework",
-    label: { zh: "其它前端框架", en: "Other frontend" },
-    patterns: [
-      ".angular/",
-      ".svelte-kit/",
-      ".nuxt/",
-      ".astro/",
-      ".output/",
-      "storybook-static/",
-    ],
-  },
-
-  // ---------------------------------------------------------------------- ides
-  {
-    id: "vscode",
-    category: "ide",
-    label: { zh: "VS Code", en: "VS Code" },
-    patterns: [".vscode/*", "!.vscode/extensions.json", "!.vscode/settings.json"],
-  },
-  {
-    id: "jetbrains",
-    category: "ide",
-    label: { zh: "JetBrains", en: "JetBrains" },
-    patterns: [".idea/", "*.iml", "*.ipr", "*.iws"],
-  },
-  {
-    id: "visualstudio",
-    category: "ide",
-    label: { zh: "Visual Studio", en: "Visual Studio" },
-    patterns: [".vs/", "*.userprefs", "*.aps", "*.DBMDL", "*.publishsettings"],
-  },
-  {
-    id: "eclipse",
-    category: "ide",
-    label: { zh: "Eclipse", en: "Eclipse" },
-    patterns: [".settings/", ".classpath", ".project", ".metadata/", ".factorypath"],
-  },
-  {
-    id: "xcode",
-    category: "ide",
-    label: { zh: "Xcode", en: "Xcode" },
-    patterns: [
-      "DerivedData/",
-      "*.xcuserstate",
-      "xcuserdata/",
-      "*.xcscmblueprint",
-      "*.xccheckout",
-      "*.moved-aside",
-      "*.hmap",
-      "*.ipa",
-    ],
-  },
-  {
-    id: "vim",
-    category: "ide",
-    label: { zh: "Vim", en: "Vim" },
-    patterns: ["*.swp", "*.swo", "*.swn", ".viminfo", ".netrwhist"],
-  },
-  {
-    id: "emacs",
-    category: "ide",
-    label: { zh: "Emacs", en: "Emacs" },
-    patterns: ["*~", "\\#*\\#", ".#*", ".emacs.desktop"],
-  },
-  {
-    id: "sublime",
-    category: "ide",
-    label: { zh: "Sublime Text", en: "Sublime Text" },
-    patterns: ["*.sublime-workspace"],
-  },
-  {
-    id: "zed",
-    category: "ide",
-    label: { zh: "Zed", en: "Zed" },
-    patterns: [".zed/", ".zed_server/"],
-  },
-
-  // ------------------------------------------------------------------------ os
-  {
-    id: "macos",
-    category: "os",
-    label: { zh: "macOS", en: "macOS" },
-    patterns: [".DS_Store", "._*", ".Spotlight-V100", ".Trashes"],
-  },
-  {
-    id: "windows",
-    category: "os",
-    label: { zh: "Windows", en: "Windows" },
-    patterns: ["Thumbs.db", "ehthumbs.db", "Desktop.ini", "$RECYCLE.BIN/"],
-  },
-  {
-    id: "linux",
-    category: "os",
-    label: { zh: "Linux", en: "Linux" },
-    patterns: [".directory", ".fuse_hidden*", ".Trash-*"],
-  },
-
-  // --------------------------------------------------------------------- build
-  {
-    id: "maven",
-    category: "build",
-    label: { zh: "Maven", en: "Maven" },
-    patterns: ["pom.xml.tag", "pom.xml.releaseBackup", "pom.xml.versionsBackup", "release.properties"],
-  },
-  {
-    id: "gradle",
-    category: "build",
-    label: { zh: "Gradle", en: "Gradle" },
-    patterns: [
-      ".gradle/",
-      "build/",
-      "!gradle/wrapper/gradle-wrapper.jar",
-      ".gradletasknamecache",
-      "gradle-app.setting",
-    ],
-  },
-  {
-    id: "cmake",
-    category: "build",
-    label: { zh: "CMake", en: "CMake" },
-    patterns: ["CMakeFiles/", "CMakeCache.txt", "cmake_install.cmake", "install_manifest.txt"],
-  },
-  {
-    id: "webpack",
-    category: "build",
-    label: { zh: "Webpack", en: "Webpack" },
-    patterns: ["dist/", ".cache-loader/"],
-  },
-
-  // -------------------------------------------------------------------- devops
-  {
-    id: "terraform",
-    category: "devops",
-    label: { zh: "Terraform", en: "Terraform" },
-    patterns: [
-      ".terraform/",
-      "*.tfstate",
-      "*.tfstate.*",
-      "crash.log",
-      "*.tfvars.json",
-      "!/.terraform.lock.hcl",
-    ],
-  },
-  {
-    id: "serverless",
-    category: "devops",
-    label: { zh: "Serverless", en: "Serverless" },
-    patterns: [".serverless/", ".serverless_plugins/", ".aws-sam/"],
-  },
-  {
-    id: "ansible",
-    category: "devops",
-    label: { zh: "Ansible", en: "Ansible" },
-    patterns: ["*.retry", ".ansible/"],
-  },
-  {
-    id: "packer",
-    category: "devops",
-    label: { zh: "Packer", en: "Packer" },
-    patterns: ["packer_cache/", "*.box"],
-  },
-  {
-    id: "helm",
-    category: "devops",
-    label: { zh: "Helm", en: "Helm" },
-    patterns: ["charts/*.tgz"],
-  },
-
-  // ------------------------------------------------------------------- project
-  {
-    id: "jupyter",
-    category: "project",
-    label: { zh: "Jupyter", en: "Jupyter" },
-    patterns: [".ipynb_checkpoints/", "*.nbconvert.ipynb", ".virtual_documents/"],
-  },
-  {
-    id: "unity",
-    category: "project",
-    label: { zh: "Unity", en: "Unity" },
-    patterns: [
-      "Library/",
-      "Temp/",
-      "Obj/",
-      "Logs/",
-      "UserSettings/",
-      "MemoryCaptures/",
-      "Recordings/",
-    ],
-  },
-  {
-    id: "unreal",
-    category: "project",
-    label: { zh: "Unreal Engine", en: "Unreal Engine" },
-    patterns: [
-      "Binaries/",
-      "Intermediate/",
-      "Saved/",
-      "DerivedDataCache/",
-      "*.VC.db",
-      "*.opensdf",
-      "*.sdf",
-    ],
-  },
-  {
-    id: "godot",
-    category: "project",
-    label: { zh: "Godot", en: "Godot" },
-    patterns: [".godot/", "export.cfg", "*.translation"],
-  },
-  {
-    id: "hugo",
-    category: "project",
-    label: { zh: "Hugo", en: "Hugo" },
-    patterns: ["public/", "resources/_gen/", ".hugo_build.lock"],
-  },
-  {
-    id: "jekyll",
-    category: "project",
-    label: { zh: "Jekyll", en: "Jekyll" },
-    patterns: ["_site/", ".jekyll-cache/", ".jekyll-metadata"],
-  },
-  {
-    id: "wordpress",
-    category: "project",
-    label: { zh: "WordPress", en: "WordPress" },
-    patterns: ["wp-config.php", "wp-content/uploads/", "wp-content/cache/", "wp-content/upgrade/"],
-  },
-  {
-    id: "latex",
-    category: "project",
-    label: { zh: "LaTeX", en: "LaTeX" },
-    patterns: [
-      "*.aux",
-      "*.bbl",
-      "*.blg",
-      "*.toc",
-      "*.fls",
-      "*.fdb_latexmk",
-      "*.synctex.gz",
-      "*.xdv",
-    ],
-  },
-
-  // ------------------------------------------------------------------- general
-  {
-    id: "dotenv",
-    category: "general",
-    label: { zh: "环境变量", en: "Env files" },
-    patterns: [".env*", "!.env.example", "!.env.sample", "!.env.template"],
-  },
-  {
-    id: "secrets",
-    category: "general",
-    label: { zh: "密钥文件", en: "Key files" },
-    patterns: ["*.pem", "*.key", "*.p12", "*.pfx", "id_rsa", "id_ed25519"],
-  },
-  {
-    id: "logs",
-    category: "general",
-    label: { zh: "日志", en: "Logs" },
-    patterns: ["logs/", "*.log", "*.pid", "*.seed"],
-  },
-  {
-    id: "cache",
-    category: "general",
-    label: { zh: "构建缓存", en: "Build cache" },
-    patterns: [".cache/", ".turbo/", ".parcel-cache/", ".eslintcache", ".stylelintcache"],
-  },
-  {
-    id: "coverage",
-    category: "general",
-    label: { zh: "测试覆盖率", en: "Coverage" },
-    patterns: ["coverage/", ".nyc_output/", "*.lcov", "junit.xml"],
-  },
-  {
-    id: "database",
-    category: "general",
-    label: { zh: "本地数据库", en: "Local database" },
-    patterns: ["*.sqlite", "*.sqlite3", "*.db", "*.db-journal", "*.sqlite-wal", "dump.rdb"],
-  },
-  {
-    id: "temp",
-    category: "general",
-    label: { zh: "临时文件", en: "Temp files" },
-    patterns: ["*.tmp", "*.bak", "*.orig", "*.rej", ".history/"],
-  },
-];
+export const IGNORE_GROUPS: IgnoreGroup[] = (catalog.groups as unknown as CatalogGroup[]).map(
+  (group) => ({
+    id: group.id,
+    category: group.category,
+    label: group.label,
+    patterns: GITIGNORE_TEMPLATES[group.id] ?? group.patterns ?? [],
+  })
+);
 
 /**
  * Shortcut presets: one click replaces the whole selection. Every preset also
@@ -550,12 +99,12 @@ export const IGNORE_PRESETS: IgnorePreset[] = [
   {
     id: "flutter",
     label: { zh: "Flutter 项目", en: "Flutter app" },
-    groups: ["dart", "android", "xcode", "vscode", "dotenv", "logs"],
+    groups: ["dart", "flutter", "android", "xcode", "vscode", "dotenv", "logs"],
   },
   {
     id: "unity",
     label: { zh: "Unity 游戏项目", en: "Unity game" },
-    groups: ["csharp", "unity", "visualstudio", "jetbrains"],
+    groups: ["csharp", "unity", "jetbrains"],
   },
   {
     id: "go-backend",

@@ -60,4 +60,7 @@ next-env.d.ts
 
 /orkest-ui
 
+# upstream reference clone, consumed by scripts/build-gitignore.mjs
+/gitignore
+
 /features.md

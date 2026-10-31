@@ -32,7 +32,8 @@ const COPY = {
     groupNone: "取消",
     custom: "补充规则",
     customPlaceholder: "每行一条，例如 public/uploads/ 或 *.psd",
-    note: "选中的分类会按组拼接、去重，`!` 开头的例外规则会保留；补充规则原样追加在末尾。生成的是标准 .gitignore 文本，可下载后放到项目根目录。",
+    lines: "行",
+    note: "规则取自 github/gitignore 官方模板（CC0）：语言、框架、项目类型各自一份模板，编辑器、操作系统与通用工具放在 Global 分类，本地再补充模板缺失的规则。选中的分类按组拼接并去重，`!` 开头的例外规则保留，补充规则追加在末尾。",
   },
   en: {
     presets: "Presets",
@@ -47,7 +48,8 @@ const COPY = {
     groupNone: "None",
     custom: "Extra rules",
     customPlaceholder: "One per line, e.g. public/uploads/ or *.psd",
-    note: "Selected groups are merged and de-duplicated while keeping `!` exceptions; extra rules are appended verbatim. The result is a plain .gitignore you can download into the project root.",
+    lines: "lines",
+    note: "Patterns come from the official github/gitignore templates (CC0): one file per language, framework or project type, with editors, operating systems and tools under Global; a few rules are added locally where upstream has no template. Selected groups are merged and de-duplicated, `!` exceptions are kept and extra rules are appended verbatim.",
   },
 };
 
@@ -243,7 +245,11 @@ export function GitignoreTool() {
               </>
             }
             footer={
-              <span>{output ? `${selected.length} / ${IGNORE_GROUPS.length}` : t.empty}</span>
+              <span>
+                {output
+                  ? `${selected.length} / ${IGNORE_GROUPS.length} · ${output.trimEnd().split("\n").length} ${t.lines}`
+                  : t.empty}
+              </span>
             }
           >
             <OutputArea
