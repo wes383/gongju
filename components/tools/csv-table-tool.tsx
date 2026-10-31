@@ -46,7 +46,7 @@ const COPY = {
     deleteRow: "删除这一行",
     deleteColumn: "删除这一列",
     resizeColumn: "调整列宽",
-    resizeHint: "拖动调整列宽，双击恢复自适应",
+    resizeHint: "拖动调整列宽，双击按内容自适应",
     stats: "列统计",
     statEmpty: "空值",
     statUnique: "唯一值",
@@ -73,7 +73,7 @@ const COPY = {
     deleteRow: "Delete this row",
     deleteColumn: "Delete this column",
     resizeColumn: "Resize column",
-    resizeHint: "Drag to resize, double-click to reset",
+    resizeHint: "Drag to resize, double-click to fit content",
     stats: "Column stats",
     statEmpty: "empty",
     statUnique: "unique",
@@ -86,8 +86,37 @@ const ROW_H = 34;
 const INDEX_W = 44;
 const CELL_MIN = 140;
 const CELL_MIN_DRAG = 64;
+const CELL_MAX_FIT = 480;
+const CELL_PAD_X = 20;
 
 type CellPos = { row: number; column: number };
+
+let measureCtx: CanvasRenderingContext2D | null | undefined;
+
+/** 用 canvas 量文本宽度，避免为了测宽把节点插进 DOM */
+function textWidth(text: string, font: string): number {
+  if (measureCtx === undefined) {
+    measureCtx = document.createElement("canvas").getContext("2d");
+  }
+  if (!measureCtx) return text.length * 7;
+  measureCtx.font = font;
+  return measureCtx.measureText(text).width;
+}
+
+function computedFont(node: Element | null | undefined, fallback: string): string {
+  if (!node) return fallback;
+  const style = window.getComputedStyle(node);
+  return `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+}
+
+/** 等宽字体下按显示宽度估个长度：中日韩与全角字符按两个字符算 */
+function visualLength(text: string): number {
+  let total = 0;
+  for (let i = 0; i < text.length; i += 1) {
+    total += text.charCodeAt(i) > 0x2e7f ? 2 : 1;
+  }
+  return total;
+}
 
 export function CsvTableTool() {
   const t = useCopy(COPY);
@@ -113,6 +142,7 @@ export function CsvTableTool() {
     startX: number;
     startWidth: number;
     measured: number[];
+    moved: boolean;
   } | null>(null);
 
   React.useEffect(() => {
@@ -168,21 +198,24 @@ export function CsvTableTool() {
       startX: e.clientX,
       startWidth: measured[column] ?? CELL_MIN,
       measured,
+      moved: false,
     };
-    // 先把当前实际宽度固化成像素，拖动时其它列才不会被 1fr 带着一起变
-    setWidths(measured.map((w) => Math.round(w)));
     e.currentTarget.setPointerCapture(e.pointerId);
   };
 
   const moveResize = (e: React.PointerEvent<HTMLButtonElement>) => {
     const drag = dragRef.current;
     if (!drag) return;
-    const next = Math.max(
-      CELL_MIN_DRAG,
-      Math.round(drag.startWidth + (e.clientX - drag.startX))
-    );
-    setWidths((prev) => {
-      const copy = prev.length ? [...prev] : drag.measured.map((w) => Math.round(w));
+    const delta = e.clientX - drag.startX;
+    // 手抖几像素不算拖动，避免轻微点按把列宽固定下来
+    if (!drag.moved) {
+      if (Math.abs(delta) < 2) return;
+      drag.moved = true;
+    }
+    const next = Math.max(CELL_MIN_DRAG, Math.round(drag.startWidth + delta));
+    // 从拖动开始时的实际宽度重建，其它列才不会被 1fr 带着一起变
+    setWidths(() => {
+      const copy = drag.measured.map((w) => Math.round(w));
       copy[drag.column] = next;
       return copy;
     });
@@ -195,8 +228,44 @@ export function CsvTableTool() {
     }
   };
 
-  const resetWidth = (column: number) =>
-    setWidths((prev) => prev.map((w, i) => (i === column ? null : w)));
+  /** 双击列边界：按内容自适应，和 Excel 的自动调整列宽一致 */
+  const fitColumn = (column: number) => {
+    if (!table) return;
+    const headerNode = headerRefs.current[column];
+    const headerFont = computedFont(
+      headerNode?.querySelector("input"),
+      '600 11px "Inter", system-ui, sans-serif'
+    );
+    const bodyFont = computedFont(
+      viewportRef.current?.querySelector('input[data-cell="body"]'),
+      '12px "JetBrains Mono", monospace'
+    );
+
+    let widest = "";
+    let widestLength = -1;
+    for (const row of table.rows) {
+      const cell = row[column] ?? "";
+      const length = visualLength(cell);
+      if (length > widestLength) {
+        widest = cell;
+        widestLength = length;
+      }
+    }
+
+    // 表头右侧要给删除按钮留位置
+    const headerNeed = textWidth((table.header[column] ?? "").toUpperCase(), headerFont) + 42;
+    const bodyNeed = widest ? textWidth(widest, bodyFont) + CELL_PAD_X : 0;
+    const width = Math.min(
+      CELL_MAX_FIT,
+      Math.max(CELL_MIN_DRAG, Math.ceil(Math.max(headerNeed, bodyNeed)))
+    );
+
+    setWidths((prev) => {
+      const copy = Array.from({ length: table.header.length }, (_, i) => prev[i] ?? null);
+      copy[column] = width;
+      return copy;
+    });
+  };
 
   const rowCount = table?.rows.length ?? 0;
   const overscan = 6;
@@ -409,7 +478,7 @@ export function CsvTableTool() {
                           onPointerMove={moveResize}
                           onPointerUp={endResize}
                           onPointerCancel={endResize}
-                          onDoubleClick={() => resetWidth(column)}
+                          onDoubleClick={() => fitColumn(column)}
                           aria-label={`${t.resizeColumn} ${column + 1}`}
                           title={t.resizeHint}
                           className="absolute right-[-3px] top-0 z-20 h-full w-1.5 cursor-col-resize touch-none select-none bg-transparent transition-colors hover:bg-accent/60 active:bg-accent"
@@ -451,6 +520,7 @@ export function CsvTableTool() {
                             <div key={column} className="min-w-0 border-l border-border/60">
                               <input
                                 value={cell}
+                                data-cell="body"
                                 onChange={(e) => {
                                   const value = e.target.value;
                                   setTable((prev) =>
