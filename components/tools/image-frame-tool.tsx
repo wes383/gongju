@@ -31,7 +31,7 @@ const COPY = {
     download: "下载 PNG",
     empty: "选择图片后显示预览",
     circle: "圆形",
-    note: "圆角和留白按图片短边的百分比计算，换分辨率后比例不变；边框按输出像素计算，方便做 1–2px 的细边。透明背景与阴影互斥。",
+    note: "圆角和留白按图片短边的百分比计算，换分辨率后比例不变。透明背景与阴影互斥。",
   },
   en: {
     radius: "Radius",
@@ -47,7 +47,7 @@ const COPY = {
     download: "Download PNG",
     empty: "Pick an image to see the preview",
     circle: "Circle",
-    note: "Radius and padding are percentages of the shorter edge, so the look survives a change of resolution; the border is measured in output pixels, which keeps hairlines exact. Transparency and shadow are mutually exclusive.",
+    note: "Radius and padding are percentages of the shorter edge, so the look survives a change of resolution. Transparency and shadow are mutually exclusive.",
   },
 };
 
