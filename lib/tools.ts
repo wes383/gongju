@@ -49,6 +49,9 @@ import {
   LayoutGrid,
   Pilcrow,
   QrCode,
+  Barcode,
+  LayoutList,
+  ScanQrCode,
   Regex,
   Ruler,
   Search,
@@ -104,6 +107,7 @@ const dateTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category:
 const hashTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "hash" });
 const imageTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "image" });
 const colorTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "color" });
+const qrTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "qrcode" });
 
 const encodingTools: ToolMeta[] = [
   tool({
@@ -776,6 +780,49 @@ const colorTools: ToolMeta[] = [
   }),
 ];
 
+const qrcodeTools: ToolMeta[] = [
+  qrTool({
+    slug: "qrcode",
+    name: { zh: "二维码生成", en: "QR Code Generator" },
+    description: {
+      zh: "文本、网址、WiFi、名片二维码，可调颜色与 Logo，导出 PNG / SVG",
+      en: "QR codes for text, URLs, WiFi and vCards, with custom colours, a logo and PNG / SVG export",
+    },
+    keywords: ["二维码", "qrcode", "生成", "wifi", "名片", "vcard"],
+    icon: QrCode,
+  }),
+  qrTool({
+    slug: "qrcode-reader",
+    name: { zh: "二维码识别", en: "QR Code Reader" },
+    description: {
+      zh: "上传图片或开启摄像头识别二维码内容",
+      en: "Decode a QR code from an image or a live camera feed",
+    },
+    keywords: ["识别", "扫码", "二维码", "scanner", "camera", "decode"],
+    icon: ScanQrCode,
+  }),
+  qrTool({
+    slug: "barcode",
+    name: { zh: "条形码生成", en: "Barcode Generator" },
+    description: {
+      zh: "Code128、EAN-13、UPC、Code39 等格式，可调尺寸与颜色",
+      en: "Code128, EAN-13, UPC, Code39 and more, with adjustable size and colours",
+    },
+    keywords: ["条形码", "barcode", "ean13", "code128", "upc", "code39"],
+    icon: Barcode,
+  }),
+  qrTool({
+    slug: "qrcode-batch",
+    name: { zh: "批量二维码", en: "Batch QR Codes" },
+    description: {
+      zh: "一行一条内容，批量生成并打包下载",
+      en: "One item per line, generate them all and download a zip",
+    },
+    keywords: ["批量", "二维码", "batch", "打包", "qrcode"],
+    icon: LayoutList,
+  }),
+];
+
 export const categories: CategoryMeta[] = [
   {
     id: "encoding",
@@ -855,7 +902,7 @@ export const categories: CategoryMeta[] = [
       en: "Generate and scan QR codes and barcodes",
     },
     icon: QrCode,
-    tools: [],
+    tools: qrcodeTools,
   },
   {
     id: "dev",
