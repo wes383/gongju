@@ -218,6 +218,7 @@ export function JsonSchemaTool() {
           input={sample}
           onInputChange={setSample}
           output={generated.text}
+          error={generated.error}
           inputLabel={t.dataLabel}
           outputLabel={t.schemaOutput}
           inputPlaceholder={t.dataPlaceholder}

@@ -265,10 +265,6 @@ export function CsvTableTool() {
             </div>
           </OptionBar>
 
-          {error ? (
-            <ErrorNote>{errorText(error, locale)}</ErrorNote>
-          ) : null}
-
           <div className="overflow-hidden rounded-lg border border-border bg-surface">
             <Pane
               label={t.data}
@@ -429,6 +425,7 @@ export function CsvTableTool() {
       )}
 
       {error ? <ErrorNote>{errorText(error, locale)}</ErrorNote> : null}
+      {!table && <p className="text-xs leading-relaxed text-foreground-subtle">{t.note}</p>}
     </div>
   );
 }
