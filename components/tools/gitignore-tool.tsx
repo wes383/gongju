@@ -217,7 +217,7 @@ export function GitignoreTool() {
           </div>
         </div>
 
-        <div className="flex min-w-0 flex-col overflow-hidden rounded-lg border border-border bg-surface">
+        <div className="flex min-w-0 flex-col overflow-hidden rounded-lg border border-border bg-surface lg:sticky lg:top-4 lg:h-[calc(100vh-7rem)]">
           <Pane
             label={t.output}
             className="h-full"
