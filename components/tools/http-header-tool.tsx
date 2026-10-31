@@ -14,11 +14,13 @@ import { useCopy, useLocale } from "@/components/locale-provider";
 import { errorText, safe } from "@/lib/errors";
 import {
   HEADER_PRESETS,
+  headerPresetValue,
   parseHttpHeaders,
   serializeHeaders,
   toCurlHeaders,
   type HeaderGroup,
   type HeaderIssueReason,
+  type HeaderPreset,
 } from "@/lib/http-header";
 
 const COPY = {
@@ -99,24 +101,29 @@ export function HttpHeaderTool() {
   const [mode, setMode] = React.useState<"parse" | "build">("parse");
   const [raw, setRaw] = React.useState("");
 
-  // Builder state: which presets are on, plus the value the user edited
-  const [rows, setRows] = React.useState<Record<string, { on: boolean; value: string }>>(() =>
-    Object.fromEntries(HEADER_PRESETS.map((preset) => [preset.id, { on: false, value: preset.value }]))
-  );
+  // Builder state: which presets are on, plus any value the user edited.
+  // Untouched rows fall back to the preset default for the active locale, so
+  // switching language also switches locale-specific examples.
+  const [rows, setRows] = React.useState<Record<string, { on: boolean; value?: string }>>({});
+
+  const rowOf = (preset: HeaderPreset) => ({
+    on: rows[preset.id]?.on ?? false,
+    value: rows[preset.id]?.value ?? headerPresetValue(preset, locale),
+  });
 
   const { value: parsed, error } = React.useMemo(
     () => safe(() => (raw.trim() ? parseHttpHeaders(raw) : null)),
     [raw]
   );
 
-  const selected = HEADER_PRESETS.filter((preset) => rows[preset.id]?.on).map((preset) => ({
+  const selected = HEADER_PRESETS.filter((preset) => rowOf(preset).on).map((preset) => ({
     name: preset.name,
-    value: rows[preset.id].value,
+    value: rowOf(preset).value,
   }));
   const built = serializeHeaders(selected);
 
   const setRow = (id: string, patch: Partial<{ on: boolean; value: string }>) =>
-    setRows((prev) => ({ ...prev, [id]: { ...prev[id], ...patch } }));
+    setRows((prev) => ({ ...prev, [id]: { ...(prev[id] ?? { on: false }), ...patch } }));
 
   return (
     <div className="flex flex-col gap-4">
@@ -229,7 +236,7 @@ export function HttpHeaderTool() {
                 </header>
                 <ul className="divide-y divide-border">
                   {HEADER_PRESETS.filter((preset) => preset.group === group).map((preset) => {
-                    const row = rows[preset.id];
+                    const row = rowOf(preset);
                     return (
                       <li key={preset.id} className="flex flex-col gap-2 px-4 py-2.5 sm:flex-row sm:items-center">
                         <div className="flex min-w-0 flex-col gap-0.5 sm:w-[42%]">

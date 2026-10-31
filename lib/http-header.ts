@@ -6,6 +6,7 @@
  * would reject instead of silently dropping them.
  */
 import { codedError } from "./errors";
+import type { Locale } from "./i18n";
 
 export interface HeaderEntry {
   name: string;
@@ -102,8 +103,15 @@ export interface HeaderPreset {
   group: HeaderGroup;
   name: string;
   value: string;
+  /** Overrides `value` for the English UI, for examples that are locale-specific */
+  valueEn?: string;
   zh: string;
   en: string;
+}
+
+/** Default value for a preset in the active locale */
+export function headerPresetValue(preset: HeaderPreset, locale: Locale): string {
+  return locale === "en" ? (preset.valueEn ?? preset.value) : preset.value;
 }
 
 /** Common headers with a sensible default value, for the builder mode */
@@ -121,6 +129,7 @@ export const HEADER_PRESETS: HeaderPreset[] = [
     group: "request",
     name: "Accept-Language",
     value: "zh-CN,zh;q=0.9,en;q=0.8",
+    valueEn: "en-US,en;q=0.9,zh-CN;q=0.8",
     zh: "语言偏好，q 为权重",
     en: "Language preferences, weighted by q",
   },

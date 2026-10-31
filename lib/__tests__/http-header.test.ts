@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   HEADER_PRESETS,
+  headerPresetValue,
   parseHttpHeaders,
   serializeHeaders,
   toCurlHeaders,
@@ -113,6 +114,18 @@ describe("HEADER_PRESETS", () => {
     expect(new Set(HEADER_PRESETS.map((p) => p.group))).toEqual(
       new Set(["request", "response", "cors", "security"])
     );
+  });
+
+  it("keeps examples free of chinese outside the zh locale", () => {
+    for (const preset of HEADER_PRESETS) {
+      expect(headerPresetValue(preset, "en")).not.toMatch(/[\u4e00-\u9fff]/);
+    }
+  });
+
+  it("falls back to the shared value when no english variant exists", () => {
+    const preset = HEADER_PRESETS.find((p) => p.id === "accept")!;
+    expect(headerPresetValue(preset, "zh")).toBe("application/json");
+    expect(headerPresetValue(preset, "en")).toBe("application/json");
   });
 
   it("always ships a buildable name and value", () => {
