@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Lock, Unlock } from "lucide-react";
 import { decryptText, encryptText } from "@/lib/crypto";
-import { translateError } from "@/lib/i18n";
+import { errorText } from "@/lib/errors";
 import { useCopy, useLocale } from "@/components/locale-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -85,7 +85,7 @@ export function TextEncryptTool() {
       setOutput(result);
     } catch (e) {
       setOutput("");
-      setError(translateError(e, locale));
+      setError(errorText(e, locale));
     } finally {
       setRunning(false);
     }

@@ -50,6 +50,11 @@ export interface Dict {
     grid: string;
     list: string;
   };
+  notFound: {
+    title: string;
+    description: string;
+    back: string;
+  };
   /** Keyed by the `code` carried by CodedError; {0}, {1} are placeholders */
   errors: Record<string, string>;
 }
@@ -92,6 +97,11 @@ const zh: Dict = {
     grid: "卡片视图",
     list: "列表视图",
   },
+  notFound: {
+    title: "页面不存在",
+    description: "这个地址没有对应的工具，链接可能已经失效或拼写有误。",
+    back: "回到工具列表",
+  },
   errors: {
     "base64.invalidChars": "包含非法字符，这不是合法的 Base64 字符串",
     "base64.badLength": "长度不合法（Base64 长度应为 4 的倍数）",
@@ -108,6 +118,11 @@ const zh: Dict = {
     "crypto.unavailable": "当前环境不支持 Web Crypto，请用 https 或 localhost 打开",
     "crypto.badFormat": "密文格式不正确，请确认是本站生成的密文",
     "crypto.badPassword": "解密失败：密码错误，或密文已被篡改",
+    "json.empty": "还没有可解析的内容",
+    "text.tooLarge": "文本过长，最多支持 {0} 行",
+    "image.tooLarge": "图片太大，请先压缩或换一张",
+    "image.canvasUnavailable": "当前浏览器无法创建画布，请更换浏览器后重试",
+    "image.encodeFailed": "图片编码失败，请换一种输出格式",
   },
 };
 
@@ -149,6 +164,11 @@ const en: Dict = {
     grid: "Card view",
     list: "List view",
   },
+  notFound: {
+    title: "Page not found",
+    description: "There is no tool at this address — the link may be outdated or mistyped.",
+    back: "Back to all tools",
+  },
   errors: {
     "base64.invalidChars": "Contains characters that are not valid Base64",
     "base64.badLength": "Invalid length: Base64 must be a multiple of 4 characters",
@@ -165,23 +185,12 @@ const en: Dict = {
     "crypto.unavailable": "Web Crypto is unavailable here — open the site over https or localhost",
     "crypto.badFormat": "Unrecognized ciphertext: make sure it was produced by this tool",
     "crypto.badPassword": "Decryption failed: wrong password or the ciphertext was modified",
+    "json.empty": "Nothing to parse yet",
+    "text.tooLarge": "Text is too long, the limit is {0} lines",
+    "image.tooLarge": "This image is too large, compress it or pick another one",
+    "image.canvasUnavailable": "This browser cannot create a canvas, try another browser",
+    "image.encodeFailed": "Encoding failed, try a different output format",
   },
 };
 
 export const dict: Record<Locale, Dict> = { zh, en };
-
-interface CodedError extends Error {
-  code?: string;
-  params?: (string | number)[];
-}
-
-/** Resolve a thrown error to a message in the active locale */
-export function translateError(error: unknown, locale: Locale): string {
-  if (!error) return "";
-  const coded = error as CodedError;
-  const template = coded.code ? dict[locale].errors[coded.code] : undefined;
-  if (!template) {
-    return error instanceof Error ? error.message : String(error);
-  }
-  return template.replace(/\{(\d)\}/g, (_, i: string) => String(coded.params?.[Number(i)] ?? ""));
-}

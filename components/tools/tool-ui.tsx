@@ -5,7 +5,7 @@ import { Check, Copy, Eraser, Repeat, Sparkles, TriangleAlert, X } from "lucide-
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useLocale, useT } from "@/components/locale-provider";
-import { translateError } from "@/lib/i18n";
+import { errorText } from "@/lib/errors";
 
 /** Copy to clipboard with a 1.5s "copied" state */
 export function CopyButton({
@@ -309,7 +309,7 @@ export function DualPane({
         >
           {error ? (
             <div className="p-3">
-              <ErrorNote>{translateError(error, locale)}</ErrorNote>
+              <ErrorNote>{errorText(error, locale)}</ErrorNote>
             </div>
           ) : (
             <OutputArea value={output} minHeight={inputMinHeight} highlight={outputHighlight} />

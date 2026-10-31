@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { HMAC_ALGORITHMS, hexToBase64, hmacText, type HmacAlgorithm } from "@/lib/hash";
-import { translateError } from "@/lib/i18n";
+import { errorText } from "@/lib/errors";
 import { useCopy, useLocale } from "@/components/locale-provider";
 import { CopyButton, ErrorNote, OptionBar, SampleButton, Segmented } from "@/components/tools/tool-ui";
 import { Input } from "@/components/ui/input";
@@ -70,7 +70,7 @@ export function HmacTool() {
       } catch (e) {
         if (cancelled) return;
         setSignature("");
-        setError(translateError(e, locale));
+        setError(errorText(e, locale));
       }
     }, 150);
 

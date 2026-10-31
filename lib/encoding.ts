@@ -1,22 +1,10 @@
 import { decode as decodeEntities, escape as escapeEntities } from "he";
+import { codedError as codecError } from "./errors";
 
 /**
  * Encoding / decoding primitives. Everything runs in the browser,
  * no server round-trip is involved.
  */
-
-/** Error carrying an i18n key so the UI can translate it on render */
-export interface CodedError extends Error {
-  code: string;
-  params: (string | number)[];
-}
-
-function codecError(code: string, ...params: (string | number)[]): CodedError {
-  const err = new Error(code) as CodedError;
-  err.code = code;
-  err.params = params;
-  return err;
-}
 
 /* ══════════════════════════════════════════════════════════════
    Base64
@@ -325,10 +313,10 @@ export function decodeJwt(token: string): DecodedJwt {
   };
 }
 
-/** Format a JWT time claim (seconds) in local time */
+/** Format a JWT time claim (seconds) in local time; empty when the claim is unusable */
 export function formatJwtTime(seconds: number): string {
   const d = new Date(seconds * 1000);
-  if (Number.isNaN(d.getTime())) return "无效时间";
+  if (Number.isNaN(d.getTime())) return "";
   const pad = (n: number) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(
     d.getHours()
@@ -405,15 +393,6 @@ export function buildQueryString(
       return `${k}=${v}`;
     })
     .join("&");
-}
-
-/** Wrap a throwing transform into { value, error } for direct use in render */
-export function safe<T>(fn: () => T): { value: T | null; error: Error | null } {
-  try {
-    return { value: fn(), error: null };
-  } catch (e) {
-    return { value: null, error: e instanceof Error ? e : new Error(String(e)) };
-  }
 }
 
 /* ══════════════════════════════════════════════════════════════

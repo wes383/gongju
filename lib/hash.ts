@@ -5,6 +5,7 @@
  * hash-wasm; the SHA-2 family and HMAC use the native SubtleCrypto API.
  */
 import { md5, sha1, sha256, sha3, sha384, sha512 } from "hash-wasm";
+import { codedError } from "./errors";
 
 export type HashAlgorithm = "md5" | "sha1" | "sha256" | "sha384" | "sha512" | "sha3-256" | "sha3-512";
 
@@ -48,7 +49,7 @@ export const HMAC_ALGORITHMS: { value: HmacAlgorithm; label: string; legacy?: bo
 
 function assertCrypto() {
   if (typeof crypto === "undefined" || !crypto.subtle) {
-    throw new Error("crypto.unavailable");
+    throw codedError("crypto.unavailable");
   }
 }
 

@@ -6,6 +6,8 @@
  * `canvas.toBlob`. Nothing is uploaded anywhere.
  */
 
+import { codedError } from "./errors";
+
 export type ImageFormat = "image/jpeg" | "image/png" | "image/webp" | "image/avif";
 
 export const OUTPUT_FORMATS: { type: ImageFormat; label: string; ext: string; lossy: boolean }[] = [
@@ -53,7 +55,7 @@ export async function decodeFile(file: File): Promise<HTMLImageElement> {
     img.src = url;
     await img.decode();
     if (img.naturalWidth * img.naturalHeight > MAX_PIXELS) {
-      throw new Error("image-too-large");
+      throw codedError("image.tooLarge");
     }
     return img;
   } finally {
@@ -149,7 +151,7 @@ export function renderImage(image: CanvasImageSource, opts: RenderOptions): HTML
   const { width, height, fit = "contain", anchor = "center", background, source } = opts;
   const canvas = createCanvas(width, height);
   const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("canvas-unavailable");
+  if (!ctx) throw codedError("image.canvasUnavailable");
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
 
@@ -210,7 +212,7 @@ export function canvasToBlob(canvas: HTMLCanvasElement, type: string, quality = 
   return new Promise((resolve, reject) => {
     canvas.toBlob(
       (blob) => {
-        if (!blob) reject(new Error("encode-failed"));
+        if (!blob) reject(codedError("image.encodeFailed"));
         else resolve(blob);
       },
       type,

@@ -1,9 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { parseInBase, safe, toBase } from "@/lib/encoding";
+import { parseInBase, toBase } from "@/lib/encoding";
 import { useCopy, useLocale } from "@/components/locale-provider";
-import { translateError } from "@/lib/i18n";
+import { errorText, safe } from "@/lib/errors";
 import { CopyButton, ErrorNote, OptionBar, Segmented } from "@/components/tools/tool-ui";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -117,7 +117,7 @@ export function RadixTool() {
         aria-label={t.inputBase}
       />
 
-      {error && input.trim() !== "" && <ErrorNote>{translateError(error, locale)}</ErrorNote>}
+      {error && input.trim() !== "" && <ErrorNote>{errorText(error, locale)}</ErrorNote>}
 
       <div className="overflow-hidden rounded-lg border border-border bg-surface">
         {rows.map((r, i) => (

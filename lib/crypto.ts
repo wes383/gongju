@@ -3,13 +3,16 @@
  * Everything runs locally; the password never leaves the browser.
  */
 
+import type { CodedError } from "./errors";
+
 const ITERATIONS = 210_000; // OWASP 2023 guidance for PBKDF2-HMAC-SHA256
 const SALT_BYTES = 16;
 const IV_BYTES = 12;
 const VERSION = "v1";
 
-export class CryptoError extends Error {
+export class CryptoError extends Error implements CodedError {
   code: string;
+  params: (string | number)[] = [];
 
   constructor(code: string) {
     super(code);

@@ -2,7 +2,8 @@
 
 import * as React from "react";
 import { ArrowRightLeft, Sparkles } from "lucide-react";
-import { decodeBase64, encodeBase64, safe } from "@/lib/encoding";
+import { decodeBase64, encodeBase64 } from "@/lib/encoding";
+import { safe } from "@/lib/errors";
 import { useCopy } from "@/components/locale-provider";
 import {
   DualPane,

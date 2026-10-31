@@ -4,6 +4,7 @@ import * as React from "react";
 import { ImagePlus, Loader2, Upload, X } from "lucide-react";
 import { useCopy } from "@/components/locale-provider";
 import { decodeFile, formatBytes } from "@/lib/image";
+import { isCodedError } from "@/lib/errors";
 import { cn, uid } from "@/lib/utils";
 
 export interface LoadedImage {
@@ -113,7 +114,7 @@ export function useImageFiles({ multiple = false, limit = 40 } = {}) {
             height: img.naturalHeight,
           });
         } catch (err) {
-          setError((err as Error).message === "image-too-large" ? "too-large" : "load-failed");
+          setError(isCodedError(err) && err.code === "image.tooLarge" ? "too-large" : "load-failed");
         }
       }
       if (loaded.length > 0) {

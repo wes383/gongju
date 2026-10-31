@@ -3,6 +3,8 @@
  * line diffing, Lorem Ipsum and simple ciphers.
  */
 
+import { codedError } from "./errors";
+
 /* ══════════════════════════════════════════════════════════════
    Statistics
    ══════════════════════════════════════════════════════════════ */
@@ -214,7 +216,7 @@ export function diffLines(left: string, right: string): LineDiff[] {
   const m = b.length;
 
   if (n > DIFF_LINE_LIMIT || m > DIFF_LINE_LIMIT) {
-    throw new Error("diff.tooLarge");
+    throw codedError("text.tooLarge", DIFF_LINE_LIMIT);
   }
 
   // lengths[i][j] = LCS length of a[i..] and b[j..]

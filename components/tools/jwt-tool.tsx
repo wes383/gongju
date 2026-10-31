@@ -15,13 +15,13 @@ import {
   useLocale,
 } from "@/components/locale-provider";
 import {
-  translateError,
-} from "@/lib/i18n";
+  errorText,
+  safe,
+} from "@/lib/errors";
 import {
   decodeJwt,
   formatJwtTime,
   highlightJson,
-  safe,
 } from "@/lib/encoding";
 import {
   cn,
@@ -180,7 +180,7 @@ export function JwtTool() {
         </footer>
       </div>
 
-      {error && token.trim() !== "" && <ErrorNote>{translateError(error, locale)}</ErrorNote>}
+      {error && token.trim() !== "" && <ErrorNote>{errorText(error, locale)}</ErrorNote>}
 
       {data && (
         <>
