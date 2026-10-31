@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ImageDrop, ImagePreview, useImageFiles } from "@/components/tools/image-drop";
 import { OptionBar, OptionField, Segmented } from "@/components/tools/tool-ui";
+import { cn } from "@/lib/utils";
 import {
   canvasToBlob,
   createCanvas,
@@ -25,13 +26,18 @@ const COPY = {
     width: "总宽",
     height: "总高",
     align: "对齐",
-    start: "靠前",
+    scaleMode: "缩放",
+    scaleFill: "铺满",
+    scaleFit: "不放大",
+    alignLeft: "靠左",
+    alignRight: "靠右",
+    alignTop: "靠上",
+    alignBottom: "靠下",
     center: "居中",
-    end: "靠后",
     preview: "预览",
     download: "下载长图",
     empty: "添加两张以上图片后开始拼接",
-    note: "所有图片会按统一宽度（纵向）或高度（横向）等比缩放，透明区域用背景色填充。",
+    note: "「铺满」把所有图缩放到统一宽度（横向时为高度）；「不放大」保留小图的原始尺寸，空出的部分按对齐方式摆放并用背景色填充。",
     tooMany: "最多拼接 30 张",
   },
   en: {
@@ -43,13 +49,18 @@ const COPY = {
     width: "Width",
     height: "Height",
     align: "Align",
-    start: "Start",
+    scaleMode: "Scale",
+    scaleFill: "Fill",
+    scaleFit: "No upscale",
+    alignLeft: "Left",
+    alignRight: "Right",
+    alignTop: "Top",
+    alignBottom: "Bottom",
     center: "Center",
-    end: "End",
     preview: "Preview",
     download: "Download",
     empty: "Add at least two images to stitch them",
-    note: "Every image is scaled to the shared width (vertical) or height (horizontal); transparent areas are filled with the background colour.",
+    note: "Fill scales every image to the shared width (height when horizontal). No upscale keeps small images at their own size and places them using the alignment, with the background colour filling the gap.",
     tooMany: "Up to 30 images",
   },
 };
@@ -63,6 +74,7 @@ export function ImageCollageTool() {
   const [background, setBackground] = React.useState("#ffffff");
   const [customSize, setCustomSize] = React.useState(0);
   const [align, setAlign] = React.useState<"start" | "center" | "end">("center");
+  const [scaleMode, setScaleMode] = React.useState<"fill" | "fit">("fill");
   const [preview, setPreview] = React.useState<{ url: string; blob: Blob; width: number; height: number } | null>(null);
   const [working, setWorking] = React.useState(false);
 
@@ -86,11 +98,16 @@ export function ImageCollageTool() {
       setWorking(true);
       try {
         const decoded = await Promise.all(images.map((item) => decodeFile(item.file)));
-        const scaled = decoded.map((img) =>
-          direction === "vertical"
-            ? { w: size, h: Math.max(1, Math.round((img.naturalHeight * size) / img.naturalWidth)) }
-            : { w: Math.max(1, Math.round((img.naturalWidth * size) / img.naturalHeight)), h: size }
-        );
+        // fill: every image takes the target edge. fit: small images keep their
+        // own size, which is what makes the alignment control meaningful.
+        const scaled = decoded.map((img) => {
+          if (direction === "vertical") {
+            const w = scaleMode === "fit" ? Math.min(size, img.naturalWidth) : size;
+            return { w, h: Math.max(1, Math.round((img.naturalHeight * w) / img.naturalWidth)) };
+          }
+          const h = scaleMode === "fit" ? Math.min(size, img.naturalHeight) : size;
+          return { w: Math.max(1, Math.round((img.naturalWidth * h) / img.naturalHeight)), h };
+        });
 
         const totalWidth =
           direction === "vertical" ? size : scaled.reduce((sum, s) => sum + s.w, 0) + gap * (scaled.length - 1);
@@ -141,7 +158,7 @@ export function ImageCollageTool() {
       window.clearTimeout(timer);
       if (created) URL.revokeObjectURL(created);
     };
-  }, [images, direction, gap, background, size, align]);
+  }, [images, direction, gap, background, size, align, scaleMode]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -209,15 +226,34 @@ export function ImageCollageTool() {
               />
             </OptionField>
 
+            <OptionField label={t.scaleMode}>
+              <Segmented
+                ariaLabel={t.scaleMode}
+                value={scaleMode}
+                onChange={setScaleMode}
+                options={[
+                  { value: "fill", label: t.scaleFill },
+                  { value: "fit", label: t.scaleFit },
+                ]}
+              />
+            </OptionField>
+
             <OptionField label={t.align}>
               <Segmented
                 ariaLabel={t.align}
                 value={align}
                 onChange={setAlign}
+                className={cn(scaleMode === "fill" && "pointer-events-none opacity-40")}
                 options={[
-                  { value: "start", label: t.start },
+                  {
+                    value: "start",
+                    label: direction === "vertical" ? t.alignLeft : t.alignTop,
+                  },
                   { value: "center", label: t.center },
-                  { value: "end", label: t.end },
+                  {
+                    value: "end",
+                    label: direction === "vertical" ? t.alignRight : t.alignBottom,
+                  },
                 ]}
               />
             </OptionField>
