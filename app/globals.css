@@ -806,3 +806,12 @@ html.dark.high-contrast {
 }
 
 
+
+/* react-remove-scroll (used by Radix Select / Dialog) hides the page scrollbar
+   and compensates with `margin-right` on <body>. <html> already reserves that
+   space via `scrollbar-gutter: stable`, so the compensation double-counts it
+   and the whole page slides left while a dropdown is open. Unlayered and more
+   specific than the injected rule so it always wins. */
+html body[data-scroll-locked] {
+  margin-right: 0 !important;
+}
