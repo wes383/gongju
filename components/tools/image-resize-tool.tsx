@@ -54,7 +54,7 @@ const COPY = {
     result: "结果",
     cropArea: "裁剪区域",
     empty: "调整尺寸后显示预览",
-    note: "裁剪：拖动裁剪框选区域，宽高可以直接输入或选常见尺寸，输出就是框内的像素；缩放：整张图拉伸到目标尺寸。",
+    note: "裁剪：拖动裁剪框选区域；缩放：整张图拉伸到目标尺寸。",
   },
   en: {
     mode: "Mode",
@@ -75,7 +75,7 @@ const COPY = {
     result: "Result",
     cropArea: "Crop area",
     empty: "Adjust the size to see the preview",
-    note: "Crop: drag a box over the image, type a size or pick a preset — the output is exactly what is inside the box. Resize: the whole image is stretched to the target size.",
+    note: "Crop: drag a box over the image. Resize: the whole image is stretched to the target size.",
   },
 };
 
@@ -158,6 +158,14 @@ export function ImageResizeTool() {
     crop && image && crop.id === image.id
       ? crop.rect
       : { x: 0, y: 0, width: bounds.width, height: bounds.height };
+
+  // Reflect the current size in the preset dropdown; unmatched sizes read as 自定义
+  const presetValue =
+    mode === "crop"
+      ? (PRESETS.find(
+          (p) => p.width === Math.round(rect.width) && p.height === Math.round(rect.height)
+        )?.label ?? "")
+      : (PRESETS.find((p) => p.width === width && p.height === height)?.label ?? "");
 
   const outWidth = mode === "crop" ? Math.round(rect.width) : width;
   const outHeight = mode === "crop" ? Math.round(rect.height) : height;
@@ -387,7 +395,7 @@ export function ImageResizeTool() {
 
             <OptionField label={t.preset}>
               <Select
-                value=""
+                value={presetValue}
                 onValueChange={(value) => {
                   const preset = PRESETS.find((p) => p.label === value);
                   if (preset) applyPreset(preset);
