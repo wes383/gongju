@@ -54,7 +54,7 @@ const COPY = {
     budget: "Budget",
     budgetResult: "Covers",
     needPrice: "Enter a price to see costs",
-    note: "Cost = price ÷ 1M × tokens. Prices are used in the currency you pick, with no conversion; cache discounts and batch pricing are not applied, and reasoning tokens count as output.",
+    note: "Cost = price ÷ 1M × tokens. Prices are taken as USD, with no currency conversion; cache discounts and batch pricing are not applied, and reasoning tokens count as output.",
   },
 };
 
@@ -107,7 +107,10 @@ export function LlmCostTool() {
     usage
   );
   const ready = inputPrice.trim() !== "" || outputPrice.trim() !== "";
-  const money = (value: number) => (ready ? formatMoney(value, currency, locale) : "—");
+  // 英文界面不提供人民币切换，统一按美元计算
+  const activeCurrency: Currency = locale === "zh" ? currency : "USD";
+  const money = (value: number) =>
+    ready ? formatMoney(value, activeCurrency, locale) : "—";
   const covered = ready ? requestsForBudget(parseNumber(budget), cost.perRequest) : 0;
 
   const summary = ready
@@ -116,7 +119,7 @@ export function LlmCostTool() {
         `${t.outputCost}: ${money(cost.output)}`,
         `${t.perRequest}: ${money(cost.perRequest)}`,
         `${t.total} (${formatCount(usage.requests, locale)} ${t.times}): ${money(cost.total)}`,
-        `${t.budget} ${formatMoney(parseNumber(budget), currency, locale)} → ${formatCount(covered, locale)} ${t.times}`,
+        `${t.budget} ${formatMoney(parseNumber(budget), activeCurrency, locale)} → ${formatCount(covered, locale)} ${t.times}`,
       ].join("\n")
     : "";
 
@@ -140,15 +143,17 @@ export function LlmCostTool() {
       <section className="overflow-hidden rounded-lg border border-border bg-surface">
         <header className="flex flex-wrap items-center gap-3 border-b border-border px-4 py-2.5">
           <span className="text-xs font-medium text-foreground-muted">{t.rates}</span>
-          <Segmented
-            ariaLabel={t.currency}
-            value={currency}
-            onChange={setCurrency}
-            options={[
-              { value: "USD", label: "USD" },
-              { value: "CNY", label: "CNY" },
-            ]}
-          />
+          {locale === "zh" && (
+            <Segmented
+              ariaLabel={t.currency}
+              value={currency}
+              onChange={setCurrency}
+              options={[
+                { value: "USD", label: "USD" },
+                { value: "CNY", label: "CNY" },
+              ]}
+            />
+          )}
           <span className="text-[11px] text-foreground-faint">{t.perMillion}</span>
         </header>
         <div className="grid gap-x-6 gap-y-3 px-4 py-3.5">
