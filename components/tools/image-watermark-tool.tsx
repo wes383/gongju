@@ -399,10 +399,15 @@ function drawWatermark(
     // Margin doubles as the gap between repeats; rotation is honoured as-is
     const stepX = textWidth + fontSize * 2 + margin;
     const stepY = fontSize * 3 + margin;
-    for (let y = 0; y < height + stepY; y += stepY) {
-      for (let x = -textWidth; x < width + textWidth; x += stepX) {
+    // Centre the grid: starting at 0 leaves a half-cut row along the top edge
+    const cols = Math.ceil(width / stepX) + 1;
+    const rows = Math.ceil(height / stepY) + 1;
+    const startX = (width - (cols - 1) * stepX) / 2;
+    const startY = (height - (rows - 1) * stepY) / 2;
+    for (let row = 0; row < rows; row += 1) {
+      for (let col = 0; col < cols; col += 1) {
         ctx.save();
-        ctx.translate(x + textWidth / 2, y);
+        ctx.translate(startX + col * stepX, startY + row * stepY);
         ctx.rotate(angle);
         ctx.fillText(opts.text, -textWidth / 2, 0);
         ctx.restore();
