@@ -19,7 +19,7 @@ const COPY = {
     deg: "角度",
     rad: "弧度",
     expr: "表达式",
-    placeholder: "例如 (1+2)*3 或 sin(30)^2",
+    placeholder: "例如 (1+2)*3 或 sin(30°)",
     result: "结果",
     empty: "输入表达式后按回车或点等号",
     invalid: "表达式无法计算，请检查括号与运算符",
@@ -45,7 +45,7 @@ const COPY = {
     deg: "Degrees",
     rad: "Radians",
     expr: "Expression",
-    placeholder: "e.g. (1+2)*3 or sin(30)^2",
+    placeholder: "e.g. (1+2)*3 or sin(30°)",
     result: "Result",
     empty: "Type an expression, then press Enter or hit equals",
     invalid: "This expression cannot be evaluated — check the brackets and operators",
@@ -145,6 +145,22 @@ const STANDARD_KEYS: Key[] = [
   { label: "=", action: "equals", tone: "accent" },
 ];
 
+/**
+ * Accept what people actually type: full-width punctuation from a Chinese IME,
+ * `× ÷ −` copied from a document, and the degree sign. A degree marker means
+ * "this number is in degrees", so in deg mode it is dropped and in rad mode it
+ * is expanded to the equivalent radian value.
+ */
+function normalizeExpression(source: string, angle: Angle) {
+  const ascii = source
+    .replace(/[\uFF01-\uFF5E]/g, (char) => String.fromCharCode(char.charCodeAt(0) - 0xfee0))
+    .replace(/[\u3000\s]+/g, " ")
+    .replace(/[×·]/g, "*")
+    .replace(/÷/g, "/")
+    .replace(/[−–—]/g, "-");
+  return ascii.replace(/°/g, angle === "deg" ? "" : "*(pi/180)");
+}
+
 /** Close any brackets the user left open, so `sin(30` still evaluates. */
 function autoCloseParens(source: string) {
   let depth = 0;
@@ -238,7 +254,7 @@ export function CalculatorTool() {
     const source = expr.trim();
     if (!source) return;
     try {
-      const value = engine(autoCloseParens(source), { ...scope });
+      const value = engine(autoCloseParens(normalizeExpression(source, angle)), { ...scope });
       const text = formatResult(value);
       setResult(text);
       setError(null);
