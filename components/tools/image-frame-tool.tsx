@@ -20,6 +20,8 @@ const COPY = {
   zh: {
     radius: "圆角",
     border: "边框",
+    borderUnit: "px",
+    shadowSize: "阴影大小",
     padding: "留白",
     color: "颜色",
     background: "背景",
@@ -29,11 +31,13 @@ const COPY = {
     download: "下载 PNG",
     empty: "选择图片后显示预览",
     circle: "圆形",
-    note: "圆角、边框、留白的数值都是相对图片短边的百分比，换一张不同尺寸的图片看起来比例一致。透明背景与阴影不能同时使用。",
+    note: "圆角和留白按图片短边的百分比计算，换分辨率后比例不变；边框按输出像素计算，方便做 1–2px 的细边。透明背景与阴影互斥。",
   },
   en: {
     radius: "Radius",
     border: "Border",
+    borderUnit: "px",
+    shadowSize: "Shadow size",
     padding: "Padding",
     color: "Colour",
     background: "Background",
@@ -43,7 +47,7 @@ const COPY = {
     download: "Download PNG",
     empty: "Pick an image to see the preview",
     circle: "Circle",
-    note: "Radius, border and padding are percentages of the shorter edge, so the look survives a change of resolution. Transparency and shadow are mutually exclusive.",
+    note: "Radius and padding are percentages of the shorter edge, so the look survives a change of resolution; the border is measured in output pixels, which keeps hairlines exact. Transparency and shadow are mutually exclusive.",
   },
 };
 
@@ -54,6 +58,7 @@ export function ImageFrameTool() {
 
   const [radius, setRadius] = React.useState(6);
   const [border, setBorder] = React.useState(0);
+  const [shadowSize, setShadowSize] = React.useState(3);
   const [padding, setPadding] = React.useState(0);
   const [color, setColor] = React.useState("#111111");
   const [background, setBackground] = React.useState("#ffffff");
@@ -77,7 +82,7 @@ export function ImageFrameTool() {
         const short = Math.min(img.naturalWidth, img.naturalHeight);
         const pad = Math.round((short * padding) / 100);
         const radiusPx = (short * radius) / 100;
-        const borderPx = (short * border) / 100;
+        const borderPx = border;
 
         const canvas = createCanvas(img.naturalWidth + pad * 2, img.naturalHeight + pad * 2);
         const ctx = canvas.getContext("2d");
@@ -90,9 +95,10 @@ export function ImageFrameTool() {
 
         ctx.save();
         if (shadow && !transparent) {
+          const blur = (short * shadowSize) / 100;
           ctx.shadowColor = "rgba(0, 0, 0, 0.28)";
-          ctx.shadowBlur = short * 0.05;
-          ctx.shadowOffsetY = short * 0.02;
+          ctx.shadowBlur = blur;
+          ctx.shadowOffsetY = blur * 0.4;
         }
         ctx.beginPath();
         ctx.roundRect(pad, pad, img.naturalWidth, img.naturalHeight, radiusPx);
@@ -138,7 +144,7 @@ export function ImageFrameTool() {
       window.clearTimeout(timer);
       if (created) URL.revokeObjectURL(created);
     };
-  }, [image, radius, border, padding, color, background, shadow, transparent]);
+  }, [image, radius, border, padding, color, background, shadow, shadowSize, transparent]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -180,14 +186,14 @@ export function ImageFrameTool() {
               <input
                 type="range"
                 min={0}
-                max={10}
-                step={0.5}
+                max={60}
+                step={1}
                 value={border}
                 onChange={(e) => setBorder(Number(e.target.value))}
                 aria-label={t.border}
                 className="w-24 accent-[var(--accent)]"
               />
-              <span className="w-9 font-mono text-[11px] text-foreground-subtle">{border}%</span>
+              <span className="w-9 font-mono text-[11px] text-foreground-subtle">{border}px</span>
               <Input
                 type="color"
                 value={color}
@@ -222,8 +228,41 @@ export function ImageFrameTool() {
           </OptionBar>
 
           <OptionBar>
-            <Toggle checked={transparent} onChange={setTransparent} label={t.transparent} />
-            <Toggle checked={shadow} onChange={setShadow} label={t.shadow} />
+            <Toggle
+              checked={transparent}
+              onChange={(on) => {
+                setTransparent(on);
+                // A shadow needs an opaque surface to fall on
+                if (on) setShadow(false);
+              }}
+              label={t.transparent}
+            />
+            <Toggle
+              checked={shadow}
+              onChange={(on) => {
+                setShadow(on);
+                if (on) setTransparent(false);
+              }}
+              label={t.shadow}
+            />
+            {shadow && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-medium text-foreground-muted">{t.shadowSize}</span>
+                <input
+                  type="range"
+                  min={0}
+                  max={10}
+                  step={0.5}
+                  value={shadowSize}
+                  onChange={(e) => setShadowSize(Number(e.target.value))}
+                  aria-label={t.shadowSize}
+                  className="w-24 accent-[var(--accent)]"
+                />
+                <span className="w-9 font-mono text-[11px] text-foreground-subtle">
+                  {shadowSize}%
+                </span>
+              </div>
+            )}
             <Button
               type="button"
               size="xs"
