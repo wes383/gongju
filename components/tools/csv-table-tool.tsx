@@ -339,7 +339,7 @@ export function CsvTableTool() {
                   onChange={(e) => setPasteText(e.target.value)}
                   placeholder={t.pastePlaceholder}
                   spellCheck={false}
-                  className="min-h-[120px] w-full resize-y rounded-md border border-border bg-background px-2.5 py-2 font-mono text-xs leading-relaxed text-foreground placeholder:text-foreground-faint focus:outline-none focus-visible:border-accent"
+                  className="min-h-[120px] w-full resize-y rounded-md border border-border bg-surface px-2.5 py-2 font-mono text-xs leading-relaxed text-foreground placeholder:text-foreground-faint focus:border-border-strong focus:outline-none"
                 />
                 <div className="flex justify-end">
                   <Button
