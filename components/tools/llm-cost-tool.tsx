@@ -17,7 +17,6 @@ const COPY = {
   zh: {
     currency: "货币",
     rates: "单价",
-    perMillion: "每百万 tokens",
     usage: "每次请求用量",
     inputPrice: "输入",
     outputPrice: "输出",
@@ -38,7 +37,6 @@ const COPY = {
   en: {
     currency: "Currency",
     rates: "Price",
-    perMillion: "per 1M tokens",
     usage: "Per-request usage",
     inputPrice: "Input",
     outputPrice: "Output",
@@ -114,6 +112,8 @@ export function LlmCostTool() {
   const money = (value: number) =>
     ready ? formatMoney(value, activeCurrency, locale) : "—";
   const covered = ready ? requestsForBudget(parseNumber(budget), cost.perRequest) : 0;
+  const currencySign = activeCurrency === "CNY" ? "¥" : "$";
+  const priceUnit = `${currencySign} / 1M tokens`;
 
   const summary = ready
     ? [
@@ -158,8 +158,8 @@ export function LlmCostTool() {
           )}
         </header>
         <div className="grid gap-x-6 gap-y-4 px-4 py-4 sm:grid-cols-2 lg:grid-cols-3">
-          <Field label={t.inputPrice} suffix={t.perMillion} value={inputPrice} onChange={setInputPrice} />
-          <Field label={t.outputPrice} suffix={t.perMillion} value={outputPrice} onChange={setOutputPrice} />
+          <Field label={t.inputPrice} suffix={priceUnit} value={inputPrice} onChange={setInputPrice} />
+          <Field label={t.outputPrice} suffix={priceUnit} value={outputPrice} onChange={setOutputPrice} />
         </div>
       </section>
 
@@ -197,15 +197,18 @@ export function LlmCostTool() {
 
         <footer className="flex flex-wrap items-center gap-2 border-t border-border px-4 py-2.5">
           <span className="text-[11px] text-foreground-faint">{t.budget}</span>
-          <Input
-            value={budget}
-            onChange={(event) => setBudget(event.target.value)}
-            inputMode="decimal"
-            spellCheck={false}
-            aria-label={t.budget}
-            size="xs"
-            className="w-28 font-mono text-xs"
-          />
+          <span className="flex items-center gap-1.5">
+            <Input
+              value={budget}
+              onChange={(event) => setBudget(event.target.value)}
+              inputMode="decimal"
+              spellCheck={false}
+              aria-label={t.budget}
+              size="xs"
+              className="w-24 font-mono text-xs"
+            />
+            <span className="text-[11px] tabular-nums text-foreground-faint">{currencySign}</span>
+          </span>
           <span className="text-[11px] text-foreground-faint">→</span>
           <span className="text-[11px] text-foreground-faint">{t.budgetResult}</span>
           <span className="font-mono text-xs tabular-nums text-foreground-muted">
