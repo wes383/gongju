@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Delete, RotateCcw } from "lucide-react";
+import { Delete, Trash2 } from "lucide-react";
 import { useCopy } from "@/components/locale-provider";
 import { CopyButton, Segmented } from "@/components/tools/tool-ui";
 import { Input } from "@/components/ui/input";
@@ -447,7 +447,7 @@ export function CalculatorTool() {
               onClick={() => setHistory([])}
               className="ml-auto flex items-center gap-1 text-[11px] text-foreground-subtle transition-colors hover:text-foreground"
             >
-              <RotateCcw className="h-3 w-3" />
+              <Trash2 className="h-3 w-3" />
               {t.clearHistory}
             </button>
           </header>
