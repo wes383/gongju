@@ -1,5 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import {
+  BadgeDollarSign,
   Binary,
   Braces,
   CaseSensitive,
@@ -1110,6 +1111,16 @@ const devTools: ToolMeta[] = [
     },
     keywords: ["gitignore", "git", "忽略", "ignore", "模板"],
     icon: Ban,
+  }),
+  devTool({
+    slug: "llm-cost",
+    name: { zh: "LLM 成本计算器", en: "LLM Cost Calculator" },
+    description: {
+      zh: "按输入 / 输出单价与 tokens 估算单次请求、批量调用与预算成本",
+      en: "Estimate per-request, batch and budget cost from your own token prices",
+    },
+    keywords: ["llm", "token", "成本", "费用", "api", "价格", "gpt", "claude", "deepseek"],
+    icon: BadgeDollarSign,
   }),
 ];
 
