@@ -338,7 +338,8 @@ export function Segmented<T extends string>({
       role="radiogroup"
       aria-label={ariaLabel}
       className={cn(
-        "inline-flex items-center gap-1 rounded-full border border-border bg-surface p-1",
+        // w-fit: a column flex parent would otherwise stretch the pill to full width
+        "inline-flex w-fit max-w-full items-center gap-1 rounded-full border border-border bg-surface p-1",
         className
       )}
     >
