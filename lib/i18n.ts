@@ -147,6 +147,8 @@ const zh: Dict = {
     "zip.empty": "这个压缩包里没有文件",
     "pdfText.empty": "这个 PDF 里没有可提取的文字，可能是扫描件",
     "csv.empty": "没有解析到可用的表格内容，检查一下分隔符或首行",
+    "csv.keyMissing": "找不到关联列「{0}」，确认两份表的表头里都有这一列",
+    "totp.base32": "密钥不是合法的 Base32：只允许 A–Z 与 2–7",
     "csv.readFailed": "这个文件读不出来，换一个 CSV / TSV 试试",
   },
 };
@@ -237,6 +239,8 @@ const en: Dict = {
     "zip.empty": "This archive contains no files",
     "pdfText.empty": "No selectable text in this PDF — it is probably a scan",
     "csv.empty": "Nothing tabular was parsed — check the delimiter or the first row",
+    "csv.keyMissing": "Key column “{0}” was not found — make sure both tables have that header",
+    "totp.base32": "Not a valid Base32 secret: A–Z and 2–7 only",
     "csv.readFailed": "This file cannot be read — try another CSV / TSV",
   },
 };

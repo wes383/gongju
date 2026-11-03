@@ -68,6 +68,8 @@ import {
   Percent,
   HeartPulse,
   HardDrive,
+  House,
+  Landmark,
   Triangle,
   Search,
   ShieldCheck,
@@ -94,6 +96,7 @@ import {
   FileJson2,
   Sparkles,
   TableProperties,
+  Tags,
   FileTerminal,
   Ban,
   PenTool,
@@ -102,13 +105,16 @@ import {
   FolderArchive,
   Quote,
   Banknote,
+  Combine,
   FileCheck2,
   Gauge,
   ScanText,
   Laptop,
   NotebookPen,
   Radio,
+  Wallet,
   Wand2,
+  Wrench,
   WrapText,
 } from "lucide-react";
 import type { Locale } from "@/lib/i18n";
@@ -138,6 +144,7 @@ export type CategoryId =
   | "convert"
   | "pdf"
   | "subtitle"
+  | "finance"
   | "misc";
 
 export interface CategoryMeta {
@@ -162,6 +169,7 @@ const convertTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, catego
 const pdfTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "pdf" });
 const miscTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "misc" });
 const subtitleTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "subtitle" });
+const financeTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "finance" });
 
 const encodingTools: ToolMeta[] = [
   tool({
@@ -334,6 +342,16 @@ const encodingTools: ToolMeta[] = [
     keywords: ["zip", "压缩包", "打包", "unzip", "解压", "archive"],
     icon: FolderArchive,
   }),
+  tool({
+    slug: "mojibake",
+    name: { zh: "乱码修复 / 编码检测", en: "Mojibake Fixer" },
+    description: {
+      zh: "把 UTF-8 被误当成 Latin-1 或 Windows-1252 显示的乱码还原成正常文字，也能反向生成乱码用于排查",
+      en: "Recover UTF-8 text that was shown as Latin-1 or Windows-1252, or reproduce mojibake on purpose",
+    },
+    keywords: ["mojibake", "乱码", "编码", "encoding", "utf-8", "latin1", "gbk", "charset"],
+    icon: Languages,
+  }),
 ];
 
 const jsonTools: ToolMeta[] = [
@@ -436,6 +454,26 @@ const jsonTools: ToolMeta[] = [
     },
     keywords: ["mock", "模拟数据", "假数据", "测试数据", "fake", "seed"],
     icon: Sparkles,
+  }),
+  jsonTool({
+    slug: "json-repair",
+    name: { zh: "JSON 修复", en: "JSON Repair" },
+    description: {
+      zh: "自动修掉注释、尾逗号、单引号、未加引号的键、全角标点与 Python 字面量，并列出改动",
+      en: "Fix comments, trailing commas, single quotes, unquoted keys, full-width punctuation and Python literals, with a change list",
+    },
+    keywords: ["json", "repair", "fix", "修复", "尾逗号", "单引号", "注释", "语法错误"],
+    icon: Wrench,
+  }),
+  jsonTool({
+    slug: "csv-merge",
+    name: { zh: "CSV 合并 / 关联", en: "CSV Merge & Join" },
+    description: {
+      zh: "按表头纵向追加，或按关联列做左连接 / 内连接，导出合并后的 CSV",
+      en: "Stack tables by header or join them on a key column, then export the result as CSV",
+    },
+    keywords: ["csv", "merge", "join", "合并", "关联", "拼接", "vlookup", "tsv"],
+    icon: Combine,
   }),
 ];
 
@@ -579,6 +617,16 @@ const textTools: ToolMeta[] = [
     },
     keywords: ["大写", "金额", "人民币", "中文数字", "rmb", "chinese number"],
     icon: Banknote,
+  }),
+  textTool({
+    slug: "pangu",
+    name: { zh: "中文排版 / 中英文加空格", en: "Chinese Typography" },
+    description: {
+      zh: "在汉字与英文、数字之间自动加空格，并可统一中文标点、引号与全角字符",
+      en: "Insert the space Chinese typography expects between CJK and Latin text, and normalise punctuation and quotes",
+    },
+    keywords: ["pangu", "排版", "空格", "中英文", "标点", "引号", "typography", "spacing"],
+    icon: Type,
   }),
 ];
 
@@ -736,6 +784,16 @@ const hashTools: ToolMeta[] = [
     keywords: ["file hash", "文件哈希", "校验", "checksum", "sha256", "md5", "文件校验"],
     icon: FileCheck2,
   }),
+  hashTool({
+    slug: "totp",
+    name: { zh: "TOTP 验证码", en: "TOTP Generator" },
+    description: {
+      zh: "用 Base32 密钥或 otpauth 链接生成动态验证码，并校验输入是否正确",
+      en: "Generate time-based one-time passwords from a Base32 secret or otpauth URI, and verify a code",
+    },
+    keywords: ["totp", "otp", "2fa", "验证码", "动态口令", "authenticator", "otpauth", "google authenticator"],
+    icon: KeyRound,
+  }),
 ];
 
 const imageTools: ToolMeta[] = [
@@ -868,6 +926,16 @@ const imageTools: ToolMeta[] = [
     },
     keywords: ["favicon", "ico", "图标", "icon", "apple-touch-icon"],
     icon: AppWindow,
+  }),
+  imageTool({
+    slug: "image-mosaic",
+    name: { zh: "图片打码 / 马赛克", en: "Image Redaction" },
+    description: {
+      zh: "框选截图里的手机号、身份证、人脸，一键马赛克、模糊或纯色遮盖，按原图分辨率导出",
+      en: "Box out phone numbers, IDs or faces in a screenshot and hide them with mosaic, blur or a solid block",
+    },
+    keywords: ["mosaic", "打码", "马赛克", "模糊", "遮挡", "脱敏", "redact", "blur", "privacy"],
+    icon: ScanEye,
   }),
 ];
 
@@ -1138,6 +1206,16 @@ const devTools: ToolMeta[] = [
     keywords: ["llm", "token", "成本", "费用", "api", "价格", "gpt", "claude", "deepseek"],
     icon: BadgeDollarSign,
   }),
+  devTool({
+    slug: "meta-tags",
+    name: { zh: "Meta / OG 标签生成与预览", en: "Meta & OG Tags" },
+    description: {
+      zh: "生成 title、description、Open Graph 与 Twitter 标签，预览搜索结果和社交卡片，并检查长度问题",
+      en: "Build title, description, Open Graph and Twitter tags, preview the search result and social cards, and audit lengths",
+    },
+    keywords: ["meta", "og", "open graph", "twitter card", "seo", "tdk", "标签", "预览"],
+    icon: Tags,
+  }),
 ];
 
 const networkTools: ToolMeta[] = [
@@ -1348,6 +1426,16 @@ const pdfTools: ToolMeta[] = [
     keywords: ["pdf", "提取文字", "文本", "extract text", "txt", "复制"],
     icon: ScanText,
   }),
+  pdfTool({
+    slug: "pdf-compress",
+    name: { zh: "PDF 压缩", en: "Compress PDF" },
+    description: {
+      zh: "按页面重新渲染成 JPEG 来压缩体积，可调精度、质量与灰度，压缩前后体积直观对比",
+      en: "Shrink a PDF by re-rendering each page as JPEG, with adjustable DPI, quality and grayscale, before/after sizes shown",
+    },
+    keywords: ["pdf", "compress", "压缩", "体积", "瘦身", "缩小", "optimize"],
+    icon: FileArchive,
+  }),
 ];
 
 const miscTools: ToolMeta[] = [
@@ -1400,6 +1488,29 @@ const miscTools: ToolMeta[] = [
     },
     keywords: ["card", "credit", "luhn", "银行卡", "信用卡", "校验", "卡号", "mod10"],
     icon: CreditCard,
+  }),
+];
+
+const financeTools: ToolMeta[] = [
+  financeTool({
+    slug: "salary-tax",
+    name: { zh: "工资个税 / 到手计算", en: "Salary & Income Tax" },
+    description: {
+      zh: "按累计预扣法算每月个税与到手工资，含五险一金估算、专项附加扣除和年终奖计税对比",
+      en: "Monthly take-home and income tax with the cumulative method, including social insurance, deductions and a bonus comparison",
+    },
+    keywords: ["个税", "工资", "到手", "五险一金", "年终奖", "税后", "salary", "tax", "take home"],
+    icon: Wallet,
+  }),
+  financeTool({
+    slug: "mortgage",
+    name: { zh: "房贷计算器", en: "Mortgage Calculator" },
+    description: {
+      zh: "等额本息与等额本金月供、总利息对比，支持提前还款并算出省下的利息与缩短的期数",
+      en: "Compare equal-payment and equal-principal mortgages, with prepayment and the interest it saves",
+    },
+    keywords: ["房贷", "月供", "等额本息", "等额本金", "提前还款", "利率", "mortgage", "loan"],
+    icon: House,
   }),
 ];
 
@@ -1506,6 +1617,16 @@ export const categories: CategoryMeta[] = [
     },
     icon: Ruler,
     tools: convertTools,
+  },
+  {
+    id: "finance",
+    name: { zh: "财务 / 薪资", en: "Finance / Salary" },
+    description: {
+      zh: "个税、到手工资、房贷月供与提前还款",
+      en: "Income tax, take-home pay, mortgage payments and prepayment",
+    },
+    icon: Landmark,
+    tools: financeTools,
   },
   {
     id: "pdf",
