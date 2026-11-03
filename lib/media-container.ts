@@ -49,7 +49,10 @@ export function parseMediaContainer(source: MediaByteSource): MediaContainerInfo
   if (!head) return { ...EMPTY_CONTAINER, tracks: [], tags: {} };
 
   try {
-    if (fourcc(head, 0) === "ftyp" || fourcc(head, 4) === "ftyp" || fourcc(head, 4) === "moov") {
+    const firstType = fourcc(head, 4);
+    if (
+      ["ftyp", "moov", "free", "skip", "wide", "mdat", "styp"].includes(firstType)
+    ) {
       return parseIsoBmff(source);
     }
     if (head[0] === 0x1a && head[1] === 0x45 && head[2] === 0xdf && head[3] === 0xa3) {
