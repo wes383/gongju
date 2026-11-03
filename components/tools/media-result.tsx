@@ -23,11 +23,18 @@ export function MediaResult({
   note?: string;
 }) {
   const t = useCopy(COPY);
-  const url = React.useMemo(() => URL.createObjectURL(blob), [blob]);
+  const [url, setUrl] = React.useState<string | null>(null);
 
+  // Create the object URL inside the effect so every mount gets a live URL:
+  // Strict Mode mounts effects twice and the first cleanup revokes the URL, so
+  // an URL created during render would leave the player pointing at a revoked
+  // blob (duration shows 0:00 until the next run replaces it).
   React.useEffect(() => {
-    return () => URL.revokeObjectURL(url);
-  }, [url]);
+    const next = URL.createObjectURL(blob);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setUrl(next);
+    return () => URL.revokeObjectURL(next);
+  }, [blob]);
 
   return (
     <section className="overflow-hidden rounded-lg border border-border bg-surface">
@@ -54,7 +61,7 @@ export function MediaResult({
         </Button>
       </header>
 
-      {kind === "audio" ? (
+      {!url ? null : kind === "audio" ? (
         <audio controls preload="metadata" src={url} className="w-full px-3 py-3" />
       ) : kind === "video" ? (
         <video controls preload="metadata" src={url} className="max-h-[420px] w-full bg-black" />
