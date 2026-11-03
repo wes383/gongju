@@ -1,6 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import {
   Accessibility,
+  AudioLines,
   BadgeDollarSign,
   Binary,
   Braces,
@@ -20,6 +21,7 @@ import {
   FileDiff,
   FileDigit,
   FileJson,
+  Film,
   GitCompare,
   FileStack,
   FileText,
@@ -32,6 +34,7 @@ import {
   ImageUpscale,
   Images,
   FileImage,
+  Info,
   Stamp,
   ScanEye,
   Scissors,
@@ -144,6 +147,7 @@ export type CategoryId =
   | "convert"
   | "pdf"
   | "subtitle"
+  | "media"
   | "finance"
   | "misc";
 
@@ -169,6 +173,7 @@ const convertTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, catego
 const pdfTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "pdf" });
 const miscTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "misc" });
 const subtitleTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "subtitle" });
+const mediaTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "media" });
 const financeTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "finance" });
 
 const encodingTools: ToolMeta[] = [
@@ -1557,6 +1562,59 @@ const subtitleTools: ToolMeta[] = [
   }),
 ];
 
+const mediaTools: ToolMeta[] = [
+  mediaTool({
+    slug: "audio-trim",
+    name: { zh: "音频剪切", en: "Audio Trim" },
+    description: {
+      zh: "波形上拖选片段并导出无损 WAV，自动淡入淡出",
+      en: "Mark a clip on the waveform and export lossless WAV with short fades",
+    },
+    keywords: ["audio", "trim", "cut", "clip", "wav", "音频", "剪切", "裁剪", "截图", "片段"],
+    icon: Scissors,
+  }),
+  mediaTool({
+    slug: "audio-merge",
+    name: { zh: "音频合并", en: "Audio Merge" },
+    description: {
+      zh: "多段音频按顺序拼接，可插入静音间隔后导出 WAV",
+      en: "Join multiple clips in order with optional silence between them",
+    },
+    keywords: ["audio", "merge", "join", "concat", "拼接", "合并", "音频"],
+    icon: Combine,
+  }),
+  mediaTool({
+    slug: "audio-normalize",
+    name: { zh: "音量标准化", en: "Audio Normalize" },
+    description: {
+      zh: "把音频峰值对齐到目标电平，不改变动态范围",
+      en: "Align the loudest peak to a target level without changing dynamic range",
+    },
+    keywords: ["audio", "normalize", "loudness", "peak", "gain", "音量", "标准化", "响度", "增益"],
+    icon: Gauge,
+  }),
+  mediaTool({
+    slug: "media-info",
+    name: { zh: "媒体信息查看", en: "Media Info" },
+    description: {
+      zh: "查看音频/视频的时长、分辨率、采样率、声道与估算码率",
+      en: "Inspect duration, resolution, sample rate, channels and estimated bitrate",
+    },
+    keywords: ["media", "info", "metadata", "duration", "bitrate", "媒体", "信息", "时长", "码率", "分辨率"],
+    icon: Info,
+  }),
+  mediaTool({
+    slug: "video-gif",
+    name: { zh: "视频转 GIF", en: "Video to GIF" },
+    description: {
+      zh: "截取视频片段并生成动图，可调宽度与帧率",
+      en: "Turn a video clip into an animated GIF with adjustable width and frame rate",
+    },
+    keywords: ["video", "gif", "convert", "animation", "视频", "动图", "转换", "gif"],
+    icon: Film,
+  }),
+];
+
 export const categories: CategoryMeta[] = [
   {
     id: "text",
@@ -1647,6 +1705,16 @@ export const categories: CategoryMeta[] = [
     },
     icon: Captions,
     tools: subtitleTools,
+  },
+  {
+    id: "media",
+    name: { zh: "音频 / 视频", en: "Audio / Video" },
+    description: {
+      zh: "剪切、合并、音量归一化、媒体信息与视频转 GIF",
+      en: "Trim, merge, normalize loudness, inspect media and turn video into GIF",
+    },
+    icon: AudioLines,
+    tools: mediaTools,
   },
   {
     id: "misc",

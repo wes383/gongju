@@ -150,6 +150,14 @@ const zh: Dict = {
     "csv.keyMissing": "找不到关联列「{0}」，确认两份表的表头里都有这一列",
     "totp.base32": "密钥不是合法的 Base32：只允许 A–Z 与 2–7",
     "csv.readFailed": "这个文件读不出来，换一个 CSV / TSV 试试",
+    "audio.unsupported": "当前浏览器不支持 Web Audio，请更换浏览器后重试",
+    "audio.empty": "音频内容为空，无法导出",
+    "audio.decodeFailed": "无法解码这个文件。浏览器可能不支持它的音频编码，请先转成 MP3、WAV 或 M4A 再试",
+    "video.unsupported": "当前浏览器不支持视频处理，请更换浏览器后重试",
+    "video.decodeFailed": "无法解码这个视频。浏览器可能不支持这种编码，试试 MP4（H.264）或 WebM",
+    "video.emptyRange": "请选择一段有效的视频范围",
+    "video.canvasUnavailable": "当前浏览器无法创建画布，请更换浏览器后重试",
+    "video.encodeFailed": "GIF 生成失败，请缩短片段、降低分辨率或帧率后重试",
   },
 };
 
@@ -242,6 +250,14 @@ const en: Dict = {
     "csv.keyMissing": "Key column “{0}” was not found — make sure both tables have that header",
     "totp.base32": "Not a valid Base32 secret: A–Z and 2–7 only",
     "csv.readFailed": "This file cannot be read — try another CSV / TSV",
+    "audio.unsupported": "This browser does not support Web Audio, try another browser",
+    "audio.empty": "The audio is empty and cannot be exported",
+    "audio.decodeFailed": "Could not decode this file. The audio codec may be unsupported — convert it to MP3, WAV or M4A first",
+    "video.unsupported": "This browser cannot process video, try another browser",
+    "video.decodeFailed": "Could not decode this video. Try MP4 (H.264) or WebM instead",
+    "video.emptyRange": "Pick a valid range in the video",
+    "video.canvasUnavailable": "This browser cannot create a canvas, try another browser",
+    "video.encodeFailed": "GIF export failed — try a shorter clip, lower resolution or frame rate",
   },
 };
 
