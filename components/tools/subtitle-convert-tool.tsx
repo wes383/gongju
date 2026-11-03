@@ -9,8 +9,9 @@ import {
   serialize,
   type SubtitleFormat,
 } from "@/lib/subtitle";
-import { downloadBlob } from "@/lib/files";
+import { baseName, downloadBlob } from "@/lib/files";
 import { useCopy } from "@/components/locale-provider";
+import { UploadFileButton } from "@/components/tools/file-drop";
 import {
   DualPane,
   OptionBar,
@@ -29,7 +30,7 @@ const COPY = {
     keepHeader: "保留 ASS 样式",
     inputLabel: "字幕原文",
     outputLabel: "转换结果",
-    placeholder: "粘贴 SRT / VTT / ASS / SBV / LRC 内容…",
+    placeholder: "粘贴内容，或把字幕文件拖进来…",
     noCues: "没有识别到字幕条目，检查时间轴行是否完整（SRT 需要 `-->` 分隔的开始与结束时间）。",
     plainNote: "纯文本没有时间轴，导出带时间的格式时会按每行长度生成占位时间码。",
     assNote: "ASS 的内联覆盖标签（{\\...}）会在解析时去掉，样式头原样保留。",
@@ -50,7 +51,7 @@ const COPY = {
     keepHeader: "Keep ASS styles",
     inputLabel: "Subtitle source",
     outputLabel: "Converted",
-    placeholder: "Paste SRT, VTT, ASS, SBV or LRC content…",
+    placeholder: "Paste content, or drop a subtitle file here…",
     noCues: "No cues found. Check the timing lines — SRT needs `-->` between start and end.",
     plainNote:
       "Plain text has no timing; exporting to a timed format generates placeholder timecodes from each line's length.",
@@ -72,9 +73,15 @@ const TARGETS: SubtitleFormat[] = ["srt", "vtt", "ass", "sbv", "lrc", "txt"];
 export function SubtitleConvertTool() {
   const t = useCopy(COPY);
   const [input, setInput] = React.useState("");
+  const [fileName, setFileName] = React.useState("");
   const [target, setTarget] = React.useState<SubtitleFormat>("vtt");
   const [crlf, setCrlf] = React.useState(false);
   const [keepStyles, setKeepStyles] = React.useState(true);
+
+  const loadText = (text: string, name = "") => {
+    setInput(text);
+    setFileName(name);
+  };
 
   const doc = React.useMemo(
     () => (input.trim() ? parseSubtitle(input) : null),
@@ -97,7 +104,7 @@ export function SubtitleConvertTool() {
     if (!output) return;
     downloadBlob(
       new Blob([output], { type: "text/plain;charset=utf-8" }),
-      `subtitle.${FORMAT_EXTENSIONS[target]}`
+      `${baseName(fileName, "subtitle")}.${FORMAT_EXTENSIONS[target]}`
     );
   };
 
@@ -130,19 +137,32 @@ export function SubtitleConvertTool() {
         inputLabel={t.inputLabel}
         outputLabel={t.outputLabel}
         inputPlaceholder={t.placeholder}
-        inputActions={<SampleButton onClick={() => setInput(t.sample)} />}
+        inputActions={
+          <>
+            <UploadFileButton onText={loadText} />
+            <SampleButton onClick={() => loadText(t.sample)} />
+          </>
+        }
+        inputDrop={{ onText: loadText }}
         outputActions={
           <PaneButton onClick={download} title={t.download}>
             <Download className="h-3.5 w-3.5" />
             <span>{t.download}</span>
           </PaneButton>
         }
-        onClear={() => setInput("")}
+        onClear={() => loadText("")}
         inputFooter={
           doc ? (
-            <span>
-              {doc.cues.length} {t.cues}
-            </span>
+            <>
+              {fileName && (
+                <span className="truncate" title={fileName}>
+                  {fileName}
+                </span>
+              )}
+              <span>
+                {doc.cues.length} {t.cues}
+              </span>
+            </>
           ) : null
         }
         outputFooter={

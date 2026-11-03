@@ -18,6 +18,48 @@ export function baseName(name: string, fallback = "file"): string {
   return name.replace(/\.[^.]+$/, "") || fallback;
 }
 
+/**
+ * Decode a byte buffer that is *probably* UTF-8 but may come from an older
+ * editor. Subtitle files in the wild are often GB18030 (Chinese Windows) or
+ * UTF-16 with a BOM, and a plain UTF-8 decode turns those into replacement
+ * characters, so sniff the BOM first and fall back to GB18030 when the strict
+ * UTF-8 pass fails.
+ */
+export function decodeText(bytes: Uint8Array): string {
+  if (bytes.length >= 2) {
+    if (bytes[0] === 0xff && bytes[1] === 0xfe) return stripBom(decodeWith(bytes, "utf-16le"));
+    if (bytes[0] === 0xfe && bytes[1] === 0xff) return stripBom(decodeWith(bytes, "utf-16be"));
+  }
+  if (bytes.length >= 3 && bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf) {
+    return stripBom(decodeWith(bytes, "utf-8"));
+  }
+
+  try {
+    return stripBom(decodeWith(bytes, "utf-8", true));
+  } catch {
+    // Not valid UTF-8 — assume the legacy Chinese code page
+  }
+
+  try {
+    return stripBom(decodeWith(bytes, "gb18030"));
+  } catch {
+    return stripBom(decodeWith(bytes, "utf-8"));
+  }
+}
+
+function decodeWith(bytes: Uint8Array, label: string, fatal = false): string {
+  return new TextDecoder(label, { fatal }).decode(bytes);
+}
+
+function stripBom(text: string): string {
+  return text.replace(/^\uFEFF/, "");
+}
+
+/** Read a text file from disk, tolerating legacy encodings. */
+export async function readTextFile(file: File): Promise<string> {
+  return decodeText(new Uint8Array(await file.arrayBuffer()));
+}
+
 export function downloadBlob(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");

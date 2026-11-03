@@ -16,9 +16,10 @@ import {
   type CleanOptions,
   type PunctuationMode,
 } from "@/lib/subtitle-text";
-import { downloadBlob } from "@/lib/files";
+import { baseName, downloadBlob } from "@/lib/files";
 import { Input } from "@/components/ui/input";
 import { useCopy } from "@/components/locale-provider";
+import { UploadFileButton } from "@/components/tools/file-drop";
 import {
   DualPane,
   OptionBar,
@@ -58,7 +59,7 @@ const COPY = {
     loading: "正在加载简繁词典…",
     inputLabel: "字幕原文",
     outputLabel: "整理结果",
-    placeholder: "粘贴 SRT / VTT / ASS / SBV / LRC 内容…",
+    placeholder: "粘贴内容，或把字幕文件拖进来…",
     noCues: "没有识别到字幕条目，检查时间轴行是否完整。",
     cues: "条",
     averageCps: "平均 CPS",
@@ -102,7 +103,7 @@ const COPY = {
     loading: "Loading conversion dictionaries…",
     inputLabel: "Subtitle source",
     outputLabel: "Cleaned",
-    placeholder: "Paste SRT, VTT, ASS, SBV or LRC content…",
+    placeholder: "Paste content, or drop a subtitle file here…",
     noCues: "No cues found. Check the timing lines.",
     cues: "cues",
     averageCps: "Average CPS",
@@ -128,6 +129,7 @@ type ConverterModule = typeof import("opencc-js");
 export function SubtitleCleanTool() {
   const t = useCopy(COPY);
   const [input, setInput] = React.useState("");
+  const [fileName, setFileName] = React.useState("");
   const [maxChars, setMaxChars] = React.useState(String(DEFAULT_CLEAN.maxChars));
   const [maxLines, setMaxLines] = React.useState("2");
   const [breakMode, setBreakMode] = React.useState<BreakMode>("char");
@@ -138,6 +140,11 @@ export function SubtitleCleanTool() {
   const [punctuation, setPunctuation] = React.useState<PunctuationMode>("cjk");
   const [zh, setZh] = React.useState<ZhDirection>("none");
   const [opencc, setOpencc] = React.useState<ConverterModule | null>(null);
+
+  const loadText = (text: string, name = "") => {
+    setInput(text);
+    setFileName(name);
+  };
 
   // The dictionaries are ~1MB, so they load only when a conversion is chosen
   React.useEffect(() => {
@@ -196,7 +203,7 @@ export function SubtitleCleanTool() {
     if (!output) return;
     downloadBlob(
       new Blob([output], { type: "text/plain;charset=utf-8" }),
-      `subtitle-clean.${FORMAT_EXTENSIONS[format]}`
+      `${baseName(fileName, "subtitle-clean")}.${FORMAT_EXTENSIONS[format]}`
     );
   };
 
@@ -300,19 +307,32 @@ export function SubtitleCleanTool() {
         inputLabel={t.inputLabel}
         outputLabel={t.outputLabel}
         inputPlaceholder={t.placeholder}
-        inputActions={<SampleButton onClick={() => setInput(t.sample)} />}
+        inputActions={
+          <>
+            <UploadFileButton onText={loadText} />
+            <SampleButton onClick={() => loadText(t.sample)} />
+          </>
+        }
+        inputDrop={{ onText: loadText }}
         outputActions={
           <PaneButton onClick={download} title={t.download}>
             <Download className="h-3.5 w-3.5" />
             <span>{t.download}</span>
           </PaneButton>
         }
-        onClear={() => setInput("")}
+        onClear={() => loadText("")}
         inputFooter={
           doc ? (
-            <span>
-              {doc.cues.length} {t.cues}
-            </span>
+            <>
+              {fileName && (
+                <span className="truncate" title={fileName}>
+                  {fileName}
+                </span>
+              )}
+              <span>
+                {doc.cues.length} {t.cues}
+              </span>
+            </>
           ) : null
         }
         outputFooter={

@@ -5,6 +5,7 @@ import { Check, Copy, Eraser, Repeat, Sparkles, TriangleAlert, X } from "lucide-
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useLocale, useT } from "@/components/locale-provider";
+import { FileDrop } from "@/components/tools/file-drop";
 import { errorText } from "@/lib/errors";
 
 /** Copy to clipboard with a 1.5s "copied" state */
@@ -250,6 +251,7 @@ export function DualPane({
   onSwap,
   onClear,
   inputMinHeight,
+  inputDrop,
   outputHighlight,
 }: {
   input: string;
@@ -266,6 +268,8 @@ export function DualPane({
   onSwap?: () => void;
   onClear?: () => void;
   inputMinHeight?: string;
+  /** Lets the input pane double as a drop target for a text file */
+  inputDrop?: { onText: (text: string, name: string) => void };
   /** Pre-highlighted HTML for JSON output */
   outputHighlight?: string;
 }) {
@@ -273,6 +277,17 @@ export function DualPane({
   const locale = useLocale();
   const inputText = inputLabel ?? t.input;
   const outputText = outputLabel ?? t.output;
+
+  const area = (
+    <InputArea
+      value={input}
+      onChange={(e) => onInputChange(e.target.value)}
+      placeholder={inputPlaceholder}
+      className={inputMinHeight}
+      aria-label={inputText}
+    />
+  );
+
   return (
     <div className="overflow-hidden rounded-lg border border-border bg-surface">
       <div className="grid grid-cols-1 lg:grid-cols-2">
@@ -288,13 +303,7 @@ export function DualPane({
           }
           footer={inputFooter}
         >
-          <InputArea
-            value={input}
-            onChange={(e) => onInputChange(e.target.value)}
-            placeholder={inputPlaceholder}
-            className={inputMinHeight}
-            aria-label={inputText}
-          />
+          {inputDrop ? <FileDrop onText={inputDrop.onText}>{area}</FileDrop> : area}
         </Pane>
 
         <Pane

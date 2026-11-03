@@ -11,9 +11,10 @@ import {
   type SubtitleFormat,
 } from "@/lib/subtitle";
 import { applyTiming, inspectCues, type TimingPlan } from "@/lib/subtitle-timing";
-import { downloadBlob } from "@/lib/files";
+import { baseName, downloadBlob } from "@/lib/files";
 import { Input } from "@/components/ui/input";
 import { useCopy } from "@/components/locale-provider";
+import { UploadFileButton } from "@/components/tools/file-drop";
 import {
   DualPane,
   OptionBar,
@@ -46,7 +47,7 @@ const COPY = {
     fixOverlaps: "修掉重叠",
     inputLabel: "字幕原文",
     outputLabel: "调整结果",
-    placeholder: "粘贴 SRT / VTT / ASS / SBV / LRC 内容…",
+    placeholder: "粘贴内容，或把字幕文件拖进来…",
     noCues: "没有识别到字幕条目，检查时间轴行是否完整。",
     issues: "条问题",
     download: "下载",
@@ -76,7 +77,7 @@ const COPY = {
     fixOverlaps: "Fix overlaps",
     inputLabel: "Subtitle source",
     outputLabel: "Adjusted",
-    placeholder: "Paste SRT, VTT, ASS, SBV or LRC content…",
+    placeholder: "Paste content, or drop a subtitle file here…",
     noCues: "No cues found. Check the timing lines.",
     issues: " issues",
     download: "Download",
@@ -102,6 +103,7 @@ function toMs(value: string): number | null {
 export function SubtitleTimingTool() {
   const t = useCopy(COPY);
   const [input, setInput] = React.useState("");
+  const [fileName, setFileName] = React.useState("");
   const [mode, setMode] = React.useState<Mode>("shift");
   const [offset, setOffset] = React.useState("2.5");
   const [fromFps, setFromFps] = React.useState("23.976");
@@ -110,6 +112,11 @@ export function SubtitleTimingTool() {
   const [lastEnd, setLastEnd] = React.useState("");
   const [minDuration, setMinDuration] = React.useState("0");
   const [fixOverlaps, setFixOverlaps] = React.useState(true);
+
+  const loadText = (text: string, name = "") => {
+    setInput(text);
+    setFileName(name);
+  };
 
   const doc = React.useMemo(() => (input.trim() ? parseSubtitle(input) : null), [input]);
 
@@ -156,7 +163,7 @@ export function SubtitleTimingTool() {
     if (!output) return;
     downloadBlob(
       new Blob([output], { type: "text/plain;charset=utf-8" }),
-      `subtitle.${FORMAT_EXTENSIONS[outputFormat]}`
+      `${baseName(fileName, "subtitle")}.${FORMAT_EXTENSIONS[outputFormat]}`
     );
   };
 
@@ -274,19 +281,33 @@ export function SubtitleTimingTool() {
         inputLabel={t.inputLabel}
         outputLabel={t.outputLabel}
         inputPlaceholder={t.placeholder}
-        inputActions={<SampleButton onClick={() => setInput(t.sample)} />}
+        inputActions={
+          <>
+            <UploadFileButton onText={loadText} />
+            <SampleButton onClick={() => loadText(t.sample)} />
+          </>
+        }
+        inputDrop={{ onText: loadText }}
         outputActions={
           <PaneButton onClick={download} title={t.download}>
             <Download className="h-3.5 w-3.5" />
             <span>{t.download}</span>
           </PaneButton>
         }
-        onClear={() => setInput("")}
+        onClear={() => loadText("")}
         inputFooter={
           doc?.cues.length ? (
-            <span>
-              {formatShortTime(doc.cues[0].start)} → {formatShortTime(doc.cues[doc.cues.length - 1].end)}
-            </span>
+            <>
+              {fileName && (
+                <span className="truncate" title={fileName}>
+                  {fileName}
+                </span>
+              )}
+              <span>
+                {formatShortTime(doc.cues[0].start)} →{" "}
+                {formatShortTime(doc.cues[doc.cues.length - 1].end)}
+              </span>
+            </>
           ) : null
         }
         outputFooter={

@@ -10,8 +10,9 @@ import {
   type SubtitleFormat,
 } from "@/lib/subtitle";
 import { mergeBilingual, splitBilingual } from "@/lib/subtitle-merge";
-import { downloadBlob } from "@/lib/files";
+import { baseName, downloadBlob } from "@/lib/files";
 import { useCopy } from "@/components/locale-provider";
+import { FileDrop, UploadFileButton } from "@/components/tools/file-drop";
 import {
   CopyButton,
   InputArea,
@@ -37,9 +38,9 @@ const COPY = {
     bilingual: "双语字幕",
     origin: "原文",
     translation: "译文",
-    primaryPlaceholder: "粘贴原文 SRT / VTT…",
-    secondaryPlaceholder: "粘贴译文 SRT / VTT…",
-    bilingualPlaceholder: "粘贴双语字幕（每条两行）…",
+    primaryPlaceholder: "粘贴或拖入原文 SRT / VTT…",
+    secondaryPlaceholder: "粘贴或拖入译文 SRT / VTT…",
+    bilingualPlaceholder: "粘贴或拖入双语字幕（每条两行）…",
     empty: "合并结果会显示在这里",
     noCues: "没有识别到字幕条目，检查时间轴行是否完整。",
     cues: "条",
@@ -79,9 +80,9 @@ and no one remembers how it used to look.`,
     bilingual: "Bilingual",
     origin: "Original",
     translation: "Translation",
-    primaryPlaceholder: "Paste the original SRT / VTT…",
-    secondaryPlaceholder: "Paste the translated SRT / VTT…",
-    bilingualPlaceholder: "Paste a bilingual track (two lines per cue)…",
+    primaryPlaceholder: "Paste or drop the original SRT / VTT…",
+    secondaryPlaceholder: "Paste or drop the translated SRT / VTT…",
+    bilingualPlaceholder: "Paste or drop a bilingual track (two lines per cue)…",
     empty: "The merged track appears here",
     noCues: "No cues found. Check the timing lines.",
     cues: "cues",
@@ -137,6 +138,17 @@ export function SubtitleMergeTool() {
   const [translationFirst, setTranslationFirst] = React.useState(false);
   const [primary, setPrimary] = React.useState("");
   const [secondary, setSecondary] = React.useState("");
+  const [primaryName, setPrimaryName] = React.useState("");
+  const [secondaryName, setSecondaryName] = React.useState("");
+
+  const loadPrimary = (text: string, name = "") => {
+    setPrimary(text);
+    setPrimaryName(name);
+  };
+  const loadSecondary = (text: string, name = "") => {
+    setSecondary(text);
+    setSecondaryName(name);
+  };
 
   const primaryDoc = React.useMemo(
     () => (primary.trim() ? parseSubtitle(primary) : null),
@@ -173,6 +185,10 @@ export function SubtitleMergeTool() {
   );
 
   const emptyDoc = (cues: Cue[] | null | undefined) => cues !== undefined && cues !== null && cues.length === 0;
+
+  /** Keep the uploaded file's stem so downloads line up with the source */
+  const outputName = (suffix: string, fallback: string) =>
+    primaryName ? `${baseName(primaryName)}${suffix}` : fallback;
 
   return (
     <div className="flex flex-col gap-4">
@@ -215,41 +231,69 @@ export function SubtitleMergeTool() {
               <Pane
                 label={t.primary}
                 className="border-b border-border lg:border-b-0 lg:border-r"
-                actions={<SampleButton onClick={() => setPrimary(t.samplePrimary)} />}
+                actions={
+                  <>
+                    <UploadFileButton onText={loadPrimary} />
+                    <SampleButton onClick={() => loadPrimary(t.samplePrimary)} />
+                  </>
+                }
                 footer={
                   primaryDoc ? (
-                    <span>
-                      {primaryDoc.cues.length} {t.cues}
-                    </span>
+                    <>
+                      {primaryName && (
+                        <span className="truncate" title={primaryName}>
+                          {primaryName}
+                        </span>
+                      )}
+                      <span>
+                        {primaryDoc.cues.length} {t.cues}
+                      </span>
+                    </>
                   ) : null
                 }
               >
-                <InputArea
-                  value={primary}
-                  onChange={(event) => setPrimary(event.target.value)}
-                  placeholder={t.primaryPlaceholder}
-                  aria-label={t.primary}
-                  className="min-h-[200px]"
-                />
+                <FileDrop onText={loadPrimary}>
+                  <InputArea
+                    value={primary}
+                    onChange={(event) => setPrimary(event.target.value)}
+                    placeholder={t.primaryPlaceholder}
+                    aria-label={t.primary}
+                    className="min-h-[200px]"
+                  />
+                </FileDrop>
               </Pane>
               <Pane
                 label={t.secondary}
-                actions={<SampleButton onClick={() => setSecondary(t.sampleSecondary)} />}
+                actions={
+                  <>
+                    <UploadFileButton onText={loadSecondary} />
+                    <SampleButton onClick={() => loadSecondary(t.sampleSecondary)} />
+                  </>
+                }
                 footer={
                   secondaryDoc ? (
-                    <span>
-                      {secondaryDoc.cues.length} {t.cues}
-                    </span>
+                    <>
+                      {secondaryName && (
+                        <span className="truncate" title={secondaryName}>
+                          {secondaryName}
+                        </span>
+                      )}
+                      <span>
+                        {secondaryDoc.cues.length} {t.cues}
+                      </span>
+                    </>
                   ) : null
                 }
               >
-                <InputArea
-                  value={secondary}
-                  onChange={(event) => setSecondary(event.target.value)}
-                  placeholder={t.secondaryPlaceholder}
-                  aria-label={t.secondary}
-                  className="min-h-[200px]"
-                />
+                <FileDrop onText={loadSecondary}>
+                  <InputArea
+                    value={secondary}
+                    onChange={(event) => setSecondary(event.target.value)}
+                    placeholder={t.secondaryPlaceholder}
+                    aria-label={t.secondary}
+                    className="min-h-[200px]"
+                  />
+                </FileDrop>
               </Pane>
             </div>
           </div>
@@ -260,7 +304,7 @@ export function SubtitleMergeTool() {
               actions={
                 <>
                   <DownloadButton
-                    onClick={() => save(merged, format, "bilingual")}
+                    onClick={() => save(merged, format, outputName("-bilingual", "bilingual"))}
                     label={t.download}
                   />
                   <CopyButton value={mergedOutput} />
@@ -290,22 +334,36 @@ export function SubtitleMergeTool() {
           <div className="overflow-hidden rounded-lg border border-border bg-surface">
             <Pane
               label={t.bilingual}
-              actions={<SampleButton onClick={() => setPrimary(t.sampleBilingual)} />}
+              actions={
+                <>
+                  <UploadFileButton onText={loadPrimary} />
+                  <SampleButton onClick={() => loadPrimary(t.sampleBilingual)} />
+                </>
+              }
               footer={
                 primaryDoc ? (
-                  <span>
-                    {primaryDoc.cues.length} {t.cues}
-                  </span>
+                  <>
+                    {primaryName && (
+                      <span className="truncate" title={primaryName}>
+                        {primaryName}
+                      </span>
+                    )}
+                    <span>
+                      {primaryDoc.cues.length} {t.cues}
+                    </span>
+                  </>
                 ) : null
               }
             >
-              <InputArea
-                value={primary}
-                onChange={(event) => setPrimary(event.target.value)}
-                placeholder={t.bilingualPlaceholder}
-                aria-label={t.bilingual}
-                className="min-h-[200px]"
-              />
+              <FileDrop onText={loadPrimary}>
+                <InputArea
+                  value={primary}
+                  onChange={(event) => setPrimary(event.target.value)}
+                  placeholder={t.bilingualPlaceholder}
+                  aria-label={t.bilingual}
+                  className="min-h-[200px]"
+                />
+              </FileDrop>
             </Pane>
           </div>
 
@@ -317,7 +375,7 @@ export function SubtitleMergeTool() {
                 actions={
                   <>
                     <DownloadButton
-                      onClick={() => save(split.primary, format, "original")}
+                      onClick={() => save(split.primary, format, outputName("", "original"))}
                       label={t.download}
                     />
                     <CopyButton value={splitPrimaryOutput} />
@@ -333,7 +391,7 @@ export function SubtitleMergeTool() {
                 actions={
                   <>
                     <DownloadButton
-                      onClick={() => save(split.secondary, format, "translation")}
+                      onClick={() => save(split.secondary, format, outputName("-translation", "translation"))}
                       label={t.download}
                     />
                     <CopyButton value={splitSecondaryOutput} />
