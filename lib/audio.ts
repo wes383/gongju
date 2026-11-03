@@ -179,6 +179,17 @@ export function amplitudeToDb(amplitude: number): number {
   return amplitude > 0 ? 20 * Math.log10(amplitude) : -Infinity;
 }
 
+/** Root-mean-square level across every channel (linear, 0..1). */
+export function rmsAmplitude(audio: PcmAudio): number {
+  let total = 0;
+  let count = 0;
+  for (const channel of audio.channels) {
+    for (let i = 0; i < channel.length; i += 1) total += channel[i] * channel[i];
+    count += channel.length;
+  }
+  return count > 0 ? Math.sqrt(total / count) : 0;
+}
+
 export function dbToGain(db: number): number {
   return 10 ** (db / 20);
 }
