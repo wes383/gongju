@@ -44,6 +44,7 @@ const COPY = {
     preview: "预览",
     rangeInvalid: "终点需要晚于起点",
     framesUnit: "帧",
+    unit: "秒",
   },
   en: {
     start: "Start",
@@ -60,6 +61,7 @@ const COPY = {
     preview: "Preview",
     rangeInvalid: "End must be after start",
     framesUnit: "frames",
+    unit: "s",
   },
 };
 
@@ -189,6 +191,7 @@ export function VideoGifTool() {
                 size="xs"
                 className="w-20 text-center font-mono"
               />
+              <span className="text-[11px] text-foreground-subtle">{t.unit}</span>
             </OptionField>
 
             <OptionField label={t.end}>
@@ -203,6 +206,7 @@ export function VideoGifTool() {
                 size="xs"
                 className="w-20 text-center font-mono"
               />
+              <span className="text-[11px] text-foreground-subtle">{t.unit}</span>
             </OptionField>
 
             <OptionField label={t.width}>
