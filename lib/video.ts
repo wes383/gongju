@@ -47,60 +47,87 @@ export function videoFrameLabel(time: number): string {
   return formatDuration(time, true);
 }
 
-function waitForFrame(video: HTMLVideoElement): Promise<void> {
-  const callback = (
-    video as HTMLVideoElement & {
-      requestVideoFrameCallback?: (callback: () => void) => number;
-    }
-  ).requestVideoFrameCallback;
-  if (callback) {
-    return new Promise((resolve) => {
-      callback.call(video, () => resolve());
-    });
-  }
-  return new Promise((resolve) => requestAnimationFrame(() => resolve()));
+function abortError(): DOMException {
+  return new DOMException("Aborted", "AbortError");
 }
 
-function waitForSeek(video: HTMLVideoElement, time: number): Promise<void> {
-  if (Math.abs(video.currentTime - time) < 0.001) return waitForFrame(video);
+/**
+ * Resolve once the element has decoded the frame at `time`.
+ *
+ * `seeked` already fires after the new frame is available, so drawing right
+ * away is safe. `requestVideoFrameCallback` is not used here: it never fires
+ * while a video is paused, which would stall the export.
+ */
+function waitForSeek(
+  video: HTMLVideoElement,
+  time: number,
+  signal?: AbortSignal
+): Promise<void> {
+  if (signal?.aborted) return Promise.reject(abortError());
+  if (Math.abs(video.currentTime - time) < 0.001) return Promise.resolve();
+
   return new Promise((resolve, reject) => {
     const cleanup = () => {
       video.removeEventListener("seeked", onSeeked);
       video.removeEventListener("error", onError);
+      signal?.removeEventListener("abort", onAbort);
       window.clearTimeout(timer);
     };
     const onSeeked = () => {
       cleanup();
-      void waitForFrame(video).then(resolve);
+      resolve();
     };
     const onError = () => {
       cleanup();
       reject(codedError("video.decodeFailed"));
     };
+    const onAbort = () => {
+      cleanup();
+      reject(abortError());
+    };
     const timer = window.setTimeout(() => {
       cleanup();
       reject(codedError("video.decodeFailed"));
     }, 5000);
+
     video.addEventListener("seeked", onSeeked, { once: true });
     video.addEventListener("error", onError, { once: true });
+    signal?.addEventListener("abort", onAbort, { once: true });
     video.currentTime = time;
   });
 }
 
-async function openVideo(file: File): Promise<{ video: HTMLVideoElement; url: string }> {
+/**
+ * Load a file into a video element that stays attached to the page while it
+ * works. A detached element is decoded lazily and seeks several times slower
+ * in Chrome, so the element is kept in the DOM (tiny and transparent).
+ */
+async function openVideo(
+  file: File,
+  signal?: AbortSignal
+): Promise<{ video: HTMLVideoElement; url: string; detach: () => void }> {
   if (typeof document === "undefined") throw codedError("video.unsupported");
+  if (signal?.aborted) throw abortError();
+
   const url = URL.createObjectURL(file);
   const video = document.createElement("video");
   video.preload = "auto";
   video.muted = true;
   video.playsInline = true;
   video.src = url;
+  video.setAttribute("aria-hidden", "true");
+  video.style.cssText =
+    "position:fixed;left:0;top:0;width:2px;height:2px;opacity:0.01;pointer-events:none";
+  document.body.appendChild(video);
+
+  const detach = () => video.remove();
 
   try {
     await new Promise<void>((resolve, reject) => {
       const cleanup = () => {
         video.removeEventListener("loadeddata", onLoaded);
         video.removeEventListener("error", onError);
+        signal?.removeEventListener("abort", onAbort);
         window.clearTimeout(timer);
       };
       const onLoaded = () => {
@@ -111,18 +138,24 @@ async function openVideo(file: File): Promise<{ video: HTMLVideoElement; url: st
         cleanup();
         reject(codedError("video.decodeFailed"));
       };
+      const onAbort = () => {
+        cleanup();
+        reject(abortError());
+      };
       const timer = window.setTimeout(() => {
         cleanup();
         reject(codedError("video.decodeFailed"));
       }, 15000);
+
       video.addEventListener("loadeddata", onLoaded, { once: true });
       video.addEventListener("error", onError, { once: true });
+      signal?.addEventListener("abort", onAbort, { once: true });
     });
 
     if (!video.videoWidth || !video.videoHeight) throw codedError("video.decodeFailed");
-    await waitForFrame(video);
-    return { video, url };
+    return { video, url, detach };
   } catch (error) {
+    detach();
     URL.revokeObjectURL(url);
     throw error;
   }
@@ -130,7 +163,7 @@ async function openVideo(file: File): Promise<{ video: HTMLVideoElement; url: st
 
 /** Render a time range of a video into an animated GIF. */
 export async function createGifFromVideo(file: File, options: GifOptions): Promise<Blob> {
-  const { video, url } = await openVideo(file);
+  const { video, url, detach } = await openVideo(file, options.signal);
 
   try {
     const duration = Number.isFinite(video.duration) ? video.duration : 0;
@@ -147,21 +180,23 @@ export async function createGifFromVideo(file: File, options: GifOptions): Promi
     const canvas = document.createElement("canvas");
     canvas.width = width;
     canvas.height = height;
-    const context = canvas.getContext("2d", { willReadFrequently: true });
+    // A GPU-backed canvas scales the video frame much faster than the
+    // software canvas that `willReadFrequently` forces.
+    const context = canvas.getContext("2d");
     if (!context) throw codedError("video.canvasUnavailable");
 
     const { GIFEncoder, quantize, applyPalette } = await import("gifenc");
     const gif = GIFEncoder();
     const paletteFrame = times[Math.floor(times.length / 2)];
-    await waitForSeek(video, paletteFrame);
+    await waitForSeek(video, paletteFrame, options.signal);
     context.drawImage(video, 0, 0, width, height);
     const paletteData = context.getImageData(0, 0, width, height).data;
     const palette = quantize(paletteData, 256, { format: "rgb565" });
     const delay = Math.max(20, Math.round(1000 / Math.max(1, options.fps)));
 
     for (let index = 0; index < times.length; index += 1) {
-      if (options.signal?.aborted) throw new DOMException("Aborted", "AbortError");
-      await waitForSeek(video, times[index]);
+      if (options.signal?.aborted) throw abortError();
+      await waitForSeek(video, times[index], options.signal);
       context.drawImage(video, 0, 0, width, height);
       const pixels = context.getImageData(0, 0, width, height).data;
       const indexed = applyPalette(pixels, palette, "rgb565");
@@ -187,5 +222,6 @@ export async function createGifFromVideo(file: File, options: GifOptions): Promi
     video.removeAttribute("src");
     video.load();
     URL.revokeObjectURL(url);
+    detach();
   }
 }
