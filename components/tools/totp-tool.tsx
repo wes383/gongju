@@ -69,6 +69,25 @@ const COPY = {
 
 const ALGORITHMS: TotpAlgorithm[] = ["SHA-1", "SHA-256", "SHA-512"];
 
+/** Whole seconds, ticking once a second while mounted */
+function subscribeSecond(onChange: () => void): () => void {
+  const id = setInterval(onChange, 1000);
+  return () => clearInterval(id);
+}
+
+const currentSecond = () => Math.floor(Date.now() / 1000);
+/** Prerender has no clock: 0 means "not hydrated yet" */
+const noSecond = () => 0;
+
+/**
+ * The clock is read through useSyncExternalStore rather than a Date.now() call
+ * during render, so the prerendered HTML stays stable and the value only comes
+ * from the browser after hydration.
+ */
+function useSecond(): number {
+  return React.useSyncExternalStore(subscribeSecond, currentSecond, noSecond);
+}
+
 export function TotpTool() {
   const t = useCopy(COPY);
   const locale = useLocale();
@@ -77,7 +96,7 @@ export function TotpTool() {
   const [digits, setDigits] = React.useState(6);
   const [period, setPeriod] = React.useState(30);
   const [algorithm, setAlgorithm] = React.useState<TotpAlgorithm>("SHA-1");
-  const [now, setNow] = React.useState(() => Date.now());
+  const now = useSecond();
   const [computed, setComputed] = React.useState<{
     key: string;
     code: string;
@@ -88,23 +107,19 @@ export function TotpTool() {
   const [code, setCode] = React.useState("");
   const [verdict, setVerdict] = React.useState<"ok" | "fail" | null>(null);
 
-  React.useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(id);
-  }, []);
-
   const valid = isBase32(secret);
+  const ready = now > 0;
 
   // The step number is part of the key, so a stale code is ignored at render
   // time instead of being cleared inside the effect.
-  const step = Math.floor(now / 1000 / period);
+  const step = ready ? Math.floor(now / period) : 0;
   const key = `${secret}|${digits}|${period}|${algorithm}|${step}`;
   const state = computed && computed.key === key ? computed : null;
 
   React.useEffect(() => {
-    if (!valid) return;
+    if (!valid || !ready) return;
     let cancelled = false;
-    currentTotp({ secret, digits, period, algorithm }, now)
+    currentTotp({ secret, digits, period, algorithm }, now * 1000)
       .then((result) => {
         if (cancelled) return;
         setComputed({ key, ...result });
@@ -116,7 +131,7 @@ export function TotpTool() {
     return () => {
       cancelled = true;
     };
-  }, [key, secret, digits, period, algorithm, now, valid]);
+  }, [key, secret, digits, period, algorithm, now, valid, ready]);
 
   const handleSecret = (value: string) => {
     if (value.trim().startsWith("otpauth://")) {
