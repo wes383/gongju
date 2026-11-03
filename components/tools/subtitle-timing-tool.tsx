@@ -288,6 +288,7 @@ export function SubtitleTimingTool() {
           </>
         }
         inputDrop={{ onText: loadText }}
+        scrollOutput
         outputActions={
           <PaneButton onClick={download} title={t.download}>
             <Download className="h-3.5 w-3.5" />

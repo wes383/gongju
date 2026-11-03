@@ -200,23 +200,27 @@ export function OutputArea({
   placeholder,
   minHeight = "min-h-[300px]",
   wrap = true,
+  clamp = false,
   highlight,
 }: {
   value: string;
   placeholder?: string;
   minHeight?: string;
   wrap?: boolean;
+  /** Fill the pane and scroll inside it once the output outgrows the viewport */
+  clamp?: boolean;
   /** Pre-highlighted, already-escaped HTML used to colour JSON output */
   highlight?: string;
 }) {
   const t = useT();
   const hint = placeholder ?? t.outputPlaceholder;
+  const sizing = clamp ? cn("h-full max-h-[60vh]", minHeight) : minHeight;
   if (highlight) {
     return (
       <pre
         className={cn(
           "w-full overflow-auto px-3.5 py-3 font-mono text-[13px] leading-relaxed text-foreground",
-          minHeight,
+          sizing,
           wrap ? "whitespace-pre-wrap break-all" : "whitespace-pre"
         )}
         dangerouslySetInnerHTML={{ __html: highlight }}
@@ -227,7 +231,7 @@ export function OutputArea({
     <pre
       className={cn(
         "w-full overflow-auto px-3.5 py-3 font-mono text-[13px] leading-relaxed text-foreground",
-        minHeight,
+        sizing,
         wrap ? "whitespace-pre-wrap break-all" : "whitespace-pre"
       )}
     >
@@ -252,6 +256,7 @@ export function DualPane({
   onClear,
   inputMinHeight,
   inputDrop,
+  scrollOutput,
   outputHighlight,
 }: {
   input: string;
@@ -270,6 +275,11 @@ export function DualPane({
   inputMinHeight?: string;
   /** Lets the input pane double as a drop target for a text file */
   inputDrop?: { onText: (text: string, name: string) => void };
+  /**
+   * Cap the output pane and stretch the input to match, so a long result
+   * scrolls inside its own pane instead of making the whole card huge
+   */
+  scrollOutput?: boolean;
   /** Pre-highlighted HTML for JSON output */
   outputHighlight?: string;
 }) {
@@ -283,9 +293,17 @@ export function DualPane({
       value={input}
       onChange={(e) => onInputChange(e.target.value)}
       placeholder={inputPlaceholder}
-      className={inputMinHeight}
+      className={cn(inputMinHeight, scrollOutput && "h-full")}
       aria-label={inputText}
     />
+  );
+
+  const inputBody = inputDrop ? (
+    <FileDrop onText={inputDrop.onText} className={scrollOutput ? "h-full" : undefined}>
+      {area}
+    </FileDrop>
+  ) : (
+    area
   );
 
   return (
@@ -303,7 +321,7 @@ export function DualPane({
           }
           footer={inputFooter}
         >
-          {inputDrop ? <FileDrop onText={inputDrop.onText}>{area}</FileDrop> : area}
+          {inputBody}
         </Pane>
 
         <Pane
@@ -321,7 +339,12 @@ export function DualPane({
               <ErrorNote>{errorText(error, locale)}</ErrorNote>
             </div>
           ) : (
-            <OutputArea value={output} minHeight={inputMinHeight} highlight={outputHighlight} />
+            <OutputArea
+              value={output}
+              minHeight={inputMinHeight}
+              clamp={scrollOutput}
+              highlight={outputHighlight}
+            />
           )}
         </Pane>
       </div>
