@@ -7,6 +7,7 @@ import {
   CaseSensitive,
   Calculator,
   CalendarClock,
+  Captions,
   CalendarDays,
   CalendarPlus,
   CalendarRange,
@@ -108,6 +109,7 @@ import {
   NotebookPen,
   Radio,
   Wand2,
+  WrapText,
 } from "lucide-react";
 import type { Locale } from "@/lib/i18n";
 
@@ -135,6 +137,7 @@ export type CategoryId =
   | "network"
   | "convert"
   | "pdf"
+  | "subtitle"
   | "misc";
 
 export interface CategoryMeta {
@@ -158,6 +161,7 @@ const netTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: 
 const convertTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "convert" });
 const pdfTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "pdf" });
 const miscTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "misc" });
+const subtitleTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "subtitle" });
 
 const encodingTools: ToolMeta[] = [
   tool({
@@ -1399,6 +1403,49 @@ const miscTools: ToolMeta[] = [
   }),
 ];
 
+const subtitleTools: ToolMeta[] = [
+  subtitleTool({
+    slug: "subtitle-convert",
+    name: { zh: "字幕格式转换", en: "Subtitle Converter" },
+    description: {
+      zh: "SRT、VTT、ASS/SSA、SBV、LRC 互转，自动识别输入格式",
+      en: "Convert between SRT, VTT, ASS/SSA, SBV and LRC with automatic format detection",
+    },
+    keywords: ["subtitle", "srt", "vtt", "webvtt", "ass", "ssa", "sbv", "lrc", "字幕", "格式转换", "歌词"],
+    icon: Captions,
+  }),
+  subtitleTool({
+    slug: "subtitle-timing",
+    name: { zh: "字幕时间轴调整", en: "Subtitle Timing" },
+    description: {
+      zh: "整体偏移、帧率重映射、首尾对齐，顺带修掉重叠与零时长",
+      en: "Shift, remap frame rates and align two points, fixing overlaps and zero durations",
+    },
+    keywords: ["subtitle", "timing", "offset", "fps", "23.976", "字幕", "时间轴", "偏移", "帧率", "对轴"],
+    icon: Timer,
+  }),
+  subtitleTool({
+    slug: "subtitle-merge",
+    name: { zh: "双语字幕合并 / 拆分", en: "Bilingual Subtitle Merge / Split" },
+    description: {
+      zh: "两份单语字幕按时间合成为双语，或把双语字幕拆回两份",
+      en: "Combine two single-language tracks into one bilingual track, or split it apart",
+    },
+    keywords: ["subtitle", "bilingual", "merge", "split", "双语", "字幕", "合并", "拆分"],
+    icon: Merge,
+  }),
+  subtitleTool({
+    slug: "subtitle-clean",
+    name: { zh: "字幕文本整理", en: "Subtitle Text Cleanup" },
+    description: {
+      zh: "按字数或显示宽度断行、合并过短字幕、去标签与音效、简繁转换",
+      en: "Rewrap lines, merge short cues, strip tags and sound cues, convert Chinese variants",
+    },
+    keywords: ["subtitle", "rewrap", "break", "clean", "opencc", "字幕", "断行", "换行", "简繁", "整理"],
+    icon: WrapText,
+  }),
+];
+
 export const categories: CategoryMeta[] = [
   {
     id: "text",
@@ -1469,6 +1516,16 @@ export const categories: CategoryMeta[] = [
     },
     icon: FileText,
     tools: pdfTools,
+  },
+  {
+    id: "subtitle",
+    name: { zh: "字幕 / 歌词", en: "Subtitles / Lyrics" },
+    description: {
+      zh: "格式互转、时间轴校准、双语合并与断行整理",
+      en: "Format conversion, timing fixes, bilingual merging and line wrapping",
+    },
+    icon: Captions,
+    tools: subtitleTools,
   },
   {
     id: "misc",
