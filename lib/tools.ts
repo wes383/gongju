@@ -156,6 +156,12 @@ import {
   Aperture,
   FileSpreadsheet,
   GraduationCap,
+  Dumbbell,
+  Flame,
+  Beef,
+  Droplets,
+  Footprints,
+  Moon,
 } from "lucide-react";
 import type { Locale } from "@/lib/i18n";
 
@@ -186,6 +192,7 @@ export type CategoryId =
   | "electronics"
   | "photography"
   | "language"
+  | "health"
   | "pdf"
   | "office"
   | "ai"
@@ -235,6 +242,7 @@ const electronicsTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({
 });
 const photoTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "photography" });
 const languageTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "language" });
+const healthTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "health" });
 
 const encodingTools: ToolMeta[] = [
   tool({
@@ -1772,6 +1780,69 @@ const languageTools: ToolMeta[] = [
   }),
 ];
 
+const healthTools: ToolMeta[] = [
+  healthTool({
+    slug: "bmr",
+    name: { zh: "基础代谢与每日消耗", en: "BMR / TDEE Calculator" },
+    description: {
+      zh: "按 Mifflin、Harris-Benedict、Katch-McArdle 计算 BMR，再乘活动系数得到 TDEE",
+      en: "BMR by three formulas, multiplied by an activity factor to get daily energy needs",
+    },
+    keywords: ["bmr", "tdee", "基础代谢", "每日消耗", "热量", "卡路里", "代谢率"],
+    icon: Flame,
+  }),
+  healthTool({
+    slug: "macro",
+    name: { zh: "宏量营养素分配", en: "Macronutrient Split" },
+    description: {
+      zh: "按热量目标与体重算出蛋白质、脂肪、碳水各吃多少克",
+      en: "Turn a calorie target and body weight into grams of protein, fat and carbs",
+    },
+    keywords: ["宏量营养素", "蛋白质", "碳水", "脂肪", "减脂", "增肌", "macro", "protein"],
+    icon: Beef,
+  }),
+  healthTool({
+    slug: "water-intake",
+    name: { zh: "每日饮水量", en: "Daily Water Intake" },
+    description: {
+      zh: "按体重、运动时长与气温估算每天该喝多少水",
+      en: "Estimate daily fluid needs from body weight, training time and heat",
+    },
+    keywords: ["饮水", "喝水", "补液", "水分", "脱水", "water", "hydration"],
+    icon: Droplets,
+  }),
+  healthTool({
+    slug: "pace",
+    name: { zh: "跑步配速计算", en: "Running Pace Calculator" },
+    description: {
+      zh: "距离与用时互算配速，并预测各距离成绩与分段配速",
+      en: "Pace from distance and time, with race predictions and kilometre splits",
+    },
+    keywords: ["配速", "跑步", "马拉松", "半马", "5k", "pace", "running", "split"],
+    icon: Footprints,
+  }),
+  healthTool({
+    slug: "heart-rate-zones",
+    name: { zh: "心率区间", en: "Heart Rate Zones" },
+    description: {
+      zh: "按年龄估算最大心率，列出五个训练区间（支持储备心率法）",
+      en: "Maximum heart rate from age and the five training zones, with the reserve method",
+    },
+    keywords: ["心率", "最大心率", "心率区间", "有氧", "zone 2", "heart rate", "karvonen"],
+    icon: HeartPulse,
+  }),
+  healthTool({
+    slug: "sleep-cycle",
+    name: { zh: "睡眠周期", en: "Sleep Cycle Timing" },
+    description: {
+      zh: "按 90 分钟睡眠周期倒推最佳入睡或起床时间",
+      en: "Work backwards through 90-minute cycles to a better bedtime or alarm",
+    },
+    keywords: ["睡眠", "睡眠周期", "起床时间", "入睡", "rem", "sleep cycle"],
+    icon: Moon,
+  }),
+];
+
 const financeTools: ToolMeta[] = [
   financeTool({
     slug: "salary-tax",
@@ -2336,6 +2407,16 @@ export const categories: CategoryMeta[] = [
     },
     icon: Languages,
     tools: languageTools,
+  },
+  {
+    id: "health",
+    name: { zh: "健康 / 运动", en: "Health / Fitness" },
+    description: {
+      zh: "基础代谢、宏量营养素、饮水量、配速、心率区间与睡眠周期",
+      en: "BMR, macros, hydration, running pace, heart rate zones and sleep cycles",
+    },
+    icon: Dumbbell,
+    tools: healthTools,
   },
   {
     id: "finance",
