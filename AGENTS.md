@@ -18,6 +18,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 - Next.js 16.4.3 App Router (`cacheComponents`, Turbopack) + React 19 + Tailwind v4. Tool pages are statically generated.
 - `lib/tools.ts` is the single source of truth for tools and categories (nav, home, search). A new tool means: register it there, add `app/tools/<slug>/page.tsx` (metadata + assembly only), and a client component in `components/tools/`.
+- When adding a new category, re-check tools already filed under other categories and move the ones that fit the new category better (nav, home and search derive from the registry).
 - Shared shell is `ToolFrame`; it takes `slug` and resolves metadata on the client.
 - `lib/*` must stay React-free and unit-testable. Per-tool copy lives in the component's `COPY = { zh, en }` read through `useCopy`.
 - `orkest-ui/` is a design reference (separate repo, gitignored, excluded from lint/tsc). UI primitives live in `components/ui/`.
