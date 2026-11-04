@@ -26,12 +26,12 @@ const SAMPLE_ZH = `客户：张伟
 收款卡：4111 1111 1111 1111
 来源 IP：192.168.1.20`;
 
-const SAMPLE_EN = `Customer: Zhang Wei
-Phone: 13812345678
-ID: 11010519491231002X
-Email: zhangwei@example.com
-Card: 4111 1111 1111 1111
-Source IP: 192.168.1.20`;
+const SAMPLE_EN = `Customer: Michael Carter
+SSN: 412-88-7361
+Phone: (415) 555-0132
+Email: m.carter@example.com
+Card: 4242 4242 4242 4242
+Source IP: 198.51.100.24`;
 
 const COPY = {
   zh: {
@@ -57,7 +57,7 @@ const COPY = {
     kinds: "Detect",
     inputLabel: "Input",
     outputLabel: "Redacted",
-    placeholder: "Paste text containing phone numbers, ID numbers, emails and so on…",
+    placeholder: "Paste text containing phone numbers, SSNs, emails and so on…",
     sample: "Sample",
     hits: (kind: string, count: number) => `${kind} ${count}`,
     noHits: "No sensitive data detected",
