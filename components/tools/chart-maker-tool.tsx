@@ -6,6 +6,7 @@ import { useAppTheme } from "@/components/theme-provider";
 import { useCopy, useLocale } from "@/components/locale-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { FileDrop, UploadFileButton } from "@/components/tools/file-drop";
 import {
   ClearButton,
   CopyButton,
@@ -66,6 +67,7 @@ const COPY = {
     rows: "行",
     series: "个系列",
     valueLabel: "数值",
+    upload: "导入",
     style: "样式",
     palette: "配色",
     paletteDefault: "默认",
@@ -115,6 +117,7 @@ const COPY = {
     rows: "rows",
     series: "series",
     valueLabel: "Value",
+    upload: "Import",
     style: "Style",
     palette: "Palette",
     paletteDefault: "Default",
@@ -166,6 +169,9 @@ type DotSize = keyof typeof DOT_SIZES;
 type Curve = "monotone" | "linear";
 type CanvasBackground = "theme" | "white" | "transparent";
 
+/** CSV/TSV/JSON are all read locally into the editor */
+const CHART_ACCEPT = ".csv,.tsv,.json,text/csv,text/tab-separated-values,application/json,text/plain";
+
 const subscribeNoop = () => () => {};
 
 export function ChartMakerTool() {
@@ -184,6 +190,7 @@ export function ChartMakerTool() {
   // language localises the sample until the user edits the text themselves.
   const [customInput, setCustomInput] = React.useState<string | null>(null);
   const input = customInput ?? CHART_SAMPLES[locale].sales;
+  const [fileName, setFileName] = React.useState<string | null>(null);
   const [kind, setKind] = React.useState<ChartKind>("bar");
   const [size, setSize] = React.useState<ChartSize>("wide");
   const [title, setTitle] = React.useState("");
@@ -366,33 +373,69 @@ export function ChartMakerTool() {
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
         <div className="overflow-hidden rounded-lg border border-border bg-surface">
-          <Pane
-            label={t.data}
-            actions={
-              <>
-                <SampleButton onClick={() => setCustomInput(null)} />
-                <ClearButton onClick={() => setCustomInput("")} />
-              </>
-            }
-            footer={
-              parsed.value ? (
-                <>
-                  {parsed.value.labels.length} {t.rows}
-                  <span>·</span>
-                  {parsed.value.series.length} {t.series}
-                </>
-              ) : null
-            }
+          <FileDrop
+            onText={(text, name) => {
+              setCustomInput(text);
+              setFileName(name);
+            }}
           >
-            <InputArea
-              value={input}
-              onChange={(event) => setCustomInput(event.target.value)}
-              spellCheck={false}
-              className="min-h-[360px] font-mono"
-              placeholder={t.hint}
-              aria-label={t.data}
-            />
-          </Pane>
+            <Pane
+              label={t.data}
+              actions={
+                <>
+                  <UploadFileButton
+                    accept={CHART_ACCEPT}
+                    label={t.upload}
+                    onText={(text, name) => {
+                      setCustomInput(text);
+                      setFileName(name);
+                    }}
+                  />
+                  <SampleButton
+                    onClick={() => {
+                      setCustomInput(null);
+                      setFileName(null);
+                    }}
+                  />
+                  <ClearButton
+                    onClick={() => {
+                      setCustomInput("");
+                      setFileName(null);
+                    }}
+                  />
+                </>
+              }
+              footer={
+                parsed.value ? (
+                  <>
+                    {fileName ? (
+                      <>
+                        <span className="max-w-[16rem] truncate" title={fileName}>
+                          {fileName}
+                        </span>
+                        <span>·</span>
+                      </>
+                    ) : null}
+                    {parsed.value.labels.length} {t.rows}
+                    <span>·</span>
+                    {parsed.value.series.length} {t.series}
+                  </>
+                ) : null
+              }
+            >
+              <InputArea
+                value={input}
+                onChange={(event) => {
+                  setCustomInput(event.target.value);
+                  setFileName(null);
+                }}
+                spellCheck={false}
+                className="min-h-[360px] font-mono"
+                placeholder={t.hint}
+                aria-label={t.data}
+              />
+            </Pane>
+          </FileDrop>
         </div>
 
         <section className="flex min-w-0 flex-col overflow-hidden rounded-lg border border-border bg-surface">
