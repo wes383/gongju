@@ -19,7 +19,16 @@ import {
   Toggle,
   WarningNote,
 } from "@/components/tools/tool-ui";
-import { CHART_FONT, CHART_SAMPLES, DARK_THEME, LIGHT_THEME, parseChartData, type ChartKind } from "@/lib/chart";
+import {
+  CHART_FONT,
+  CHART_PALETTES,
+  CHART_SAMPLES,
+  DARK_THEME,
+  LIGHT_THEME,
+  parseChartData,
+  type ChartKind,
+  type ChartPalette,
+} from "@/lib/chart";
 import dynamic from "next/dynamic";
 
 // Recharts is a large payload and only needed once the page is interactive.
@@ -57,6 +66,29 @@ const COPY = {
     rows: "行",
     series: "个系列",
     valueLabel: "数值",
+    style: "样式",
+    palette: "配色",
+    paletteDefault: "默认",
+    paletteSoft: "柔和",
+    paletteContrast: "高对比",
+    paletteMono: "单色",
+    lineWidth: "线宽",
+    thin: "细",
+    standard: "标准",
+    thick: "粗",
+    curve: "曲线",
+    smooth: "平滑",
+    straight: "直线",
+    dots: "数据点",
+    dotsNone: "无",
+    dotsSmall: "小",
+    dotsMedium: "大",
+    round: "圆角",
+    grid: "网格",
+    background: "背景",
+    bgTheme: "跟随主题",
+    bgWhite: "白底",
+    bgTransparent: "透明",
   },
   en: {
     data: "Data (CSV / JSON)",
@@ -83,6 +115,29 @@ const COPY = {
     rows: "rows",
     series: "series",
     valueLabel: "Value",
+    style: "Style",
+    palette: "Palette",
+    paletteDefault: "Default",
+    paletteSoft: "Soft",
+    paletteContrast: "Contrast",
+    paletteMono: "Mono",
+    lineWidth: "Stroke",
+    thin: "Thin",
+    standard: "Medium",
+    thick: "Thick",
+    curve: "Curve",
+    smooth: "Smooth",
+    straight: "Straight",
+    dots: "Points",
+    dotsNone: "None",
+    dotsSmall: "Small",
+    dotsMedium: "Large",
+    round: "Rounded",
+    grid: "Grid",
+    background: "Background",
+    bgTheme: "Theme",
+    bgWhite: "White",
+    bgTransparent: "Transparent",
   },
 };
 
@@ -101,6 +156,15 @@ const SIZES = {
 } as const;
 
 type ChartSize = keyof typeof SIZES;
+
+const LINE_WIDTHS = { thin: 1.6, standard: 2.4, thick: 3.2 } as const;
+type LineWidth = keyof typeof LINE_WIDTHS;
+
+const DOT_SIZES = { none: 0, small: 3.2, medium: 4.8 } as const;
+type DotSize = keyof typeof DOT_SIZES;
+
+type Curve = "monotone" | "linear";
+type CanvasBackground = "theme" | "white" | "transparent";
 
 const subscribeNoop = () => () => {};
 
@@ -125,8 +189,19 @@ export function ChartMakerTool() {
   const [title, setTitle] = React.useState("");
   const [showLegend, setShowLegend] = React.useState(true);
   const [showValues, setShowValues] = React.useState(false);
+  const [palette, setPalette] = React.useState<ChartPalette>("default");
+  const [lineWidth, setLineWidth] = React.useState<LineWidth>("standard");
+  const [curve, setCurve] = React.useState<Curve>("monotone");
+  const [dotSize, setDotSize] = React.useState<DotSize>("small");
+  const [rounded, setRounded] = React.useState(true);
+  const [showGrid, setShowGrid] = React.useState(true);
+  const [canvas, setCanvas] = React.useState<CanvasBackground>("theme");
   const [exportError, setExportError] = React.useState<unknown>(null);
   const previewRef = React.useRef<HTMLDivElement>(null);
+
+  // A white canvas forces the light chart palette so text stays readable in dark mode.
+  const chartTheme = canvas === "white" ? LIGHT_THEME : theme;
+  const canvasColor = canvas === "white" ? "#ffffff" : theme.background;
 
   const parsed = safe(() => parseChartData(input, { valueLabel: t.valueLabel }));
   const dimensions = SIZES[size];
@@ -147,6 +222,17 @@ export function ChartMakerTool() {
     clone.removeAttribute("style");
     clone.setAttribute("width", String(dimensions.width));
     clone.setAttribute("height", String(dimensions.height));
+    if (canvas !== "transparent") {
+      // Paint the canvas inside the SVG too, in the local user-unit space.
+      const viewBox = clone.getAttribute("viewBox")?.split(/[\s,]+/).map(Number) ?? [];
+      const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+      rect.setAttribute("x", String(viewBox[0] ?? 0));
+      rect.setAttribute("y", String(viewBox[1] ?? 0));
+      rect.setAttribute("width", String(viewBox[2] ?? dimensions.width));
+      rect.setAttribute("height", String(viewBox[3] ?? dimensions.height));
+      rect.setAttribute("fill", canvasColor);
+      clone.insertBefore(rect, clone.firstChild);
+    }
     return `<?xml version="1.0" encoding="UTF-8"?>\n${new XMLSerializer().serializeToString(clone)}`;
   };
 
@@ -163,7 +249,7 @@ export function ChartMakerTool() {
       const blob = await rasterizeSvg(svg, {
         width: dimensions.width * 2,
         height: dimensions.height * 2,
-        background: theme.background,
+        background: canvas === "transparent" ? undefined : canvasColor,
       });
       downloadBlob(blob, "chart.png");
       setExportError(null);
@@ -207,6 +293,75 @@ export function ChartMakerTool() {
         </OptionField>
         <Toggle checked={showLegend} onChange={setShowLegend} label={t.legend} />
         {kind === "bar" && <Toggle checked={showValues} onChange={setShowValues} label={t.values} />}
+      </OptionBar>
+
+      <OptionBar>
+        <OptionField label={t.palette}>
+          <Segmented
+            ariaLabel={t.palette}
+            value={palette}
+            onChange={setPalette}
+            options={[
+              { value: "default", label: t.paletteDefault },
+              { value: "soft", label: t.paletteSoft },
+              { value: "contrast", label: t.paletteContrast },
+              { value: "mono", label: t.paletteMono },
+            ]}
+          />
+        </OptionField>
+        {(kind === "line" || kind === "area") && (
+          <>
+            <OptionField label={t.lineWidth}>
+              <Segmented
+                ariaLabel={t.lineWidth}
+                value={lineWidth}
+                onChange={setLineWidth}
+                options={[
+                  { value: "thin", label: t.thin },
+                  { value: "standard", label: t.standard },
+                  { value: "thick", label: t.thick },
+                ]}
+              />
+            </OptionField>
+            <OptionField label={t.curve}>
+              <Segmented
+                ariaLabel={t.curve}
+                value={curve}
+                onChange={setCurve}
+                options={[
+                  { value: "monotone", label: t.smooth },
+                  { value: "linear", label: t.straight },
+                ]}
+              />
+            </OptionField>
+            <OptionField label={t.dots}>
+              <Segmented
+                ariaLabel={t.dots}
+                value={dotSize}
+                onChange={setDotSize}
+                options={[
+                  { value: "none", label: t.dotsNone },
+                  { value: "small", label: t.dotsSmall },
+                  { value: "medium", label: t.dotsMedium },
+                ]}
+              />
+            </OptionField>
+          </>
+        )}
+        {kind === "bar" && <Toggle checked={rounded} onChange={setRounded} label={t.round} />}
+        <Toggle checked={showGrid} onChange={setShowGrid} label={t.grid} />
+        <OptionField label={t.background}>
+          <Segmented
+            ariaLabel={t.background}
+            value={canvas}
+            onChange={setCanvas}
+            options={[
+              { value: "theme", label: t.bgTheme },
+              { value: "white", label: t.bgWhite },
+              { value: "transparent", label: t.bgTransparent },
+            ]}
+          />
+        </OptionField>
       </OptionBar>
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
@@ -280,7 +435,10 @@ export function ChartMakerTool() {
               <div
                 ref={previewRef}
                 className="flex justify-center [&_svg]:h-auto [&_svg]:max-w-full"
-                style={{ background: theme.background, fontFamily: CHART_FONT }}
+                style={{
+                  background: canvas === "transparent" ? "transparent" : canvasColor,
+                  fontFamily: CHART_FONT,
+                }}
               >
                 <ChartPreview
                   data={parsed.value}
@@ -288,9 +446,15 @@ export function ChartMakerTool() {
                   title={title}
                   showLegend={showLegend}
                   showValues={showValues}
-                  theme={theme}
+                  theme={chartTheme}
                   width={dimensions.width}
                   height={dimensions.height}
+                  colors={CHART_PALETTES[palette]}
+                  lineWidth={LINE_WIDTHS[lineWidth]}
+                  curve={curve}
+                  dotSize={DOT_SIZES[dotSize]}
+                  barRadius={rounded ? 4 : 0}
+                  showGrid={showGrid}
                 />
               </div>
             ) : null}

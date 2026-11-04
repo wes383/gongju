@@ -21,7 +21,6 @@ import {
   YAxis,
 } from "recharts";
 import {
-  CHART_COLORS,
   formatChartNumber,
   textWidth,
   type ChartData,
@@ -40,6 +39,14 @@ export interface ChartPreviewProps {
   theme: ChartTheme;
   width: number;
   height: number;
+  /** Resolved series colours for the selected palette */
+  colors: readonly string[];
+  lineWidth: number;
+  curve: "monotone" | "linear";
+  /** Dot radius in px; 0 hides the data points */
+  dotSize: number;
+  barRadius: number;
+  showGrid: boolean;
 }
 
 interface LegendEntry {
@@ -137,9 +144,30 @@ function ChartCanvas({
   theme,
   width,
   height,
+  colors: palette,
+  lineWidth,
+  curve,
+  dotSize,
+  barRadius,
+  showGrid,
 }: ChartPreviewProps) {
   const keys = data.series.map((_, index) => `s${index}`);
-  const colors = data.series.map((_, index) => CHART_COLORS[index % CHART_COLORS.length]);
+  const colors = data.series.map((_, index) => palette[index % palette.length]);
+  const dots =
+    dotSize > 0 && data.labels.length <= 40
+      ? (seriesIndex: number) => ({
+          r: dotSize,
+          fill: colors[seriesIndex],
+          stroke: theme.background,
+          strokeWidth: Math.max(1, dotSize * 0.4),
+        })
+      : () => false;
+  const activeDot = (seriesIndex: number) => ({
+    r: dotSize > 0 ? dotSize + 2 : 5,
+    fill: colors[seriesIndex],
+    stroke: theme.background,
+    strokeWidth: Math.max(1.4, (dotSize > 0 ? dotSize : 5) * 0.35),
+  });
   const entries: LegendEntry[] = data.series.map((series, index) => ({
     name: series.name,
     color: colors[index],
@@ -184,7 +212,7 @@ function ChartCanvas({
     }));
     const legendEntries = pieData.map((slice, index) => ({
       ...slice,
-      color: CHART_COLORS[index % CHART_COLORS.length],
+      color: palette[index % palette.length],
     }));
     const legendHeight = legendEntries.length * 22;
     const legendY = cy - legendHeight / 2 + 11;
@@ -206,7 +234,7 @@ function ChartCanvas({
           isAnimationActive={false}
         >
           {pieData.map((slice, index) => (
-            <Cell key={index} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+            <Cell key={index} fill={palette[index % palette.length]} />
           ))}
         </Pie>
         <Tooltip {...tooltip} />
@@ -232,7 +260,7 @@ function ChartCanvas({
   const rows = seriesRows(data);
   const commonAxes = (
     <>
-      <CartesianGrid strokeDasharray="4 4" vertical={false} stroke={theme.grid} />
+      {showGrid && <CartesianGrid strokeDasharray="4 4" vertical={false} stroke={theme.grid} />}
       <XAxis
         dataKey="label"
         tick={{ fill: theme.muted, fontSize: 11 }}
@@ -268,7 +296,7 @@ function ChartCanvas({
     const xNumeric = xValues.every((value) => value !== null);
     return (
       <ScatterChart width={width} height={height} margin={{ top: plotTop, right: 24, bottom: 8, left: 0 }}>
-        <CartesianGrid strokeDasharray="4 4" stroke={theme.grid} />
+        {showGrid && <CartesianGrid strokeDasharray="4 4" stroke={theme.grid} />}
         <XAxis
           type="number"
           dataKey="x"
@@ -330,7 +358,7 @@ function ChartCanvas({
             dataKey={keys[seriesIndex]}
             name={series.name}
             fill={colors[seriesIndex]}
-            radius={[3, 3, 0, 0]}
+            radius={[barRadius, barRadius, 0, 0]}
             maxBarSize={56}
             isAnimationActive={false}
           >
@@ -359,24 +387,15 @@ function ChartCanvas({
         {data.series.map((series, seriesIndex) => (
           <Area
             key={seriesIndex}
-            type="monotone"
+            type={curve}
             dataKey={keys[seriesIndex]}
             name={series.name}
             stroke={colors[seriesIndex]}
             fill={colors[seriesIndex]}
             fillOpacity={0.16}
-            strokeWidth={2.2}
-            dot={
-              data.labels.length <= 24
-                ? {
-                    r: 3.4,
-                    fill: colors[seriesIndex],
-                    stroke: theme.background,
-                    strokeWidth: 1.4,
-                  }
-                : false
-            }
-            activeDot={{ r: 5, fill: colors[seriesIndex], stroke: theme.background, strokeWidth: 1.4 }}
+            strokeWidth={lineWidth}
+            dot={dots(seriesIndex)}
+            activeDot={activeDot(seriesIndex)}
             isAnimationActive={false}
           />
         ))}
@@ -392,22 +411,13 @@ function ChartCanvas({
       {data.series.map((series, seriesIndex) => (
         <Line
           key={seriesIndex}
-          type="monotone"
+          type={curve}
           dataKey={keys[seriesIndex]}
           name={series.name}
           stroke={colors[seriesIndex]}
-          strokeWidth={2.2}
-          dot={
-            data.labels.length <= 24
-              ? {
-                  r: 3.4,
-                  fill: colors[seriesIndex],
-                  stroke: theme.background,
-                  strokeWidth: 1.4,
-                }
-              : false
-          }
-          activeDot={{ r: 5, fill: colors[seriesIndex], stroke: theme.background, strokeWidth: 1.4 }}
+          strokeWidth={lineWidth}
+          dot={dots(seriesIndex)}
+          activeDot={activeDot(seriesIndex)}
           connectNulls={false}
           isAnimationActive={false}
         />

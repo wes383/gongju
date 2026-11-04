@@ -55,6 +55,16 @@ export const CHART_COLORS = [
   "#0ea5e9",
 ];
 
+export type ChartPalette = "default" | "soft" | "contrast" | "mono";
+
+/** Series colours the user can swap between from the toolbar */
+export const CHART_PALETTES: Record<ChartPalette, readonly string[]> = {
+  default: CHART_COLORS,
+  soft: ["#a5b4fc", "#67e8f9", "#fcd34d", "#fca5a5", "#6ee7b7", "#d8b4fe", "#fdba74", "#7dd3fc"],
+  contrast: ["#ef4444", "#f59e0b", "#10b981", "#3b82f6", "#a855f7", "#ec4899", "#14b8a6", "#eab308"],
+  mono: ["#3730a3", "#4338ca", "#4f46e5", "#6366f1", "#818cf8", "#a5b4fc", "#c7d2fe", "#8b5cf6"],
+};
+
 const MAX_POINTS = 240;
 
 /** Font stack shared by the preview, the exported SVG and the mind map */
