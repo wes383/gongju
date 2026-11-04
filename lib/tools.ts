@@ -40,6 +40,7 @@ import {
   Info,
   Stamp,
   ScanEye,
+  ScanSearch,
   Scissors,
   Grid3x3,
   Layers,
@@ -167,6 +168,7 @@ export type CategoryId =
   | "pdf"
   | "office"
   | "ai"
+  | "seo"
   | "subtitle"
   | "media"
   | "visualization"
@@ -204,6 +206,7 @@ const financeTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, catego
 const privacyTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "privacy" });
 const officeTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "office" });
 const aiTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "ai" });
+const seoTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "seo" });
 
 const encodingTools: ToolMeta[] = [
   tool({
@@ -1859,6 +1862,86 @@ const aiTools: ToolMeta[] = [
   }),
 ];
 
+const seoTools: ToolMeta[] = [
+  seoTool({
+    slug: "og-image",
+    name: { zh: "OG 分享图生成", en: "Open Graph Image Generator" },
+    description: {
+      zh: "填标题与描述，实时预览并下载 1200×630 的分享图，适配微信、X 与 Slack",
+      en: "Type a title and description, preview the card live and download a 1200×630 PNG for WeChat, X and Slack",
+    },
+    keywords: [
+      "og image",
+      "og 图",
+      "分享图",
+      "open graph",
+      "twitter card",
+      "社交卡片",
+      "封面图",
+      "1200x630",
+    ],
+    icon: Share2,
+  }),
+  seoTool({
+    slug: "schema-markup",
+    name: { zh: "结构化数据生成（Schema.org）", en: "Structured Data Generator" },
+    description: {
+      zh: "按文章、商品、FAQ、面包屑生成 JSON-LD，缺必填字段会直接标出来",
+      en: "Build JSON-LD for articles, products, FAQs and breadcrumbs, with required fields checked",
+    },
+    keywords: [
+      "schema",
+      "schema.org",
+      "json-ld",
+      "结构化数据",
+      "富媒体",
+      "rich result",
+      "faq schema",
+      "面包屑",
+    ],
+    icon: Braces,
+  }),
+  seoTool({
+    slug: "robots-sitemap",
+    name: { zh: "robots.txt / sitemap.xml 生成", en: "robots.txt & sitemap.xml Builder" },
+    description: {
+      zh: "按路径规则生成 robots.txt，把页面列表转成带优先级与更新时间的 sitemap.xml",
+      en: "Generate robots.txt from path rules and turn a page list into sitemap.xml with lastmod, priority and frequency",
+    },
+    keywords: [
+      "robots.txt",
+      "sitemap",
+      "sitemap.xml",
+      "站点地图",
+      "爬虫",
+      "收录",
+      "crawl",
+      "disallow",
+    ],
+    icon: FileCode2,
+  }),
+  seoTool({
+    slug: "seo-audit",
+    name: { zh: "HTML SEO / 可访问性检查", en: "HTML SEO & A11y Audit" },
+    description: {
+      zh: "粘贴 HTML，检查标题描述长度、H1、canonical、分享标签、图片 alt 与表单可访问性",
+      en: "Paste HTML and check title and description length, headings, canonical, share tags, image alt text and form labels",
+    },
+    keywords: [
+      "seo 检查",
+      "seo audit",
+      "html 检查",
+      "meta 标签",
+      "标题长度",
+      "canonical",
+      "alt",
+      "可访问性",
+      "a11y",
+    ],
+    icon: ScanSearch,
+  }),
+];
+
 export const categories: CategoryMeta[] = [
   {
     id: "text",
@@ -2069,6 +2152,16 @@ export const categories: CategoryMeta[] = [
     },
     icon: Globe,
     tools: networkTools,
+  },
+  {
+    id: "seo",
+    name: { zh: "网站运营 / SEO", en: "Site Ops / SEO" },
+    description: {
+      zh: "分享图、结构化数据、robots.txt 与 sitemap，以及上线前的 HTML 检查",
+      en: "Share cards, structured data, robots.txt and sitemaps, plus a pre-launch HTML audit",
+    },
+    icon: Search,
+    tools: seoTools,
   },
 ];
 
