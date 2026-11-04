@@ -134,6 +134,10 @@ import {
   BookOpen,
   Presentation,
   LibraryBig,
+  Bot,
+  Blocks,
+  LayoutTemplate,
+  MessagesSquare,
 } from "lucide-react";
 import type { Locale } from "@/lib/i18n";
 
@@ -162,6 +166,7 @@ export type CategoryId =
   | "convert"
   | "pdf"
   | "office"
+  | "ai"
   | "subtitle"
   | "media"
   | "visualization"
@@ -198,6 +203,7 @@ const filesTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category
 const financeTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "finance" });
 const privacyTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "privacy" });
 const officeTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "office" });
+const aiTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "ai" });
 
 const encodingTools: ToolMeta[] = [
   tool({
@@ -520,10 +526,10 @@ const textTools: ToolMeta[] = [
     slug: "text-diff",
     name: { zh: "文本差异对比", en: "Text Diff" },
     description: {
-      zh: "逐行对比两段文本，标出新增、删除的行",
-      en: "Compare two texts line by line and mark added and removed lines",
+      zh: "逐行或逐词对比两段文本，标出新增与删除；改一个词时不会整行变红",
+      en: "Compare two texts line by line or word by word — a single edited word no longer marks the whole line",
     },
-    keywords: ["diff", "对比", "差异", "compare", "文本"],
+    keywords: ["diff", "对比", "差异", "compare", "文本", "prompt 对比", "词级", "逐词"],
     icon: FileDiff,
   }),
   textTool({
@@ -1205,16 +1211,6 @@ const devTools: ToolMeta[] = [
     icon: Ban,
   }),
   devTool({
-    slug: "llm-cost",
-    name: { zh: "LLM 成本计算器", en: "LLM Cost Calculator" },
-    description: {
-      zh: "按输入 / 输出单价与 tokens 估算单次请求、批量调用与预算成本",
-      en: "Estimate per-request, batch and budget cost from your own token prices",
-    },
-    keywords: ["llm", "token", "成本", "费用", "api", "价格", "gpt", "claude", "deepseek"],
-    icon: BadgeDollarSign,
-  }),
-  devTool({
     slug: "meta-tags",
     name: { zh: "Meta / OG 标签生成与预览", en: "Meta & OG Tags" },
     description: {
@@ -1810,6 +1806,59 @@ const officeTools: ToolMeta[] = [
   }),
 ];
 
+const aiTools: ToolMeta[] = [
+  aiTool({
+    slug: "token-counter",
+    name: { zh: "Token 计数与上下文预算", en: "Token Counter & Context Budget" },
+    description: {
+      zh: "按 GPT / Claude / Gemini 的分词规则估算 token，并算出上下文窗口还剩多少",
+      en: "Estimate tokens the way GPT, Claude and Gemini split text, and see what the context window has left",
+    },
+    keywords: ["token", "计数器", "token 计算", "上下文", "context window", "prompt 长度", "gpt", "claude", "计费"],
+    icon: ScanText,
+  }),
+  aiTool({
+    slug: "text-chunker",
+    name: { zh: "文本分块（RAG）", en: "Text Chunker (RAG)" },
+    description: {
+      zh: "按 token 上限把长文切成句子完整的片段，可设重叠，导出 JSONL 给 embedding",
+      en: "Cut long text into sentence-aligned chunks under a token limit, with overlap, exported as JSONL",
+    },
+    keywords: ["分块", "chunk", "chunking", "rag", "embedding", "切片", "向量库", "jsonl", "知识库"],
+    icon: Blocks,
+  }),
+  aiTool({
+    slug: "prompt-template",
+    name: { zh: "Prompt 模板批量渲染", en: "Prompt Template Batch" },
+    description: {
+      zh: "用 {{变量}} 模板配合 CSV / JSON 批量生成提示词，导出 JSONL、CSV 或纯文本",
+      en: "Render a {{variable}} template against CSV or JSON rows and export JSONL, CSV or plain text",
+    },
+    keywords: ["prompt", "模板", "template", "批量", "变量", "csv", "jsonl", "提示词", "批处理"],
+    icon: LayoutTemplate,
+  }),
+  aiTool({
+    slug: "chat-to-markdown",
+    name: { zh: "对话记录转 Markdown", en: "Chat Export to Markdown" },
+    description: {
+      zh: "把 ChatGPT / Claude 的导出或带说话人标记的纯文本整理成干净的 Markdown",
+      en: "Turn ChatGPT or Claude exports, or plain transcripts with speaker markers, into clean Markdown",
+    },
+    keywords: ["对话", "chat", "chatgpt", "claude", "markdown", "导出", "聊天记录", "整理"],
+    icon: MessagesSquare,
+  }),
+  aiTool({
+    slug: "llm-cost",
+    name: { zh: "LLM 成本计算器", en: "LLM Cost Calculator" },
+    description: {
+      zh: "按输入 / 输出单价与 tokens 估算单次请求、批量调用与预算成本",
+      en: "Estimate per-request, batch and budget cost from your own token prices",
+    },
+    keywords: ["llm", "token", "成本", "费用", "api", "价格", "gpt", "claude", "deepseek"],
+    icon: BadgeDollarSign,
+  }),
+];
+
 export const categories: CategoryMeta[] = [
   {
     id: "text",
@@ -1990,6 +2039,16 @@ export const categories: CategoryMeta[] = [
     },
     icon: ShieldCheck,
     tools: hashTools,
+  },
+  {
+    id: "ai",
+    name: { zh: "AI / Prompt", en: "AI / Prompt" },
+    description: {
+      zh: "Token 计数、上下文预算、文本分块、模板批量渲染与对话整理",
+      en: "Token counting, context budgets, chunking, template batching and chat cleanup",
+    },
+    icon: Bot,
+    tools: aiTools,
   },
   {
     id: "dev",
