@@ -62,7 +62,6 @@ const COPY = {
     estimate: "估算",
     exactLoading: "加载词表…",
     exactFailed: "词表加载失败，已回退估算",
-    exactUnsupported: "该家族没有公开词表，仍为估算",
     compareEstimate: "各分词器对比（估算）",
     surcharge: "提示词超过 272K：OpenAI 会把整次请求按 2 倍计价，而不是只算超出的部分。",
     note: "默认按拉丁词、中日韩字符、数字、标点与 Emoji 分段估算：英文段落通常偏差 5% 以内，代码偏低约 10%，中文可能差 15%。开启精确模式后，GPT 家族改用官方词表计算总数（首次加载约 1 MB），构成明细仍是估算拆分；Claude、Gemini、Llama 没有公开词表，只能估算。上下文预算里的“预留回答”是给模型留的空间，剩下的才是提示词可用的上限。",
@@ -102,7 +101,6 @@ const COPY = {
     estimate: "Estimate",
     exactLoading: "Loading vocabulary…",
     exactFailed: "Vocabulary failed to load, falling back to the estimate",
-    exactUnsupported: "No public vocabulary for this family, still an estimate",
     compareEstimate: "Across tokenizers (estimate)",
     surcharge: "Prompt is above 272K: OpenAI bills the whole request at double, not just the part over the line.",
     note: "By default the estimate splits text into Latin words, CJK characters, digits, punctuation and emoji: English prose usually lands within five percent, code runs about ten percent low, Chinese can drift fifteen percent. Turn on exact mode and the GPT families count with their official vocabulary (about 1 MB on first load), while the breakdown stays an estimate; Claude, Gemini and Llama publish no vocabulary, so they stay estimated. In the budget below, the reserve is the room you leave for the model, and the rest is what the prompt may use.",
@@ -227,9 +225,7 @@ export function TokenCounterTool() {
         ? t.exactLoading
         : exactStatus === "failed"
           ? t.exactFailed
-          : exactStatus === "unsupported"
-            ? t.exactUnsupported
-            : t.estimate;
+          : t.estimate;
 
   const budget = contextBudget({
     window: num(contextWindow),
@@ -276,9 +272,11 @@ export function TokenCounterTool() {
           />
         </OptionField>
         <span className="font-mono text-[11px] text-foreground-subtle">{profile.detail}</span>
-        <div className="ml-auto flex items-center gap-3">
-          <Toggle checked={exact} onChange={setExact} label={t.exactMode} hint={t.exactHint} />
-        </div>
+        {supportsExact(family) ? (
+          <div className="ml-auto flex items-center gap-3">
+            <Toggle checked={exact} onChange={setExact} label={t.exactMode} hint={t.exactHint} />
+          </div>
+        ) : null}
       </OptionBar>
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
