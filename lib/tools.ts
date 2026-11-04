@@ -131,6 +131,9 @@ import {
   Wrench,
   WrapText,
   Workflow,
+  BookOpen,
+  Presentation,
+  LibraryBig,
 } from "lucide-react";
 import type { Locale } from "@/lib/i18n";
 
@@ -158,6 +161,7 @@ export type CategoryId =
   | "network"
   | "convert"
   | "pdf"
+  | "office"
   | "subtitle"
   | "media"
   | "visualization"
@@ -193,6 +197,7 @@ const vizTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: 
 const filesTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "files" });
 const financeTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "finance" });
 const privacyTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "privacy" });
+const officeTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "office" });
 
 const encodingTools: ToolMeta[] = [
   tool({
@@ -1762,6 +1767,49 @@ const privacyTools: ToolMeta[] = [
   }),
 ];
 
+const officeTools: ToolMeta[] = [
+  officeTool({
+    slug: "docx-to-md",
+    name: { zh: "Word 转 Markdown / HTML", en: "Word to Markdown / HTML" },
+    description: {
+      zh: "解析 .docx 的标题、列表、表格与图片，输出 Markdown 或 HTML，图片内嵌",
+      en: "Turn a .docx into Markdown or HTML with headings, lists, tables and inlined images",
+    },
+    keywords: ["docx", "word", "word 转 markdown", "docx to markdown", "文档转换", "word 转 html", "md"],
+    icon: FileType,
+  }),
+  officeTool({
+    slug: "xlsx-viewer",
+    name: { zh: "Excel 表格查看 / 转 CSV", en: "Excel Viewer / CSV" },
+    description: {
+      zh: "直接读取 .xlsx 工作表，去空行去重后预览表格并导出 CSV",
+      en: "Open .xlsx sheets in the browser, drop empty or duplicate rows, preview and export as CSV",
+    },
+    keywords: ["xlsx", "excel", "表格", "xlsx 转 csv", "查看 excel", "工作表", "spreadsheet"],
+    icon: Sheet,
+  }),
+  officeTool({
+    slug: "pptx-text",
+    name: { zh: "PPT 文本提取", en: "PowerPoint Text Extractor" },
+    description: {
+      zh: "按放映顺序提取 .pptx 每页文字与表格，导出 Markdown 或纯文本",
+      en: "Pull text and tables out of a .pptx in slide order, as Markdown or plain text",
+    },
+    keywords: ["pptx", "ppt", "powerpoint", "ppt 转文字", "提取文字", "幻灯片", "大纲"],
+    icon: Presentation,
+  }),
+  officeTool({
+    slug: "epub-to-md",
+    name: { zh: "EPUB 转 Markdown / HTML", en: "EPUB to Markdown / HTML" },
+    description: {
+      zh: "按书脊顺序合并 .epub 章节，输出 Markdown 或单文件 HTML，图片内嵌",
+      en: "Merge .epub chapters in spine order into Markdown or a single HTML file, images inlined",
+    },
+    keywords: ["epub", "电子书", "epub 转 markdown", "epub to markdown", "kindle", "小说", "ebook"],
+    icon: BookOpen,
+  }),
+];
+
 export const categories: CategoryMeta[] = [
   {
     id: "text",
@@ -1862,6 +1910,16 @@ export const categories: CategoryMeta[] = [
     },
     icon: FileText,
     tools: pdfTools,
+  },
+  {
+    id: "office",
+    name: { zh: "Office / 电子书", en: "Office / Ebooks" },
+    description: {
+      zh: "Word、Excel、PPT 与 EPUB 的读取与转换",
+      en: "Read and convert Word, Excel, PowerPoint and EPUB files",
+    },
+    icon: LibraryBig,
+    tools: officeTools,
   },
   {
     id: "subtitle",
