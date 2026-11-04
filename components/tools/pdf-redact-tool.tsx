@@ -6,8 +6,6 @@ import {
   ChevronRight,
   Download,
   Loader2,
-  Maximize2,
-  Minimize2,
   ScanEye,
   SquareDashed,
   Trash2,
@@ -29,6 +27,7 @@ import {
   OptionField,
   WarningNote,
 } from "@/components/tools/tool-ui";
+import { ZoomStage, ZoomToggle } from "@/components/tools/zoom-stage";
 import { useCopy, useLocale } from "@/components/locale-provider";
 import { codedError, errorText } from "@/lib/errors";
 import { baseName, downloadBlob, formatBytes } from "@/lib/files";
@@ -117,22 +116,6 @@ export function PdfRedactTool() {
       holder.current = null;
     };
   }, []);
-
-  // Expanded mode is a full-viewport stage: lock the page behind it and let Esc
-  // close it, so the preview behaves like a lightbox rather than a modal
-  React.useEffect(() => {
-    if (!expanded) return;
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setExpanded(false);
-    };
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    window.addEventListener("keydown", onKeyDown);
-    return () => {
-      window.removeEventListener("keydown", onKeyDown);
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [expanded]);
 
   // The preview follows the current page; the key keeps a stale render from
   // landing on the wrong page while the tool is loading another file
@@ -323,16 +306,12 @@ export function PdfRedactTool() {
 
             {clearPageButton}
 
-            <Button
-              type="button"
-              variant="ghost"
-              size="xs"
-              className="gap-1.5"
-              onClick={() => setExpanded(true)}
-            >
-              <Maximize2 className="h-3.5 w-3.5" />
-              {t.expand}
-            </Button>
+            <ZoomToggle
+              expanded={expanded}
+              onToggle={() => setExpanded((prev) => !prev)}
+              expandLabel={t.expand}
+              collapseLabel={t.collapse}
+            />
 
             <OptionField label={t.dpi}>
               <Select value={dpi} onValueChange={setDpi}>
@@ -405,40 +384,23 @@ export function PdfRedactTool() {
 
           <p className="text-xs leading-relaxed text-foreground-subtle">{t.hint}</p>
 
-          <section
-            className={cn(
-              "rounded-lg border border-border bg-surface",
-              expanded
-                ? "fixed inset-0 z-50 flex flex-col gap-3 border-0 bg-background p-3 sm:p-4"
-                : "overflow-hidden p-3"
-            )}
-          >
-            {expanded && (
-              <div className="flex flex-wrap items-center gap-2">
+          <ZoomStage
+            expanded={expanded}
+            onCollapse={() => setExpanded(false)}
+            collapseLabel={t.collapse}
+            className="overflow-hidden"
+            overlayToolbar={
+              <>
                 {nav}
                 <span className="flex items-center gap-1.5 font-mono text-[11px] text-foreground-subtle">
                   <SquareDashed className="h-3.5 w-3.5" />
                   {t.boxes(pageRects.length)}
                 </span>
                 {clearPageButton}
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="xs"
-                  className="ml-auto gap-1.5"
-                  onClick={() => setExpanded(false)}
-                >
-                  <Minimize2 className="h-3.5 w-3.5" />
-                  {t.collapse}
-                </Button>
-              </div>
-            )}
-
-            <div
-              className={cn(
-                expanded && "flex min-h-0 flex-1 items-center justify-center overflow-auto"
-              )}
-            >
+              </>
+            }
+          >
+            {(full) => (
               <div
                 className="relative mx-auto w-fit max-w-full cursor-crosshair touch-none select-none"
                 onPointerDown={(event) => {
@@ -467,7 +429,7 @@ export function PdfRedactTool() {
                     draggable={false}
                     className={cn(
                       "block w-auto max-w-full",
-                      expanded ? "max-h-[calc(100dvh-7rem)]" : "max-h-[76vh]"
+                      full ? "max-h-[calc(100dvh-7rem)]" : "max-h-[76vh]"
                     )}
                   />
                 ) : (
@@ -519,8 +481,8 @@ export function PdfRedactTool() {
                   />
                 )}
               </div>
-            </div>
-          </section>
+            )}
+          </ZoomStage>
 
           <WarningNote>{t.warning}</WarningNote>
         </>
