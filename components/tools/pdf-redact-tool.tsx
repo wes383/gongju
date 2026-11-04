@@ -6,6 +6,8 @@ import {
   ChevronRight,
   Download,
   Loader2,
+  Maximize2,
+  Minimize2,
   ScanEye,
   SquareDashed,
   Trash2,
@@ -32,12 +34,15 @@ import { codedError, errorText } from "@/lib/errors";
 import { baseName, downloadBlob, formatBytes } from "@/lib/files";
 import { openForRender, renderPage, type RenderablePdf } from "@/lib/pdf-render";
 import { rectFromDrag, redactPdf, totalRects, type RedactRect } from "@/lib/pdf-redact";
+import { cn } from "@/lib/utils";
 
 const COPY = {
   zh: {
     prev: "上一页",
     next: "下一页",
     clearPage: "清空本页",
+    expand: "放大预览",
+    collapse: "退出放大",
     removeBox: "删除这个区域",
     hint: "在预览图上拖动即可画出要涂销的区域，可画多个；点击区域右上角可以删掉重画。",
     boxes: (n: number) => `${n} 个区域`,
@@ -58,6 +63,8 @@ const COPY = {
     prev: "Previous page",
     next: "Next page",
     clearPage: "Clear this page",
+    expand: "Expand preview",
+    collapse: "Exit expand",
     removeBox: "Remove this area",
     hint: "Drag on the preview to mark a region to burn out. Add as many as you need; click the corner to remove one.",
     boxes: (n: number) => `${n} area${n === 1 ? "" : "s"}`,
@@ -91,6 +98,7 @@ export function PdfRedactTool() {
   const [progress, setProgress] = React.useState({ done: 0, total: 0 });
   const [error, setError] = React.useState<unknown>(null);
   const [result, setResult] = React.useState<{ blob: Blob; name: string } | null>(null);
+  const [expanded, setExpanded] = React.useState(false);
 
   const sourceRef = React.useRef<RenderablePdf | null>(null);
   const dragRef = React.useRef<{ x: number; y: number } | null>(null);
@@ -110,6 +118,22 @@ export function PdfRedactTool() {
     };
   }, []);
 
+  // Expanded mode is a full-viewport stage: lock the page behind it and let Esc
+  // close it, so the preview behaves like a lightbox rather than a modal
+  React.useEffect(() => {
+    if (!expanded) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setExpanded(false);
+    };
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [expanded]);
+
   // The preview follows the current page; the key keeps a stale render from
   // landing on the wrong page while the tool is loading another file
   React.useEffect(() => {
@@ -119,7 +143,8 @@ export function PdfRedactTool() {
 
     let cancelled = false;
     const key = `${fileKey(current)}-${pageIndex}`;
-    renderPage(source.doc, pageIndex + 1, 1.4)
+    // Render sharper while expanded: the stage is then much wider than 1.4x
+    renderPage(source.doc, pageIndex + 1, expanded ? 2 : 1.4)
       .then((rendered) => {
         const src = rendered.canvas.toDataURL("image/jpeg", 0.85);
         rendered.canvas.width = 0;
@@ -133,7 +158,7 @@ export function PdfRedactTool() {
     return () => {
       cancelled = true;
     };
-  }, [files, pageIndex]);
+  }, [files, pageIndex, expanded]);
 
   const load = async (picked: File) => {
     setLoading(true);
@@ -165,6 +190,7 @@ export function PdfRedactTool() {
   };
 
   const reset = () => {
+    setExpanded(false);
     setFiles([]);
     setPageCount(0);
     setPageIndex(0);
@@ -219,6 +245,50 @@ export function PdfRedactTool() {
     }
   };
 
+  const nav = (
+    <div className="flex items-center gap-1">
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon-xs"
+        aria-label={t.prev}
+        title={t.prev}
+        disabled={pageIndex === 0}
+        onClick={() => setPageIndex((index) => Math.max(0, index - 1))}
+      >
+        <ChevronLeft className="h-4 w-4" />
+      </Button>
+      <span className="min-w-16 text-center font-mono text-[11px] text-foreground-muted">
+        {pageIndex + 1} / {pageCount}
+      </span>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon-xs"
+        aria-label={t.next}
+        title={t.next}
+        disabled={pageIndex >= pageCount - 1}
+        onClick={() => setPageIndex((index) => Math.min(pageCount - 1, index + 1))}
+      >
+        <ChevronRight className="h-4 w-4" />
+      </Button>
+    </div>
+  );
+
+  const clearPageButton = (
+    <Button
+      type="button"
+      variant="ghost"
+      size="xs"
+      className="gap-1.5"
+      disabled={pageRects.length === 0}
+      onClick={() => setRects((prev) => prev.map((list, index) => (index === pageIndex ? [] : list)))}
+    >
+      <Trash2 className="h-3.5 w-3.5" />
+      {t.clearPage}
+    </Button>
+  );
+
   return (
     <div className="flex flex-col gap-4">
       <FilePicker
@@ -244,51 +314,24 @@ export function PdfRedactTool() {
       {file && (
         <>
           <OptionBar>
-            <div className="flex items-center gap-1">
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-xs"
-                aria-label={t.prev}
-                title={t.prev}
-                disabled={pageIndex === 0}
-                onClick={() => setPageIndex((index) => Math.max(0, index - 1))}
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <span className="min-w-16 text-center font-mono text-[11px] text-foreground-muted">
-                {pageIndex + 1} / {pageCount}
-              </span>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-xs"
-                aria-label={t.next}
-                title={t.next}
-                disabled={pageIndex >= pageCount - 1}
-                onClick={() => setPageIndex((index) => Math.min(pageCount - 1, index + 1))}
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
+            {nav}
 
             <span className="flex items-center gap-1.5 font-mono text-[11px] text-foreground-subtle">
               <SquareDashed className="h-3.5 w-3.5" />
               {t.boxes(pageRects.length)}
             </span>
 
+            {clearPageButton}
+
             <Button
               type="button"
               variant="ghost"
               size="xs"
               className="gap-1.5"
-              disabled={pageRects.length === 0}
-              onClick={() =>
-                setRects((prev) => prev.map((list, index) => (index === pageIndex ? [] : list)))
-              }
+              onClick={() => setExpanded(true)}
             >
-              <Trash2 className="h-3.5 w-3.5" />
-              {t.clearPage}
+              <Maximize2 className="h-3.5 w-3.5" />
+              {t.expand}
             </Button>
 
             <OptionField label={t.dpi}>
@@ -326,83 +369,120 @@ export function PdfRedactTool() {
 
           <p className="text-xs leading-relaxed text-foreground-subtle">{t.hint}</p>
 
-          <section className="overflow-hidden rounded-lg border border-border bg-surface p-3">
-            <div
-              className="relative mx-auto w-fit max-w-full cursor-crosshair touch-none select-none"
-              onPointerDown={(event) => {
-                if (event.button !== 0) return;
-                event.currentTarget.setPointerCapture(event.pointerId);
-                dragRef.current = positionOf(event);
-                setDraft(null);
-              }}
-              onPointerMove={(event) => {
-                const start = dragRef.current;
-                if (!start) return;
-                const now = positionOf(event);
-                setDraft(rectFromDrag(start.x, start.y, now.x, now.y));
-              }}
-              onPointerUp={(event) => commit(positionOf(event))}
-              onPointerCancel={() => {
-                dragRef.current = null;
-                setDraft(null);
-              }}
-            >
-              {currentPreview ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={currentPreview}
-                  alt={`${file.name} — ${pageIndex + 1}`}
-                  draggable={false}
-                  className="block max-h-[70vh] w-auto max-w-full"
-                />
-              ) : (
-                <div className="flex h-64 w-[min(80vw,520px)] flex-col items-center justify-center gap-2 text-xs text-foreground-subtle">
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                  {t.loading}
-                </div>
-              )}
-
-              {pageRects.map((rect, index) => (
-                <div
-                  key={`${rect.x}-${rect.y}-${index}`}
-                  className="absolute bg-black/85 ring-1 ring-white/40"
-                  style={{
-                    left: `${rect.x * 100}%`,
-                    top: `${rect.y * 100}%`,
-                    width: `${rect.width * 100}%`,
-                    height: `${rect.height * 100}%`,
-                  }}
+          <section
+            className={cn(
+              "rounded-lg border border-border bg-surface",
+              expanded
+                ? "fixed inset-0 z-50 flex flex-col gap-3 border-0 bg-background p-3 sm:p-4"
+                : "overflow-hidden p-3"
+            )}
+          >
+            {expanded && (
+              <div className="flex flex-wrap items-center gap-2">
+                {nav}
+                <span className="flex items-center gap-1.5 font-mono text-[11px] text-foreground-subtle">
+                  <SquareDashed className="h-3.5 w-3.5" />
+                  {t.boxes(pageRects.length)}
+                </span>
+                {clearPageButton}
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="xs"
+                  className="ml-auto gap-1.5"
+                  onClick={() => setExpanded(false)}
                 >
-                  <button
-                    type="button"
-                    aria-label={t.removeBox}
-                    title={t.removeBox}
-                    onPointerDown={(event) => event.stopPropagation()}
-                    onClick={() =>
-                      setRects((prev) =>
-                        prev.map((list, page) =>
-                          page === pageIndex ? list.filter((_, i) => i !== index) : list
-                        )
-                      )
-                    }
-                    className="absolute -right-2 -top-2 grid h-5 w-5 place-items-center rounded-full bg-background text-foreground shadow-sm ring-1 ring-border hover:bg-hover-bg"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </div>
-              ))}
+                  <Minimize2 className="h-3.5 w-3.5" />
+                  {t.collapse}
+                </Button>
+              </div>
+            )}
 
-              {draft && (
-                <div
-                  className="pointer-events-none absolute border border-dashed border-white bg-black/50"
-                  style={{
-                    left: `${draft.x * 100}%`,
-                    top: `${draft.y * 100}%`,
-                    width: `${draft.width * 100}%`,
-                    height: `${draft.height * 100}%`,
-                  }}
-                />
+            <div
+              className={cn(
+                expanded && "flex min-h-0 flex-1 items-center justify-center overflow-auto"
               )}
+            >
+              <div
+                className="relative mx-auto w-fit max-w-full cursor-crosshair touch-none select-none"
+                onPointerDown={(event) => {
+                  if (event.button !== 0) return;
+                  event.currentTarget.setPointerCapture(event.pointerId);
+                  dragRef.current = positionOf(event);
+                  setDraft(null);
+                }}
+                onPointerMove={(event) => {
+                  const start = dragRef.current;
+                  if (!start) return;
+                  const now = positionOf(event);
+                  setDraft(rectFromDrag(start.x, start.y, now.x, now.y));
+                }}
+                onPointerUp={(event) => commit(positionOf(event))}
+                onPointerCancel={() => {
+                  dragRef.current = null;
+                  setDraft(null);
+                }}
+              >
+                {currentPreview ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={currentPreview}
+                    alt={`${file.name} — ${pageIndex + 1}`}
+                    draggable={false}
+                    className={cn(
+                      "block w-auto max-w-full",
+                      expanded ? "max-h-[calc(100dvh-7rem)]" : "max-h-[76vh]"
+                    )}
+                  />
+                ) : (
+                  <div className="flex h-64 w-[min(80vw,520px)] flex-col items-center justify-center gap-2 text-xs text-foreground-subtle">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    {t.loading}
+                  </div>
+                )}
+
+                {pageRects.map((rect, index) => (
+                  <div
+                    key={`${rect.x}-${rect.y}-${index}`}
+                    className="absolute bg-black/85 ring-1 ring-white/40"
+                    style={{
+                      left: `${rect.x * 100}%`,
+                      top: `${rect.y * 100}%`,
+                      width: `${rect.width * 100}%`,
+                      height: `${rect.height * 100}%`,
+                    }}
+                  >
+                    <button
+                      type="button"
+                      aria-label={t.removeBox}
+                      title={t.removeBox}
+                      onPointerDown={(event) => event.stopPropagation()}
+                      onClick={() =>
+                        setRects((prev) =>
+                          prev.map((list, page) =>
+                            page === pageIndex ? list.filter((_, i) => i !== index) : list
+                          )
+                        )
+                      }
+                      className="absolute -right-2 -top-2 grid h-5 w-5 place-items-center rounded-full bg-background text-foreground shadow-sm ring-1 ring-border hover:bg-hover-bg"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+
+                {draft && (
+                  <div
+                    className="pointer-events-none absolute border border-dashed border-white bg-black/50"
+                    style={{
+                      left: `${draft.x * 100}%`,
+                      top: `${draft.y * 100}%`,
+                      width: `${draft.width * 100}%`,
+                      height: `${draft.height * 100}%`,
+                    }}
+                  />
+                )}
+              </div>
             </div>
           </section>
 
