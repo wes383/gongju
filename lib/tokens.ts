@@ -3,15 +3,20 @@
  *
  * A real BPE vocabulary (cl100k_base, o200k_base) is one to two megabytes of
  * merge ranks even compressed, which is far too much weight for a tool page.
- * Instead this module models the text the way BPE behaves: Latin words collapse
- * to roughly one token per five characters, CJK characters are close to one
- * token each but differ a lot between tokenizers, digits pack about three per
- * token, and punctuation costs half a token on average.
+ * Instead this module models the text the way BPE behaves: a Latin word plus its
+ * leading space is one token up to about nine characters and splits after that,
+ * identifiers split at camelCase and underscores, CJK characters are close to one
+ * token each but differ between tokenizers, digits pack about three per token,
+ * and punctuation costs half a token on average.
  *
- * The constants below were calibrated against reference tokenizations, and the
- * result usually lands within about ten percent. That is fine for context
- * budgeting and cost sanity checks, but it is an estimate — the only exact
- * answer comes from the model's own tokenizer.
+ * The constants were fitted against o200k_base and cl100k_base over English
+ * prose, Chinese prose, source code and JSON: English prose lands within about
+ * five percent, code runs roughly ten percent low (operators and newlines cost
+ * more than the model admits), and Chinese drifts up to twenty percent either
+ * way, because rare characters fall back to byte-level tokens while common
+ * words merge into one. Emoji are counted once per grapheme cluster. This is
+ * fine for context budgeting and cost sanity checks, but it is an estimate —
+ * the only exact answer comes from the model's own tokenizer.
  */
 
 export type TokenizerFamily = "o200k" | "cl100k" | "claude" | "gemini" | "llama";
@@ -24,12 +29,14 @@ export interface TokenizerProfile {
   short: { zh: string; en: string };
   /** Which tokenizer actually backs it, shown in the UI */
   detail: string;
-  /** Average Latin characters per token */
-  latin: number;
+  /** Characters one Latin word holds before it needs a second token */
+  word: number;
   /** Tokens per CJK character */
   cjk: number;
   /** Digits per token */
   digits: number;
+  /** Tokens per emoji grapheme cluster */
+  emoji: number;
 }
 
 export const TOKENIZERS: TokenizerProfile[] = [
@@ -38,45 +45,50 @@ export const TOKENIZERS: TokenizerProfile[] = [
     label: { zh: "GPT-4o / o 系列", en: "GPT-4o / o series" },
     short: { zh: "GPT-4o", en: "GPT-4o" },
     detail: "o200k_base",
-    latin: 5.2,
-    cjk: 0.72,
+    word: 9,
+    cjk: 0.8,
     digits: 3,
+    emoji: 2,
   },
   {
     id: "cl100k",
     label: { zh: "GPT-4 / GPT-3.5", en: "GPT-4 / GPT-3.5" },
     short: { zh: "GPT-4", en: "GPT-4" },
     detail: "cl100k_base",
-    latin: 5,
-    cjk: 1,
+    word: 9,
+    cjk: 1.05,
     digits: 3,
+    emoji: 3,
   },
   {
     id: "claude",
     label: { zh: "Claude", en: "Claude" },
     short: { zh: "Claude", en: "Claude" },
     detail: "Anthropic",
-    latin: 5,
+    word: 8.6,
     cjk: 1.35,
     digits: 3,
+    emoji: 3,
   },
   {
     id: "gemini",
     label: { zh: "Gemini", en: "Gemini" },
     short: { zh: "Gemini", en: "Gemini" },
     detail: "SentencePiece",
-    latin: 4.6,
+    word: 8.2,
     cjk: 1,
     digits: 3.2,
+    emoji: 3,
   },
   {
     id: "llama",
     label: { zh: "Llama / Mistral", en: "Llama / Mistral" },
     short: { zh: "Llama", en: "Llama" },
     detail: "SentencePiece BPE",
-    latin: 4.2,
+    word: 7.6,
     cjk: 1.6,
     digits: 3,
+    emoji: 3,
   },
 ];
 
@@ -103,20 +115,41 @@ export interface TokenEstimate {
   charsPerToken: number;
 }
 
-const CJK_CHAR = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}\p{Script=Thai}]/u;
+const CJK_CHAR =
+  /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}\p{Script=Thai}]/u;
 const LETTER_RUN = /^[\p{L}\p{M}]/u;
 const DIGIT_RUN = /^\p{N}/u;
+/** One pictograph plus any variation selector, skin tone or ZWJ joiners */
+const EMOJI_RUN =
+  /^\p{Extended_Pictographic}(?:\uFE0F|\p{Emoji_Modifier})?(?:\u200D\p{Extended_Pictographic}(?:\uFE0F|\p{Emoji_Modifier})?)*/u;
 
 /**
  * One pass over the text. CJK comes before the generic letter alternative so
  * Chinese is not swallowed as a single "word"; the letter alternative allows
- * inner apostrophes and dashes so "it's" and "state-of-the-art" count as one.
+ * inner apostrophes, underscores and dashes so "it's", "MAX_BYTES" and
+ * "state-of-the-art" stay one segment and then get split by `latinCost`.
+ * The emoji alternative has to precede the catch-all so a cluster stays whole.
  */
 const SEGMENT =
-  /\s+|[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}\p{Script=Thai}]+|[\p{L}\p{M}]+(?:['’\u2010-\u2015-][\p{L}\p{M}]+)*|[\p{N}]+|./gu;
+  /\s+|[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}\p{Script=Thai}]+|\p{Extended_Pictographic}(?:\uFE0F|\p{Emoji_Modifier})?(?:\u200D\p{Extended_Pictographic}(?:\uFE0F|\p{Emoji_Modifier})?)*|[\p{L}\p{M}]+(?:['’_\u2010-\u2015-][\p{L}\p{M}]+)*|[\p{N}]+|./gu;
 
 /** Half a token per punctuation mark: ", " is one token, "()" is one. */
 const SYMBOL_COST = 0.5;
+
+/** camelCase, snake_case and kebab-case boundaries, where BPE starts a new token */
+const WORD_BREAK = /[_-]+|(?<=[a-z0-9])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])/;
+
+/**
+ * A word plus its leading space is one token until it gets long, then it falls
+ * apart in chunks of roughly `profile.word` characters. Identifiers break at
+ * camelCase and underscores first, which is what makes code come out closer.
+ */
+function latinCost(word: string, chunk: number): number {
+  return word
+    .split(WORD_BREAK)
+    .filter(Boolean)
+    .reduce((sum, part) => sum + Math.max(1, Math.ceil((part.length + 1) / chunk)), 0);
+}
 
 /**
  * Runs of whitespace are mostly absorbed into the following word's token, so a
@@ -173,8 +206,13 @@ export function estimateTokens(
       continue;
     }
 
+    if (EMOJI_RUN.test(segment)) {
+      symbols += profile.emoji;
+      continue;
+    }
+
     if (LETTER_RUN.test(first)) {
-      latin += Math.max(1, Math.ceil(length / profile.latin));
+      latin += latinCost(segment, profile.word);
       words += 1;
       continue;
     }

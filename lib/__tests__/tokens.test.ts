@@ -73,6 +73,50 @@ describe("token estimation", () => {
   });
 });
 
+/**
+ * Reference counts come from o200k_base and cl100k_base (via gpt-tokenizer),
+ * measured on the same strings. The model is allowed to drift, but a change
+ * that pushes it past these bands is a regression, not a rounding difference.
+ */
+describe("reference tokenizations", () => {
+  const PROSE =
+    "Writing documentation is mostly about deciding what the reader already knows, " +
+    "then saying the rest in the fewest words that stay unambiguous. Good docs age " +
+    "well because they describe behaviour rather than implementation details.";
+
+  it("stays within ten percent on English prose", () => {
+    // o200k: 40, cl100k: 39
+    for (const estimate of [estimateTokens(PROSE, "o200k"), estimateTokens(PROSE, "cl100k")]) {
+      expect(estimate.total).toBeGreaterThanOrEqual(36);
+      expect(estimate.total).toBeLessThanOrEqual(44);
+    }
+  });
+
+  it("splits identifiers at camelCase and underscores", () => {
+    // o200k: getElementById → 4, MAX_BYTES → 2
+    expect(estimateTokens("getElementById", "o200k").total).toBe(4);
+    expect(estimateTokens("MAX_BYTES", "o200k").total).toBe(2);
+  });
+
+  it("charges an emoji per cluster instead of per code point", () => {
+    // o200k: 🎉 → 2, 🚀🚀🚀 → 6; cl100k is one more per emoji
+    expect(estimateTokens("🎉", "o200k").total).toBe(2);
+    expect(estimateTokens("🎉", "cl100k").total).toBe(3);
+    expect(estimateTokens("👍🏽", "o200k").total).toBe(2);
+    expect(estimateTokens("🚀🚀🚀", "o200k").total).toBe(6);
+  });
+
+  it("keeps common Chinese sentences inside a quarter", () => {
+    // o200k: 11, cl100k: 18
+    const o200k = estimateTokens("今天天气很好，我们去公园散步。", "o200k").total;
+    const cl100k = estimateTokens("今天天气很好，我们去公园散步。", "cl100k").total;
+    expect(o200k).toBeGreaterThanOrEqual(9);
+    expect(o200k).toBeLessThanOrEqual(13);
+    expect(cl100k).toBeGreaterThanOrEqual(14);
+    expect(cl100k).toBeLessThanOrEqual(21);
+  });
+});
+
 describe("chat overhead", () => {
   it("adds framing per message plus reply priming", () => {
     expect(chatOverhead(2)).toBe(2 * MESSAGE_OVERHEAD + REPLY_PRIMING);
