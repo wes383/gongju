@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { LIGHT_THEME, niceScale, parseChartData, renderChartSvg } from "@/lib/chart";
+import { formatChartNumber, parseChartData, textWidth } from "@/lib/chart";
 import { isCodedError } from "@/lib/errors";
 
 describe("parseChartData", () => {
@@ -56,40 +56,16 @@ describe("parseChartData", () => {
   });
 });
 
-describe("niceScale", () => {
-  it("rounds a positive range up to a readable step", () => {
-    expect(niceScale(0, 260, 5)).toEqual({ min: 0, max: 300, step: 100 });
+describe("formatting helpers", () => {
+  it("abbreviates large numbers", () => {
+    expect(formatChartNumber(120)).toBe("120");
+    expect(formatChartNumber(12500)).toBe("12.5k");
+    expect(formatChartNumber(-2300000)).toBe("-2.3M");
   });
 
-  it("keeps negative values in range", () => {
-    const scale = niceScale(-40, 120, 5);
-    expect(scale.min).toBeLessThanOrEqual(-40);
-    expect(scale.max).toBeGreaterThanOrEqual(120);
-  });
-});
-
-describe("renderChartSvg", () => {
-  const data = parseChartData("月份,销售额\n1月,120\n2月,156");
-
-  it("renders bars with a palette colour and escapes the title", () => {
-    const svg = renderChartSvg(data, { kind: "bar", title: "销售 <图>", theme: LIGHT_THEME });
-    expect(svg.startsWith("<svg")).toBe(true);
-    expect(svg).toContain("销售 &lt;图&gt;");
-    expect(svg).toContain("#6366f1");
-    expect(svg.match(/<rect /g)?.length ?? 0).toBeGreaterThan(1);
-    expect(svg).toContain("1月");
-  });
-
-  it("keeps the font stack free of raw double quotes so the svg stays valid", () => {
-    const svg = renderChartSvg(data, { kind: "bar", theme: LIGHT_THEME });
-    expect(svg).toContain(
-      "font-family=\"system-ui, -apple-system, 'Segoe UI', 'Noto Sans SC', sans-serif\""
-    );
-  });
-
-  it("draws pie slices with percentages", () => {
-    const svg = renderChartSvg(parseChartData("类别,数量\nA,2\nB,1"), { kind: "pie", theme: LIGHT_THEME });
-    expect(svg).toContain("<path");
-    expect(svg).toContain("66.67%");
+  it("measures CJK glyphs as full width", () => {
+    expect(textWidth("中文", 12)).toBe(24);
+    expect(textWidth("ab", 12)).toBeCloseTo(13.2);
   });
 });
+

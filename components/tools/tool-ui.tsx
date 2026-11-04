@@ -11,12 +11,15 @@ import { errorText } from "@/lib/errors";
 /** Copy to clipboard with a 1.5s "copied" state */
 export function CopyButton({
   value,
+  getValue,
   label,
   size = "xs",
   className,
   disabled,
 }: {
-  value: string;
+  value?: string;
+  /** Resolve the text when clicked, for values that only exist in the DOM */
+  getValue?: () => string;
   label?: string;
   size?: "xs" | "sm" | "icon-xs" | "icon-sm";
   className?: string;
@@ -34,9 +37,10 @@ export function CopyButton({
   }, []);
 
   const handleCopy = async () => {
-    if (!value) return;
+    const content = getValue ? getValue() : value ?? "";
+    if (!content) return;
     try {
-      await navigator.clipboard.writeText(value);
+      await navigator.clipboard.writeText(content);
       setStatus("copied");
     } catch {
       setStatus("failed");
@@ -46,6 +50,7 @@ export function CopyButton({
   };
 
   const iconOnly = size.startsWith("icon");
+  const nothingToCopy = !getValue && !value;
 
   return (
     <Button
@@ -53,7 +58,7 @@ export function CopyButton({
       variant="ghost"
       size={size}
       onClick={handleCopy}
-      disabled={disabled || !value}
+      disabled={disabled || nothingToCopy}
       className={cn("gap-1.5", className)}
       aria-label={status === "failed" ? t.copyError : status === "copied" ? t.copied : text}
     >

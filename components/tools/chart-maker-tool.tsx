@@ -19,7 +19,14 @@ import {
   Toggle,
   WarningNote,
 } from "@/components/tools/tool-ui";
-import { CHART_SAMPLES, DARK_THEME, LIGHT_THEME, parseChartData, renderChartSvg, type ChartKind } from "@/lib/chart";
+import { CHART_FONT, CHART_SAMPLES, DARK_THEME, LIGHT_THEME, parseChartData, type ChartKind } from "@/lib/chart";
+import dynamic from "next/dynamic";
+
+// Recharts is a large payload and only needed once the page is interactive.
+const ChartPreview = dynamic(
+  () => import("@/components/tools/chart-preview").then((module) => module.ChartPreview),
+  { ssr: false }
+);
 import { downloadBlob } from "@/lib/files";
 import { codedError, errorText, safe } from "@/lib/errors";
 import { rasterizeSvg } from "@/lib/svg";
@@ -119,32 +126,38 @@ export function ChartMakerTool() {
   const [showLegend, setShowLegend] = React.useState(true);
   const [showValues, setShowValues] = React.useState(false);
   const [exportError, setExportError] = React.useState<unknown>(null);
+  const previewRef = React.useRef<HTMLDivElement>(null);
 
   const parsed = safe(() => parseChartData(input, { valueLabel: t.valueLabel }));
   const dimensions = SIZES[size];
-  const rendered = parsed.value
-    ? safe(() =>
-        renderChartSvg(parsed.value as ReturnType<typeof parseChartData>, {
-          kind,
-          title,
-          width: dimensions.width,
-          height: dimensions.height,
-          theme,
-          showLegend,
-          showValues,
-        })
-      )
-    : { value: null, error: null };
+  const pieEmpty =
+    kind === "pie" &&
+    parsed.value !== null &&
+    parsed.value.series[0].values.every((value) => value === null || value <= 0);
+  const dataError = parsed.error ?? (pieEmpty ? codedError("chart.empty") : null);
 
-  const svg = rendered.value ?? "";
-  const dataError = parsed.error ?? rendered.error;
+  /** Recharts only exists in the DOM, so downloads serialise the live <svg> */
+  const serializeSvg = (): string => {
+    const source = previewRef.current?.querySelector("svg");
+    if (!source) return "";
+    const clone = source.cloneNode(true) as SVGSVGElement;
+    clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    clone.setAttribute("font-family", CHART_FONT);
+    // Drop the responsive sizing from the live preview and use the chosen canvas
+    clone.removeAttribute("style");
+    clone.setAttribute("width", String(dimensions.width));
+    clone.setAttribute("height", String(dimensions.height));
+    return `<?xml version="1.0" encoding="UTF-8"?>\n${new XMLSerializer().serializeToString(clone)}`;
+  };
 
   const downloadSvg = () => {
+    const svg = serializeSvg();
     if (!svg) return;
     downloadBlob(new Blob([svg], { type: "image/svg+xml;charset=utf-8" }), "chart.svg");
   };
 
   const downloadPng = async () => {
+    const svg = serializeSvg();
     if (!svg) return;
     try {
       const blob = await rasterizeSvg(svg, {
@@ -233,14 +246,14 @@ export function ChartMakerTool() {
               {t.preview}
             </span>
             <div className="ml-auto flex items-center gap-1">
-              <CopyButton value={svg} label={t.copySvg} />
+              <CopyButton getValue={serializeSvg} label={t.copySvg} disabled={!parsed.value} />
               <Button
                 type="button"
                 variant="ghost"
                 size="xs"
                 className="gap-1.5 text-foreground-muted"
                 onClick={downloadSvg}
-                disabled={!svg}
+                disabled={!parsed.value}
               >
                 <Download className="h-3.5 w-3.5" />
                 <span>{t.downloadSvg}</span>
@@ -251,7 +264,7 @@ export function ChartMakerTool() {
                 size="xs"
                 className="gap-1.5 text-foreground-muted"
                 onClick={downloadPng}
-                disabled={!svg}
+                disabled={!parsed.value}
               >
                 <Download className="h-3.5 w-3.5" />
                 <span>{t.downloadPng}</span>
@@ -263,11 +276,23 @@ export function ChartMakerTool() {
               <WarningNote>{t.pieOneSeries}</WarningNote>
             )}
             {dataError ? <ErrorNote>{errorText(dataError, locale)}</ErrorNote> : null}
-            {svg ? (
+            {parsed.value && !dataError ? (
               <div
-                className="[&_svg]:h-auto [&_svg]:max-w-full"
-                dangerouslySetInnerHTML={{ __html: svg }}
-              />
+                ref={previewRef}
+                className="flex justify-center [&_svg]:h-auto [&_svg]:max-w-full"
+                style={{ background: theme.background, fontFamily: CHART_FONT }}
+              >
+                <ChartPreview
+                  data={parsed.value}
+                  kind={kind}
+                  title={title}
+                  showLegend={showLegend}
+                  showValues={showValues}
+                  theme={theme}
+                  width={dimensions.width}
+                  height={dimensions.height}
+                />
+              </div>
             ) : null}
             {exportError ? <ErrorNote>{errorText(exportError, locale)}</ErrorNote> : null}
           </div>
