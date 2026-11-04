@@ -140,6 +140,8 @@ export function DiscountStackTool() {
             </label>
           </div>
 
+          <p className="text-[11px] leading-relaxed text-foreground-faint">{t.discountHint}</p>
+
           <div className="grid gap-3 border-t border-border pt-3 sm:grid-cols-2">
             <div className="flex flex-col gap-1">
               <span className="text-[11px] font-medium text-foreground-subtle">{t.shopCoupon}</span>
