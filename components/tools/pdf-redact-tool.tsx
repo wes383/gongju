@@ -361,7 +361,7 @@ export function PdfRedactTool() {
           )}
 
           {result && (
-            <section className="flex flex-wrap items-center gap-3 rounded-lg border border-green-border bg-surface px-4 py-3">
+            <section className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-surface px-4 py-3">
               <Badge variant="success" size="sm" dot>
                 {t.result}
               </Badge>
