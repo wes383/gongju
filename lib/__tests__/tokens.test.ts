@@ -1,10 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
+  CONTEXT_PRESETS,
+  LONG_CONTEXT_THRESHOLD,
   MESSAGE_OVERHEAD,
   REPLY_PRIMING,
   chatOverhead,
   contextBudget,
   estimateTokens,
+  longContextSurcharge,
   tokenizerProfile,
   TOKENIZERS,
 } from "@/lib/tokens";
@@ -114,6 +117,37 @@ describe("reference tokenizations", () => {
     expect(o200k).toBeLessThanOrEqual(13);
     expect(cl100k).toBeGreaterThanOrEqual(14);
     expect(cl100k).toBeLessThanOrEqual(21);
+  });
+});
+
+describe("claude tokenizer revision", () => {
+  it("costs about a third more than the GPT vocabulary on English prose", () => {
+    const prose =
+      "Writing documentation is mostly about deciding what the reader already knows, " +
+      "then saying the rest in the fewest words that stay unambiguous.";
+    const claude = estimateTokens(prose, "claude").total;
+    const gpt = estimateTokens(prose, "o200k").total;
+    expect(claude / gpt).toBeGreaterThan(1.2);
+    expect(claude / gpt).toBeLessThan(1.45);
+  });
+});
+
+describe("long-context pricing step", () => {
+  it("triggers for the o200k family only once the input passes 272K", () => {
+    expect(longContextSurcharge("o200k", LONG_CONTEXT_THRESHOLD)).toBe(false);
+    expect(longContextSurcharge("o200k", LONG_CONTEXT_THRESHOLD + 1)).toBe(true);
+  });
+
+  it("leaves families without the step alone", () => {
+    expect(longContextSurcharge("cl100k", 400_000)).toBe(false);
+    expect(longContextSurcharge("claude", 400_000)).toBe(false);
+    expect(longContextSurcharge("gemini", 900_000)).toBe(false);
+  });
+
+  it("offers the step and the flagship window as presets, sorted ascending", () => {
+    expect(CONTEXT_PRESETS).toContain(LONG_CONTEXT_THRESHOLD);
+    expect(CONTEXT_PRESETS).toContain(1_050_000);
+    expect([...CONTEXT_PRESETS].sort((a, b) => a - b)).toEqual(CONTEXT_PRESETS);
   });
 });
 

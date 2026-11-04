@@ -42,8 +42,8 @@ export interface TokenizerProfile {
 export const TOKENIZERS: TokenizerProfile[] = [
   {
     id: "o200k",
-    label: { zh: "GPT-4o / o 系列", en: "GPT-4o / o series" },
-    short: { zh: "GPT-4o", en: "GPT-4o" },
+    label: { zh: "GPT-6 / GPT-5.6 / GPT-4o", en: "GPT-6 / GPT-5.6 / GPT-4o" },
+    short: { zh: "GPT-6", en: "GPT-6" },
     detail: "o200k_base",
     word: 9,
     cjk: 0.8,
@@ -52,7 +52,7 @@ export const TOKENIZERS: TokenizerProfile[] = [
   },
   {
     id: "cl100k",
-    label: { zh: "GPT-4 / GPT-3.5", en: "GPT-4 / GPT-3.5" },
+    label: { zh: "GPT-4 / GPT-3.5 / Embedding", en: "GPT-4 / GPT-3.5 / Embedding" },
     short: { zh: "GPT-4", en: "GPT-4" },
     detail: "cl100k_base",
     word: 9,
@@ -62,17 +62,20 @@ export const TOKENIZERS: TokenizerProfile[] = [
   },
   {
     id: "claude",
-    label: { zh: "Claude", en: "Claude" },
+    label: { zh: "Claude 4.7+ / 5.x", en: "Claude 4.7+ / 5.x" },
     short: { zh: "Claude", en: "Claude" },
-    detail: "Anthropic",
-    word: 8.6,
-    cjk: 1.35,
-    digits: 3,
+    detail: "Anthropic BPE",
+    // Claude 4.7 swapped tokenizers and emits about 30% more tokens for the same
+    // text, so these rates are fitted to land roughly a third above the pre-4.7
+    // counts rather than scaled from the old constants.
+    word: 6.6,
+    cjk: 1.75,
+    digits: 2.3,
     emoji: 3,
   },
   {
     id: "gemini",
-    label: { zh: "Gemini", en: "Gemini" },
+    label: { zh: "Gemini 3.x", en: "Gemini 3.x" },
     short: { zh: "Gemini", en: "Gemini" },
     detail: "SentencePiece",
     word: 8.2,
@@ -297,8 +300,23 @@ export function contextBudget(input: ContextBudgetInput): ContextBudget {
   };
 }
 
-/** Common context windows, used as quick presets in the UI. */
-export const CONTEXT_PRESETS = [8_192, 32_768, 128_000, 200_000, 1_000_000];
+/**
+ * Common context windows, used as quick presets in the UI. 272K is OpenAI's
+ * long-context step, 1.05M is the current flagship window, 1M covers Claude.
+ */
+export const CONTEXT_PRESETS = [8_192, 32_768, 128_000, 200_000, 272_000, 1_000_000, 1_050_000];
+
+/** Input above this many tokens is billed at double for the whole request */
+export const LONG_CONTEXT_THRESHOLD = 272_000;
+
+/**
+ * Whether a request of `tokens` would cross OpenAI's long-context step. Only the
+ * o200k family is subject to it: GPT-4 and the embedding models never were.
+ */
+export function longContextSurcharge(family: TokenizerFamily, tokens: number): boolean {
+  if (family !== "o200k") return false;
+  return clampTokens(tokens) > LONG_CONTEXT_THRESHOLD;
+}
 
 /** 12345 → "12,345"; used in every stats row */
 export function formatTokens(value: number, locale: string): string {
