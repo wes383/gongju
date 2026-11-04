@@ -1,9 +1,18 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono, Noto_Sans_SC, Plus_Jakarta_Sans } from "next/font/google";
+import { JsonLd } from "@/components/site/json-ld";
 import { ThemeProvider } from "@/components/theme-provider";
 import { LocaleProvider } from "@/components/locale-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { SITE_NAME, SITE_URL } from "@/lib/site";
+import {
+  SITE_DESCRIPTION,
+  SITE_LANG,
+  SITE_NAME,
+  SITE_OG_LOCALE,
+  SITE_TITLE,
+  SITE_URL,
+} from "@/lib/site";
+import { siteJsonLd } from "@/lib/structured-data";
 import "./globals.css";
 
 const inter = Inter({
@@ -35,10 +44,6 @@ const notoSansSC = Noto_Sans_SC({
   preload: false,
 });
 
-const SITE_TITLE = "GongJu · 在线工具箱";
-const SITE_DESCRIPTION =
-  "纯浏览器端运行的开发者工具箱：编码解码、格式化、转换、加密、时间日期等常用工具，数据不出本机。";
-
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
@@ -48,12 +53,15 @@ export const metadata: Metadata = {
   description: SITE_DESCRIPTION,
   applicationName: SITE_NAME,
   keywords: ["在线工具", "开发者工具", "编码解码", "格式化", "转换器"],
+  // No canonical here: a layout-level canonical is inherited by every route,
+  // which would fold all tool pages into the home page in search results.
   openGraph: {
     type: "website",
     siteName: SITE_NAME,
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
-    locale: "zh_CN",
+    url: SITE_URL,
+    locale: SITE_OG_LOCALE,
     alternateLocale: ["en"],
   },
   twitter: {
@@ -78,11 +86,13 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
-      lang="zh-CN"
+      lang={SITE_LANG}
       suppressHydrationWarning
       className={`${inter.variable} ${plusJakartaSans.variable} ${jetbrainsMono.variable} ${notoSansSC.variable}`}
     >
       <body className="min-h-screen font-sans antialiased">
+        {/* Site-wide graph: every tool page points back to these @ids */}
+        <JsonLd data={siteJsonLd()} />
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <LocaleProvider>
             <TooltipProvider delayDuration={300}>{children}</TooltipProvider>
