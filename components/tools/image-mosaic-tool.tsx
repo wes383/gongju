@@ -11,6 +11,7 @@ import {
   type LoadedImage,
 } from "@/components/tools/image-drop";
 import { OptionBar, OptionField, Segmented } from "@/components/tools/tool-ui";
+import { ZoomStage, ZoomToggle } from "@/components/tools/zoom-stage";
 import { useCopy } from "@/components/locale-provider";
 import {
   baseName,
@@ -28,6 +29,7 @@ import {
   type Rect,
   type RedactMode,
 } from "@/lib/mosaic";
+import { cn } from "@/lib/utils";
 
 const COPY = {
   zh: {
@@ -40,6 +42,8 @@ const COPY = {
     color: "颜色",
     undo: "撤销",
     clear: "清除全部",
+    expand: "放大预览",
+    collapse: "退出放大",
     download: "下载",
     outputFormat: "输出格式",
     jpegQuality: "JPEG 质量",
@@ -59,6 +63,8 @@ const COPY = {
     color: "Colour",
     undo: "Undo",
     clear: "Clear all",
+    expand: "Expand preview",
+    collapse: "Exit expand",
     download: "Download",
     outputFormat: "Format",
     jpegQuality: "JPEG quality",
@@ -117,6 +123,7 @@ function MosaicEditor({ image }: { image: LoadedImage }) {
   const startRef = React.useRef<{ x: number; y: number } | null>(null);
 
   const [ready, setReady] = React.useState(false);
+  const [expanded, setExpanded] = React.useState(false);
   const [rects, setRects] = React.useState<Rect[]>([]);
   const [draft, setDraft] = React.useState<Rect | null>(null);
   const [options, setOptions] = React.useState(DEFAULT_REDACT);
@@ -294,6 +301,12 @@ function MosaicEditor({ image }: { image: LoadedImage }) {
         )}
         <div className="ml-auto flex items-center gap-2">
           <span className="text-[11px] text-foreground-faint">{t.count(rects.length)}</span>
+          <ZoomToggle
+            expanded={expanded}
+            onToggle={() => setExpanded((prev) => !prev)}
+            expandLabel={t.expand}
+            collapseLabel={t.collapse}
+          />
           <Button
             type="button"
             variant="ghost"
@@ -317,16 +330,26 @@ function MosaicEditor({ image }: { image: LoadedImage }) {
         </div>
       </OptionBar>
 
-      <div className="overflow-hidden rounded-lg border border-border bg-surface p-2">
-        <canvas
-          ref={canvasRef}
-          onPointerDown={onPointerDown}
-          onPointerMove={onPointerMove}
-          onPointerUp={onPointerUp}
-          onPointerCancel={onPointerUp}
-          className="mx-auto h-auto max-h-[560px] w-auto max-w-full cursor-crosshair touch-none select-none rounded"
-        />
-      </div>
+      <ZoomStage
+        expanded={expanded}
+        onCollapse={() => setExpanded(false)}
+        collapseLabel={t.collapse}
+        className="overflow-hidden p-2"
+      >
+        {(full) => (
+          <canvas
+            ref={canvasRef}
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+            onPointerCancel={onPointerUp}
+            className={cn(
+              "mx-auto h-auto w-auto max-w-full cursor-crosshair touch-none select-none rounded",
+              full ? "max-h-[calc(100dvh-7rem)]" : "max-h-[560px]"
+            )}
+          />
+        )}
+      </ZoomStage>
 
       <div className="flex flex-wrap items-end gap-3 rounded-lg border border-border bg-surface p-3">
         <OptionField label={t.outputFormat}>

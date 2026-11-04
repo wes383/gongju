@@ -4,6 +4,7 @@ import * as React from "react";
 import { Check, Copy, Pipette, X } from "lucide-react";
 import { useCopy } from "@/components/locale-provider";
 import { ImageDrop, useImageFiles } from "@/components/tools/image-drop";
+import { ZoomStage, ZoomToggle } from "@/components/tools/zoom-stage";
 import { createCanvas, decodeFile, hexToRgbTuple } from "@/lib/image";
 import { cn } from "@/lib/utils";
 
@@ -14,6 +15,8 @@ const COPY = {
     palette: "主要颜色",
     note: "取色读取的是画布上的真实像素值，缩放显示不会影响准确度；主要颜色按 4 位量化统计后取占比最高的 8 组。",
     share: "占比",
+    expand: "放大预览",
+    collapse: "退出放大",
   },
   en: {
     pick: "Hover to preview a colour, click to pick it",
@@ -21,6 +24,8 @@ const COPY = {
     palette: "Dominant colours",
     note: "Sampling reads real pixels from the canvas, so the display scale does not affect accuracy. Dominant colours are the top 8 of the 4-bit quantised buckets.",
     share: "share",
+    expand: "Expand preview",
+    collapse: "Exit expand",
   },
 };
 
@@ -108,6 +113,7 @@ export function ImageColorTool() {
 
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
   const [picked, setPicked] = React.useState<{ id: string; hex: string } | null>(null);
+  const [expanded, setExpanded] = React.useState(false);
   const [palette, setPalette] = React.useState<{ id: string; swatches: Swatch[] } | null>(null);
   const [hover, setHover] = React.useState<{
     x: number;
@@ -197,38 +203,58 @@ export function ImageColorTool() {
       {image && (
         <>
           <div className="grid gap-3 lg:grid-cols-[1fr_320px]">
-            <div className="overflow-hidden rounded-lg border border-border bg-surface p-3">
-              <div className="relative">
-                <canvas
-                  ref={canvasRef}
-                  onMouseMove={handleMove}
-                  onMouseLeave={() => setHover(null)}
-                  onClick={handlePick}
-                  className="mx-auto block max-h-[460px] max-w-full cursor-crosshair rounded"
-                />
-                {hover && (
-                  <div
-                    className="pointer-events-none absolute z-10 flex items-center gap-1.5 rounded bg-black/80 px-1.5 py-1 shadow"
-                    style={{
-                      left: Math.min(hover.x + 14, Math.max(hover.boxW - 96, 0)),
-                      top: Math.min(hover.y + 14, Math.max(hover.boxH - 34, 0)),
-                    }}
-                  >
-                    <span
-                      className="h-3.5 w-3.5 rounded-sm border border-white/40"
-                      style={{ background: hover.hex }}
+            <ZoomStage
+              expanded={expanded}
+              onCollapse={() => setExpanded(false)}
+              collapseLabel={t.collapse}
+              className="overflow-hidden"
+            >
+              {(full) => (
+                <>
+                  <div className="relative">
+                    <canvas
+                      ref={canvasRef}
+                      onMouseMove={handleMove}
+                      onMouseLeave={() => setHover(null)}
+                      onClick={handlePick}
+                      className={cn(
+                        "mx-auto block max-w-full cursor-crosshair rounded",
+                        full ? "max-h-[calc(100dvh-9rem)]" : "max-h-[460px]"
+                      )}
                     />
-                    <span className="font-mono text-[10px] text-white">
-                      {hover.hex.toUpperCase()}
-                    </span>
+                    {hover && (
+                      <div
+                        className="pointer-events-none absolute z-10 flex items-center gap-1.5 rounded bg-black/80 px-1.5 py-1 shadow"
+                        style={{
+                          left: Math.min(hover.x + 14, Math.max(hover.boxW - 96, 0)),
+                          top: Math.min(hover.y + 14, Math.max(hover.boxH - 34, 0)),
+                        }}
+                      >
+                        <span
+                          className="h-3.5 w-3.5 rounded-sm border border-white/40"
+                          style={{ background: hover.hex }}
+                        />
+                        <span className="font-mono text-[10px] text-white">
+                          {hover.hex.toUpperCase()}
+                        </span>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-              <p className="mt-2 text-center text-[11px] text-foreground-subtle">
-                <Pipette className="mr-1 inline h-3 w-3" />
-                {t.pick}
-              </p>
-            </div>
+                  <p className="mt-2 flex items-center justify-center gap-2 text-center text-[11px] text-foreground-subtle">
+                    <Pipette className="inline h-3 w-3" />
+                    {t.pick}
+                    {!full && (
+                      <ZoomToggle
+                        expanded={expanded}
+                        onToggle={() => setExpanded((prev) => !prev)}
+                        expandLabel={t.expand}
+                        collapseLabel={t.collapse}
+                      />
+                    )}
+                  </p>
+                </>
+              )}
+            </ZoomStage>
 
             <div className="overflow-hidden rounded-lg border border-border bg-surface">
               <header className="flex h-10 items-center border-b border-border px-3">

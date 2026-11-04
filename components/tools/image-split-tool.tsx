@@ -8,7 +8,9 @@ import { Input } from "@/components/ui/input";
 import { ImageDrop, useImageFiles } from "@/components/tools/image-drop";
 import { OutputList, useOutputs } from "@/components/tools/image-output";
 import { OptionBar, OptionField } from "@/components/tools/tool-ui";
+import { ZoomStage, ZoomToggle } from "@/components/tools/zoom-stage";
 import { baseName, canvasToBlob, decodeFile, renderImage } from "@/lib/image";
+import { cn } from "@/lib/utils";
 
 const COPY = {
   zh: {
@@ -19,6 +21,8 @@ const COPY = {
     tile: (r: number, c: number) => `第 ${r} 行第 ${c} 列`,
     note: "按行列均分，适合九宫格朋友圈配图；切出的每块尺寸相同，余数像素会被忽略。",
     preset: "快速",
+    expand: "放大预览",
+    collapse: "退出放大",
   },
   en: {
     rows: "Rows",
@@ -28,6 +32,8 @@ const COPY = {
     tile: (r: number, c: number) => `Row ${r}, column ${c}`,
     note: "Splits evenly by rows and columns — handy for nine-grid posts. Every tile is the same size; leftover pixels are ignored.",
     preset: "Quick",
+    expand: "Expand preview",
+    collapse: "Exit expand",
   },
 };
 
@@ -47,6 +53,7 @@ export function ImageSplitTool() {
   const [rows, setRows] = React.useState(3);
   const [cols, setCols] = React.useState(3);
   const [busy, setBusy] = React.useState(false);
+  const [expanded, setExpanded] = React.useState(false);
   const resultsRef = React.useRef<HTMLDivElement>(null);
 
   const run = async () => {
@@ -144,6 +151,13 @@ export function ImageSplitTool() {
               {Math.floor(image.width / cols)}×{Math.floor(image.height / rows)} × {rows * cols}
             </span>
 
+            <ZoomToggle
+              expanded={expanded}
+              onToggle={() => setExpanded((prev) => !prev)}
+              expandLabel={t.expand}
+              collapseLabel={t.collapse}
+            />
+
             <Button type="button" size="xs" onClick={run} disabled={busy} className="ml-auto gap-1.5">
               {busy ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -154,28 +168,42 @@ export function ImageSplitTool() {
             </Button>
           </OptionBar>
 
-          <div className="overflow-hidden rounded-lg border border-border bg-surface p-3">
-            <div className="relative mx-auto inline-block max-w-full">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={image.url} alt={image.name} className="max-h-[420px] max-w-full" />
-              <div className="pointer-events-none absolute inset-0">
-                {Array.from({ length: cols - 1 }, (_, i) => (
-                  <span
-                    key={`v${i}`}
-                    className="absolute top-0 h-full w-px bg-white/80 shadow-[0_0_0_1px_rgba(0,0,0,0.35)]"
-                    style={{ left: `${((i + 1) / cols) * 100}%` }}
-                  />
-                ))}
-                {Array.from({ length: rows - 1 }, (_, i) => (
-                  <span
-                    key={`h${i}`}
-                    className="absolute left-0 h-px w-full bg-white/80 shadow-[0_0_0_1px_rgba(0,0,0,0.35)]"
-                    style={{ top: `${((i + 1) / rows) * 100}%` }}
-                  />
-                ))}
+          <ZoomStage
+            expanded={expanded}
+            onCollapse={() => setExpanded(false)}
+            collapseLabel={t.collapse}
+            className="overflow-hidden"
+          >
+            {(full) => (
+              <div className="relative inline-block max-w-full">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={image.url}
+                  alt={image.name}
+                  className={cn(
+                    "max-w-full",
+                    full ? "max-h-[calc(100dvh-8rem)]" : "max-h-[420px]"
+                  )}
+                />
+                <div className="pointer-events-none absolute inset-0">
+                  {Array.from({ length: cols - 1 }, (_, i) => (
+                    <span
+                      key={`v${i}`}
+                      className="absolute top-0 h-full w-px bg-white/80 shadow-[0_0_0_1px_rgba(0,0,0,0.35)]"
+                      style={{ left: `${((i + 1) / cols) * 100}%` }}
+                    />
+                  ))}
+                  {Array.from({ length: rows - 1 }, (_, i) => (
+                    <span
+                      key={`h${i}`}
+                      className="absolute left-0 h-px w-full bg-white/80 shadow-[0_0_0_1px_rgba(0,0,0,0.35)]"
+                      style={{ top: `${((i + 1) / rows) * 100}%` }}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
-          </div>
+            )}
+          </ZoomStage>
 
           <div ref={resultsRef} className="scroll-mt-4">
             <OutputList outputs={outputs} zipName={`${baseName(image.name)}-tiles.zip`} />

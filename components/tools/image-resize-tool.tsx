@@ -20,6 +20,7 @@ import {
   type CropRect,
 } from "@/components/tools/image-cropper";
 import { OptionBar, OptionField, Segmented } from "@/components/tools/tool-ui";
+import { ZoomStage, ZoomToggle } from "@/components/tools/zoom-stage";
 import {
   baseName,
   canvasToBlob,
@@ -55,6 +56,8 @@ const COPY = {
     cropArea: "裁剪区域",
     empty: "调整尺寸后显示预览",
     note: "裁剪：拖动裁剪框选区域；缩放：整张图拉伸到目标尺寸。",
+    expand: "放大预览",
+    collapse: "退出放大",
   },
   en: {
     mode: "Mode",
@@ -76,6 +79,8 @@ const COPY = {
     cropArea: "Crop area",
     empty: "Adjust the size to see the preview",
     note: "Crop: drag a box over the image. Resize: the whole image is stretched to the target size.",
+    expand: "Expand preview",
+    collapse: "Exit expand",
   },
 };
 
@@ -148,6 +153,7 @@ export function ImageResizeTool() {
   const [background, setBackground] = React.useState("#ffffff");
   const [preview, setPreview] = React.useState<{ url: string; blob: Blob; width: number; height: number } | null>(null);
   const [working, setWorking] = React.useState(false);
+  const [expanded, setExpanded] = React.useState(false);
 
   // Size follows the loaded image until the user edits it, so no effect is needed
   const width = dims && image && dims.id === image.id ? dims.width : (image?.width ?? 0);
@@ -465,6 +471,13 @@ export function ImageResizeTool() {
               </OptionField>
             )}
 
+            <ZoomToggle
+              expanded={expanded}
+              onToggle={() => setExpanded((prev) => !prev)}
+              expandLabel={t.expand}
+              collapseLabel={t.collapse}
+            />
+
             <Button
               type="button"
               size="xs"
@@ -483,35 +496,53 @@ export function ImageResizeTool() {
             </Button>
           </OptionBar>
 
-          <div className="overflow-hidden rounded-lg border border-border bg-surface">
-            <header className="flex h-10 items-center gap-2 border-b border-border px-3">
-              <span className="font-mono text-[11px] uppercase tracking-wide text-foreground-subtle">
-                {mode === "crop" ? t.cropArea : t.result}
-              </span>
-              <span className="text-[11px] text-foreground-subtle">
-                {preview ? `${preview.width}×${preview.height} · ${formatBytes(preview.blob.size)}` : ""}
-              </span>
-              {working && <Loader2 className="ml-auto h-3.5 w-3.5 animate-spin text-foreground-subtle" />}
-            </header>
-            <div className="p-3">
-              {mode === "crop" ? (
-                <div className="flex justify-center">
-                  <ImageCropper
-                    src={image.url}
-                    width={image.width}
-                    height={image.height}
-                    rect={rect}
-                    onChange={onCropChange}
-                    aspect={aspect.value}
-                  />
+          <ZoomStage
+            expanded={expanded}
+            onCollapse={() => setExpanded(false)}
+            collapseLabel={t.collapse}
+            className="overflow-hidden p-0"
+          >
+            {(full) => (
+              <>
+                <header className="flex h-10 w-full items-center gap-2 border-b border-border px-3">
+                  <span className="font-mono text-[11px] uppercase tracking-wide text-foreground-subtle">
+                    {mode === "crop" ? t.cropArea : t.result}
+                  </span>
+                  <span className="text-[11px] text-foreground-subtle">
+                    {preview
+                      ? `${preview.width}×${preview.height} · ${formatBytes(preview.blob.size)}`
+                      : ""}
+                  </span>
+                  {working && (
+                    <Loader2 className="ml-auto h-3.5 w-3.5 animate-spin text-foreground-subtle" />
+                  )}
+                </header>
+                <div className="w-full p-3">
+                  {mode === "crop" ? (
+                    <div className="flex justify-center">
+                      <ImageCropper
+                        src={image.url}
+                        width={image.width}
+                        height={image.height}
+                        rect={rect}
+                        onChange={onCropChange}
+                        aspect={aspect.value}
+                        maxHeight={full ? "calc(100dvh - 12rem)" : 420}
+                      />
+                    </div>
+                  ) : preview ? (
+                    <ImagePreview
+                      src={preview.url}
+                      alt={t.result}
+                      height={full ? "h-[calc(100dvh-12rem)]" : undefined}
+                    />
+                  ) : (
+                    <p className="py-10 text-center text-sm text-foreground-subtle">{t.empty}</p>
+                  )}
                 </div>
-              ) : preview ? (
-                <ImagePreview src={preview.url} alt={t.result} />
-              ) : (
-                <p className="py-10 text-center text-sm text-foreground-subtle">{t.empty}</p>
-              )}
-            </div>
-          </div>
+              </>
+            )}
+          </ZoomStage>
 
           <p className="text-xs leading-relaxed text-foreground-subtle">{t.note}</p>
         </>

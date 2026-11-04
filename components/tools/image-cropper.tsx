@@ -139,7 +139,7 @@ export function ImageCropper({
   onChange: (rect: CropRect) => void;
   /** Locked ratio of the crop box, null for free-form */
   aspect?: number | null;
-  maxHeight?: number;
+  maxHeight?: number | string;
 }) {
   const boxRef = React.useRef<HTMLDivElement>(null);
   const drag = React.useRef<{
