@@ -207,3 +207,14 @@ export function histogram(values: number[], binCount?: number): Histogram {
 
   return { bins, width };
 }
+
+/**
+ * The values inside the 1.5 × IQR fence — everything the outlier rows do not
+ * list. A single far-away point stretches the histogram axis so much that the
+ * rest of the sample collapses into one bar, so the chart offers this view.
+ */
+export function coreValues(values: number[], summary: Summary): number[] {
+  const low = summary.q1 - 1.5 * summary.iqr;
+  const high = summary.q3 + 1.5 * summary.iqr;
+  return values.filter((value) => value >= low && value <= high);
+}

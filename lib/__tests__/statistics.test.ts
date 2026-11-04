@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   MAX_VALUES,
+  coreValues,
   histogram,
   parseNumbers,
   quantileSorted,
@@ -147,5 +148,22 @@ describe("histogram", () => {
   it("caps the bin count", () => {
     const many = Array.from({ length: 1000 }, (_, i) => i);
     expect(histogram(many, 500).bins.length).toBe(40);
+  });
+});
+
+describe("core values", () => {
+  it("drops values beyond the 1.5 × IQR fence", () => {
+    const values = [1, 2, 3, 4, 5, 6, 7, 8, 9, 100];
+    expect(coreValues(values, summarize(values))).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+  });
+
+  it("keeps a tight sample untouched", () => {
+    const values = [12.4, 13.1, 11.8, 14.2, 12.9, 13.6, 15.1, 12.2];
+    expect(coreValues(values, summarize(values))).toEqual(values);
+  });
+
+  it("trims a sample whose upper fence sits below the maximum", () => {
+    // Q1 = 4, Q3 = 5.5 here, so the fence is 7.75 and 9 falls outside it
+    expect(coreValues(SAMPLE, summarize(SAMPLE))).toEqual([2, 4, 4, 4, 5, 5, 7]);
   });
 });
