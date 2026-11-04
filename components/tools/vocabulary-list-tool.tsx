@@ -159,7 +159,7 @@ export function VocabularyListTool() {
             <label className="flex items-center gap-2 text-[11px] text-foreground-muted">
               {t.minCount}
               <Select value={minCount} onValueChange={setMinCount}>
-                <SelectTrigger className="h-7 w-[84px] text-xs">
+                <SelectTrigger size="xs" className="h-7 w-auto min-w-[76px] text-xs">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -174,7 +174,7 @@ export function VocabularyListTool() {
             <label className="flex items-center gap-2 text-[11px] text-foreground-muted">
               {t.limit}
               <Select value={limit} onValueChange={setLimit}>
-                <SelectTrigger className="h-7 w-[74px] text-xs">
+                <SelectTrigger size="xs" className="h-7 w-auto min-w-[68px] text-xs">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -198,7 +198,7 @@ export function VocabularyListTool() {
             )}
             <div className="ml-auto flex items-center gap-1">
               <Select value={sort} onValueChange={(value) => setSort(value as SortMode)}>
-                <SelectTrigger className="h-7 w-[104px] text-xs" aria-label={t.sort}>
+                <SelectTrigger size="xs" className="h-7 w-auto min-w-[108px] text-xs" aria-label={t.sort}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>

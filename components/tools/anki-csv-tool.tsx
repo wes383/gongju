@@ -145,7 +145,7 @@ export function AnkiCsvTool() {
           <label className="flex items-center gap-2 text-[11px] text-foreground-muted">
             {t.tags}
             <Select value={tags} onValueChange={setTags}>
-              <SelectTrigger className="h-7 w-[96px] text-xs">
+              <SelectTrigger size="xs" className="h-7 w-auto min-w-[100px] text-xs">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

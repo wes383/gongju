@@ -143,7 +143,7 @@ export function WordFrequencyTool() {
             <label className="flex items-center gap-2 text-[11px] text-foreground-muted">
               {t.minLength}
               <Select value={minLength} onValueChange={setMinLength}>
-                <SelectTrigger className="h-7 w-[74px] text-xs">
+                <SelectTrigger size="xs" className="h-7 w-auto min-w-[76px] text-xs">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -158,7 +158,7 @@ export function WordFrequencyTool() {
             <label className="flex items-center gap-2 text-[11px] text-foreground-muted">
               {t.top}
               <Select value={limit} onValueChange={setLimit}>
-                <SelectTrigger className="h-7 w-[74px] text-xs">
+                <SelectTrigger size="xs" className="h-7 w-auto min-w-[68px] text-xs">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>

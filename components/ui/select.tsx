@@ -21,7 +21,10 @@ export type SelectDensity = Density;
 const SelectDensityContext = React.createContext<SelectDensity>("default");
 
 const selectTriggerVariants = cva(
-  "flex w-full items-center justify-between border border-border bg-surface text-foreground placeholder:text-foreground-subtle focus:outline-none focus:border-border-strong disabled:cursor-not-allowed disabled:opacity-50 transition-colors duration-base [&>span]:line-clamp-1 [&>span]:text-left",
+  // min-w-0 on the value span lets it shrink inside the flex row, so a label
+  // wider than a fixed-width trigger gets an ellipsis instead of pushing the
+  // chevron out of the box.
+  "flex w-full items-center justify-between border border-border bg-surface text-foreground placeholder:text-foreground-subtle focus:outline-none focus:border-border-strong disabled:cursor-not-allowed disabled:opacity-50 transition-colors duration-base [&>span]:line-clamp-1 [&>span]:min-w-0 [&>span]:text-left",
   {
     variants: {
       size: {
