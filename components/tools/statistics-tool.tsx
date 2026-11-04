@@ -7,18 +7,10 @@ import {
   InputArea,
   Pane,
   SampleButton,
-  Segmented,
   WarningNote,
 } from "@/components/tools/tool-ui";
 import { errorText, safe } from "@/lib/errors";
-import {
-  coreValues,
-  histogram,
-  parseNumbers,
-  summarize,
-  type Histogram,
-  type Summary,
-} from "@/lib/statistics";
+import { histogram, parseNumbers, summarize, type Histogram, type Summary } from "@/lib/statistics";
 import { formatNumber } from "@/lib/units";
 
 const COPY = {
@@ -60,12 +52,6 @@ const COPY = {
     highOutliers: "偏大",
     none: "无",
     histogram: "分布",
-    scope: "直方图范围",
-    allData: "全部数据",
-    coreData: "剔除离群值",
-    bins: (count: number, width: string) => `${count} 个区间 · 宽度 ${width}`,
-    excluded: (count: number) => `已排除 ${count} 个离群值`,
-    crowded: "离群值把横轴拉得太长，大部分数据挤在同一根柱子里；切到「剔除离群值」才能看清形状。",
     hint: "分位数用线性插值（Excel QUARTILE.INC 口径），方差同时给出样本与总体两种口径，偏度与峰度是偏差校正后的 G1 / G2，异常值按 1.5 × IQR 判定。",
     note: "所有计算在浏览器内完成，数据不会上传。",
   },
@@ -107,13 +93,6 @@ const COPY = {
     highOutliers: "High",
     none: "None",
     histogram: "Distribution",
-    scope: "Histogram range",
-    allData: "All data",
-    coreData: "Without outliers",
-    bins: (count: number, width: string) => `${count} bins · width ${width}`,
-    excluded: (count: number) => `${count} outlier(s) hidden`,
-    crowded:
-      "An outlier stretched the axis, so most values land in a single bar — switch to “Without outliers” to see the shape.",
     hint: "Quartiles interpolate between order statistics (Excel QUARTILE.INC), spread is reported for both the sample and the population, skewness and kurtosis are the bias-corrected G1 / G2, and outliers use the 1.5 × IQR fence.",
     note: "Everything is computed in your browser, the data is never uploaded.",
   },
@@ -215,56 +194,31 @@ interface Analysis {
   summary: Summary | null;
   hist: Histogram | null;
   skipped: string[];
-  /** Values the "without outliers" view leaves out of the chart */
-  excluded: number;
-  /** One bar holds almost everything, which makes the chart unreadable */
-  crowded: boolean;
 }
 
 export function StatisticsTool() {
   const t = useCopy(COPY);
   const locale = useLocale();
   const [input, setInput] = React.useState(SAMPLE);
-  const [scope, setScope] = React.useState<"all" | "core">("all");
 
   const analysis = React.useMemo<Analysis>(() => {
     const parsed = safe(() => parseNumbers(input));
     if (parsed.error || !parsed.value) {
-      return {
-        error: parsed.error,
-        summary: null,
-        hist: null,
-        skipped: [],
-        excluded: 0,
-        crowded: false,
-      };
+      return { error: parsed.error, summary: null, hist: null, skipped: [] };
     }
     const { values, skipped } = parsed.value;
     if (values.length === 0) {
-      return { error: null, summary: null, hist: null, skipped, excluded: 0, crowded: false };
+      return { error: null, summary: null, hist: null, skipped };
     }
     const summary = safe(() => summarize(values));
-    const outlierCount = summary.value
-      ? summary.value.outliers.low.length + summary.value.outliers.high.length
-      : 0;
-    // A range trimmed to nothing would leave an empty chart, so fall back
-    const core = scope === "core" && summary.value ? coreValues(values, summary.value) : values;
-    const charted = core.length > 0 ? core : values;
-    const hist = safe(() => histogram(charted));
-    const crowded =
-      scope === "all" &&
-      outlierCount > 0 &&
-      hist.value !== null &&
-      Math.max(...hist.value.bins.map((bin) => bin.count)) / values.length >= 0.8;
+    const hist = safe(() => histogram(values));
     return {
       error: summary.error ?? hist.error,
       summary: summary.value,
       hist: hist.value,
       skipped,
-      excluded: values.length - charted.length,
-      crowded,
     };
-  }, [input, scope]);
+  }, [input]);
 
   const s = analysis.summary;
   const modeText = !s
@@ -319,34 +273,7 @@ export function StatisticsTool() {
             <p className="text-[12.5px] text-foreground-faint">{t.empty}</p>
           ) : (
             <>
-              {analysis.hist && (
-                <div className="flex flex-col gap-1.5">
-                  <div className="flex items-center justify-between gap-3">
-                    <h3 className="text-[11px] font-medium uppercase tracking-wide text-foreground-subtle">
-                      {t.histogram}
-                    </h3>
-                    <Segmented
-                      ariaLabel={t.scope}
-                      value={scope}
-                      onChange={setScope}
-                      options={[
-                        { value: "all", label: t.allData },
-                        { value: "core", label: t.coreData },
-                      ]}
-                    />
-                  </div>
-                  <HistogramChart data={analysis.hist} />
-                  <div className="flex items-center justify-between gap-3 font-mono text-[10px] text-foreground-faint">
-                    <span>
-                      {t.bins(analysis.hist.bins.length, formatNumber(analysis.hist.width, 3))}
-                    </span>
-                    {analysis.excluded > 0 && <span>{t.excluded(analysis.excluded)}</span>}
-                  </div>
-                  {analysis.crowded && (
-                    <p className="text-[11px] leading-relaxed text-foreground-subtle">{t.crowded}</p>
-                  )}
-                </div>
-              )}
+              {analysis.hist && <HistogramChart data={analysis.hist} />}
 
               <div className="grid gap-x-6 gap-y-4 sm:grid-cols-2">
                 <Group title={t.groupCenter}>
