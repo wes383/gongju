@@ -74,7 +74,6 @@ import {
   Regex,
   Ruler,
   ArrowLeftRight,
-  Coins,
   Percent,
   HeartPulse,
   HardDrive,
@@ -1328,16 +1327,6 @@ const convertTools: ToolMeta[] = [
     icon: ArrowLeftRight,
   }),
   convertTool({
-    slug: "currency",
-    name: { zh: "汇率换算", en: "Currency Converter" },
-    description: {
-      zh: "按每日官方汇率换算 170 种货币，含贵金属与加密货币，每个工作日更新，无需 API Key",
-      en: "Convert 170 currencies, precious metals and crypto at official daily rates, no API key",
-    },
-    keywords: ["汇率", "货币", "换算", "美元", "人民币", "currency", "exchange"],
-    icon: Coins,
-  }),
-  convertTool({
     slug: "percentage",
     name: { zh: "百分比计算", en: "Percentage Calculator" },
     description: {
@@ -2458,8 +2447,8 @@ export const categories: CategoryMeta[] = [
     id: "convert",
     name: { zh: "转换器 / 单位", en: "Converters / Units" },
     description: {
-      zh: "单位换算、汇率、百分比与 BMI",
-      en: "Units, currency, percentages and BMI",
+      zh: "单位换算、百分比与 BMI",
+      en: "Units, percentages and BMI",
     },
     icon: Ruler,
     tools: convertTools,
