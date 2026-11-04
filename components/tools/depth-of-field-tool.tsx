@@ -7,6 +7,7 @@ import { CopyButton, ErrorNote, Pane } from "@/components/tools/tool-ui";
 import { useCopy, useLocale } from "@/components/locale-provider";
 import { errorText, safe } from "@/lib/errors";
 import { depthOfField, SENSORS, type DofResult, type SensorId } from "@/lib/photo";
+import { estimateTextWidth, placeLabels } from "@/lib/labels";
 import { formatNumber } from "@/lib/units";
 
 const COPY = {
@@ -66,14 +67,31 @@ function DofBar({ dof, distance }: { dof: DofResult; distance: number }) {
     : Math.max(distance * 2, dof.near * 1.5);
   const sx = (value: number) => left + (Math.min(value, limit) / limit) * plot;
   const y = 54;
+  const fontSize = 10;
+  const rowHeight = 13;
+
+  const farEdge = farFinite ? dof.far : limit;
+  const labels = [
+    { id: "near", text: metres(dof.near), x: sx(dof.near), anchor: "start" as const },
+    { id: "focus", text: metres(distance), x: sx(distance), anchor: "middle" as const },
+    { id: "far", text: farFinite ? metres(dof.far) : "∞", x: sx(farEdge), anchor: "end" as const },
+  ].map((label) => ({ ...label, width: estimateTextWidth(label.text, fontSize) }));
+
+  const placed = placeLabels(labels, { left, right: width - right });
+  const rows = placed.reduce((max, label) => Math.max(max, label.row), 0);
 
   return (
-    <svg viewBox={`0 0 ${width} ${height}`} className="h-auto w-full" role="img" aria-label="depth of field">
+    <svg
+      viewBox={`0 0 ${width} ${height + rows * rowHeight}`}
+      className="h-auto w-full"
+      role="img"
+      aria-label="depth of field"
+    >
       <line x1={left} y1={y} x2={width - right} y2={y} className="stroke-border" strokeWidth={1} />
       <rect
         x={sx(dof.near)}
         y={y - 9}
-        width={Math.max(2, sx(farFinite ? dof.far : limit) - sx(dof.near))}
+        width={Math.max(2, sx(farEdge) - sx(dof.near))}
         height={18}
         rx={3}
         className="fill-accent stroke-accent"
@@ -83,20 +101,16 @@ function DofBar({ dof, distance }: { dof: DofResult; distance: number }) {
       <line x1={sx(distance)} y1={y - 16} x2={sx(distance)} y2={y + 16} className="stroke-foreground" strokeWidth={1.4} />
       <circle cx={sx(distance)} cy={y} r={3} className="fill-foreground" />
 
-      {[
-        { x: sx(dof.near), label: metres(dof.near) },
-        { x: sx(distance), label: metres(distance) },
-        { x: sx(farFinite ? dof.far : limit), label: farFinite ? metres(dof.far) : "∞" },
-      ].map((tick, index) => (
+      {labels.map((label, index) => (
         <text
-          key={index}
-          x={Math.min(Math.max(tick.x, left), width - right)}
-          y={y + 32}
-          textAnchor={index === 0 ? "start" : index === 1 ? "middle" : "end"}
-          fontSize={10}
+          key={label.id}
+          x={placed[index].left}
+          y={y + 32 + placed[index].row * rowHeight}
+          textAnchor="start"
+          fontSize={fontSize}
           className="fill-foreground-subtle"
         >
-          {tick.label}
+          {label.text}
         </text>
       ))}
     </svg>
