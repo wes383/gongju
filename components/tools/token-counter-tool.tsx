@@ -65,7 +65,7 @@ const COPY = {
     exactUnsupported: "该家族没有公开词表，仍为估算",
     compareEstimate: "各分词器对比（估算）",
     surcharge: "提示词超过 272K：OpenAI 会把整次请求按 2 倍计价，而不是只算超出的部分。",
-    note: "默认按拉丁词、中日韩字符、数字、标点与 Emoji 分段估算：英文段落通常偏差 5% 以内，代码偏低约 10%，中文可能差 15%。开启精确模式后，GPT 家族改用官方词表计算总数（首次加载约 1 MB），构成明细仍是估算拆分；Claude、Gemini、Llama 没有公开词表，只能估算。GPT-6 尚未公布编码，仍按 o200k_base 计；Claude 4.7 起换了分词器，同一段文本约多 30% token，系数已按新口径调整。上下文预算里的“预留回答”是给模型留的空间，剩下的才是提示词可用的上限。",
+    note: "默认按拉丁词、中日韩字符、数字、标点与 Emoji 分段估算：英文段落通常偏差 5% 以内，代码偏低约 10%，中文可能差 15%。开启精确模式后，GPT 家族改用官方词表计算总数（首次加载约 1 MB），构成明细仍是估算拆分；Claude、Gemini、Llama 没有公开词表，只能估算。上下文预算里的“预留回答”是给模型留的空间，剩下的才是提示词可用的上限。",
     sampleText:
       "检索增强生成的第一步是把文档切成合适的片段。片段太大，检索会带回一堆无关内容；片段太小，答案需要的上下文又被切断。所以切分点通常选在句子边界，并保留少量重叠。",
   },
@@ -105,7 +105,7 @@ const COPY = {
     exactUnsupported: "No public vocabulary for this family, still an estimate",
     compareEstimate: "Across tokenizers (estimate)",
     surcharge: "Prompt is above 272K: OpenAI bills the whole request at double, not just the part over the line.",
-    note: "By default the estimate splits text into Latin words, CJK characters, digits, punctuation and emoji: English prose usually lands within five percent, code runs about ten percent low, Chinese can drift fifteen percent. Turn on exact mode and the GPT families count with their official vocabulary (about 1 MB on first load), while the breakdown stays an estimate; Claude, Gemini and Llama publish no vocabulary, so they stay estimated. GPT-6 has not published its encoding and is counted as o200k_base; Claude swapped tokenizers in 4.7, which costs about 30% more tokens for the same text, and the coefficients here follow that. In the budget below, the reserve is the room you leave for the model, and the rest is what the prompt may use.",
+    note: "By default the estimate splits text into Latin words, CJK characters, digits, punctuation and emoji: English prose usually lands within five percent, code runs about ten percent low, Chinese can drift fifteen percent. Turn on exact mode and the GPT families count with their official vocabulary (about 1 MB on first load), while the breakdown stays an estimate; Claude, Gemini and Llama publish no vocabulary, so they stay estimated. In the budget below, the reserve is the room you leave for the model, and the rest is what the prompt may use.",
     sampleText:
       "Retrieval augmented generation starts by cutting documents into chunks. Make them too large and the retriever drags in unrelated paragraphs; make them too small and the answer loses the context it needs. That is why cut points land on sentence boundaries, with a little overlap.",
   },

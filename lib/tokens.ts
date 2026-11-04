@@ -43,7 +43,7 @@ export const TOKENIZERS: TokenizerProfile[] = [
   {
     id: "o200k",
     label: { zh: "GPT-6 / GPT-5.6 / GPT-4o", en: "GPT-6 / GPT-5.6 / GPT-4o" },
-    short: { zh: "GPT-6", en: "GPT-6" },
+    short: { zh: "GPT-5", en: "GPT-5" },
     detail: "o200k_base",
     word: 9,
     cjk: 0.8,
