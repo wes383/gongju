@@ -154,6 +154,8 @@ import {
   Sun,
   Focus,
   Aperture,
+  FileSpreadsheet,
+  GraduationCap,
 } from "lucide-react";
 import type { Locale } from "@/lib/i18n";
 
@@ -183,6 +185,7 @@ export type CategoryId =
   | "math"
   | "electronics"
   | "photography"
+  | "language"
   | "pdf"
   | "office"
   | "ai"
@@ -231,6 +234,7 @@ const electronicsTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({
   category: "electronics",
 });
 const photoTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "photography" });
+const languageTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "language" });
 
 const encodingTools: ToolMeta[] = [
   tool({
@@ -1715,6 +1719,59 @@ const photoTools: ToolMeta[] = [
   }),
 ];
 
+const languageTools: ToolMeta[] = [
+  languageTool({
+    slug: "word-frequency",
+    name: { zh: "词频统计", en: "Word Frequency" },
+    description: {
+      zh: "统计每个词或汉字的出现次数、占比与首次出现的句子",
+      en: "Count how often each word or Han character appears, its share, and where it first showed up",
+    },
+    keywords: ["词频", "高频词", "词数", "汉字频次", "生词", "word frequency", "count words"],
+    icon: ChartColumn,
+  }),
+  languageTool({
+    slug: "vocabulary-list",
+    name: { zh: "生词表提取", en: "Vocabulary Builder" },
+    description: {
+      zh: "从文章里挑出还没掌握的词，附出现次数与上下文句子",
+      en: "Pull out the words you have not learned yet, with counts and the sentence they came from",
+    },
+    keywords: ["生词表", "背单词", "词汇", "精读", "vocabulary", "glossary", "word list"],
+    icon: NotebookPen,
+  }),
+  languageTool({
+    slug: "anki-csv",
+    name: { zh: "Anki 卡片 CSV", en: "Anki Deck CSV" },
+    description: {
+      zh: "把两列词表转成可直接导入 Anki 的文件，自动带上分隔符与标签指令",
+      en: "Turn a two-column list into an Anki-ready file with the delimiter and tag directives filled in",
+    },
+    keywords: ["Anki", "卡片", "间隔重复", "背单词", "flashcard", "csv", "apkg"],
+    icon: FileSpreadsheet,
+  }),
+  languageTool({
+    slug: "readability",
+    name: { zh: "文本难度分析", en: "Readability Checker" },
+    description: {
+      zh: "Flesch、Flesch–Kincaid、Fog 等可读性指数，估算文章适合几年级阅读",
+      en: "Flesch, Flesch–Kincaid, Gunning Fog and more, with the grade level they imply",
+    },
+    keywords: ["可读性", "文本难度", "分级阅读", "蓝思", "readability", "flesch", "grade level"],
+    icon: GraduationCap,
+  }),
+  languageTool({
+    slug: "subtitle-study",
+    name: { zh: "字幕转学习材料", en: "Subtitle Study Sheet" },
+    description: {
+      zh: "把 SRT / VTT 字幕变成带时间码的台词表和生词表，可导出 Markdown",
+      en: "Turn SRT / VTT subtitles into a timestamped transcript plus a vocabulary list, exportable as Markdown",
+    },
+    keywords: ["字幕", "台词", "生词", "精读", "srt", "vtt", "subtitle", "markdown"],
+    icon: Captions,
+  }),
+];
+
 const financeTools: ToolMeta[] = [
   financeTool({
     slug: "salary-tax",
@@ -2269,6 +2326,16 @@ export const categories: CategoryMeta[] = [
     },
     icon: Camera,
     tools: photoTools,
+  },
+  {
+    id: "language",
+    name: { zh: "语言学习", en: "Language Learning" },
+    description: {
+      zh: "词频、生词表、Anki 卡片、文本难度与字幕学习材料",
+      en: "Word frequency, vocabulary lists, Anki cards, readability and subtitle study sheets",
+    },
+    icon: Languages,
+    tools: languageTools,
   },
   {
     id: "finance",
