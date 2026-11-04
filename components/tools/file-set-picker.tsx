@@ -268,7 +268,7 @@ export function FileSetPicker({
                     type="button"
                     onClick={() => onRemove(entry.path)}
                     aria-label={`${t.remove} ${entry.path}`}
-                    className="grid h-6 w-6 shrink-0 place-items-center rounded text-foreground-faint transition-colors hover:bg-hover-bg hover:text-foreground"
+                    className="grid h-6 w-6 shrink-0 place-items-center rounded-md text-foreground-faint transition-colors hover:bg-hover-bg hover:text-foreground"
                   >
                     <X className="h-3.5 w-3.5" />
                   </button>
