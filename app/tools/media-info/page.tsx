@@ -9,6 +9,7 @@ export const metadata: Metadata = {
   title: meta.name.zh,
   description: meta.description.zh,
   keywords: meta.keywords,
+  alternates: { canonical: "/tools/media-info" },
 };
 
 export default function Page() {

@@ -9,6 +9,7 @@ export const metadata: Metadata = {
   title: meta.name.zh,
   description: meta.description.zh,
   keywords: meta.keywords,
+  alternates: { canonical: "/tools/morse" },
 };
 
 export default function Page() {
