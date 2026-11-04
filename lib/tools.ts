@@ -138,6 +138,8 @@ import {
   BookOpen,
   Presentation,
   LibraryBig,
+  Boxes,
+  SquareFunction,
   Bot,
   Blocks,
   LayoutTemplate,
@@ -1544,6 +1546,40 @@ const mathTools: ToolMeta[] = [
     keywords: ["概率", "分布", "正态", "二项", "泊松", "分位数", "p 值", "normal", "cdf"],
     icon: Bell,
   }),
+  mathTool({
+    slug: "combinatorics",
+    name: { zh: "排列组合", en: "Permutations & Combinations" },
+    description: {
+      zh: "一次算出排列、组合、可重复选取、阶乘、错排与卡特兰数，每一位都精确",
+      en: "Permutations, combinations, sampling with repetition, factorials, derangements and Catalan numbers, exact to the last digit",
+    },
+    keywords: [
+      "排列",
+      "组合",
+      "阶乘",
+      "错排",
+      "卡特兰",
+      "贝尔数",
+      "斯特林",
+      "permutation",
+      "combination",
+      "ncr",
+      "npr",
+      "factorial",
+      "概率",
+    ],
+    icon: Boxes,
+  }),
+  mathTool({
+    slug: "latex-preview",
+    name: { zh: "LaTeX 预览", en: "LaTeX Preview" },
+    description: {
+      zh: "输入 LaTeX 公式实时渲染，支持文档混排、MathML 复制与常用片段",
+      en: "Render LaTeX as you type, with mixed prose, MathML copy and a snippet palette",
+    },
+    keywords: ["latex", "tex", "公式", "数学公式", "katex", "mathml", "编辑器", "渲染", "markdown"],
+    icon: SquareFunction,
+  }),
 ];
 
 const financeTools: ToolMeta[] = [
@@ -2075,8 +2111,8 @@ export const categories: CategoryMeta[] = [
     id: "math",
     name: { zh: "数学 / 科学计算", en: "Math / Science" },
     description: {
-      zh: "计算器、函数图像、矩阵、描述统计与概率分布",
-      en: "Calculator, function plots, matrices, descriptive statistics and distributions",
+      zh: "计算器、函数图像、矩阵、统计、概率分布、排列组合与 LaTeX 公式",
+      en: "Calculator, plots, matrices, statistics, distributions, combinatorics and LaTeX",
     },
     icon: Sigma,
     tools: mathTools,
