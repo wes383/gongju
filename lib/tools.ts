@@ -144,6 +144,12 @@ import {
   Blocks,
   LayoutTemplate,
   MessagesSquare,
+  CircuitBoard,
+  Activity,
+  Zap,
+  Split,
+  BatteryCharging,
+  Brackets,
 } from "lucide-react";
 import type { Locale } from "@/lib/i18n";
 
@@ -171,6 +177,7 @@ export type CategoryId =
   | "network"
   | "convert"
   | "math"
+  | "electronics"
   | "pdf"
   | "office"
   | "ai"
@@ -214,6 +221,10 @@ const officeTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, categor
 const aiTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "ai" });
 const seoTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "seo" });
 const mathTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "math" });
+const electronicsTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({
+  ...t,
+  category: "electronics",
+});
 
 const encodingTools: ToolMeta[] = [
   tool({
@@ -1582,6 +1593,69 @@ const mathTools: ToolMeta[] = [
   }),
 ];
 
+const electronicsTools: ToolMeta[] = [
+  electronicsTool({
+    slug: "resistor-color",
+    name: { zh: "电阻色环计算", en: "Resistor Color Code" },
+    description: {
+      zh: "4 / 5 / 6 环色环读阻值或反查色环，带误差范围与温度系数",
+      en: "Read a 4, 5 or 6-band resistor, or turn a value back into bands, with tolerance and tempco",
+    },
+    keywords: ["电阻", "色环", "色环电阻", "阻值", "resistor", "color code", "欧姆", "误差"],
+    icon: Activity,
+  }),
+  electronicsTool({
+    slug: "ohms-law",
+    name: { zh: "欧姆定律计算", en: "Ohm's Law Calculator" },
+    description: {
+      zh: "填入电压、电流、电阻、功率中的任意两个，算出另外两个",
+      en: "Enter any two of voltage, current, resistance and power to derive the rest",
+    },
+    keywords: ["欧姆定律", "电压", "电流", "电阻", "功率", "ohm", "voltage", "current", "watt"],
+    icon: Zap,
+  }),
+  electronicsTool({
+    slug: "voltage-divider",
+    name: { zh: "分压器计算", en: "Voltage Divider" },
+    description: {
+      zh: "两电阻分压的输出电压、电流与功耗，可带负载并对比空载",
+      en: "Output voltage, current and dissipation for a two-resistor divider, with an optional load",
+    },
+    keywords: ["分压", "分压器", "电阻分压", "divider", "vout", "偏置", "采样"],
+    icon: Split,
+  }),
+  electronicsTool({
+    slug: "battery-life",
+    name: { zh: "电池续航估算", en: "Battery Life" },
+    description: {
+      zh: "按容量与平均电流或功率估算续航，含可用容量与标称能量",
+      en: "Estimate runtime from capacity and average current or power, with usable capacity and energy",
+    },
+    keywords: ["电池", "续航", "mAh", "功耗", "待机", "battery", "runtime", "放电"],
+    icon: BatteryCharging,
+  }),
+  electronicsTool({
+    slug: "pcb-trace",
+    name: { zh: "PCB 线宽载流", en: "PCB Trace Width" },
+    description: {
+      zh: "按 IPC-2221 由电流和允许温升算线宽，附压降、损耗与反查载流",
+      en: "IPC-2221 trace width from current and allowed temperature rise, with drop, loss and reverse lookup",
+    },
+    keywords: ["pcb", "线宽", "载流", "走线", "覆铜", "ipc-2221", "trace", "ampacity", "温升"],
+    icon: CircuitBoard,
+  }),
+  electronicsTool({
+    slug: "serial-checksum",
+    name: { zh: "串口校验和计算", en: "Serial Checksum" },
+    description: {
+      zh: "一帧数据同时算出 SUM8、XOR8、LRC 与常见 CRC-8 / CRC-16",
+      en: "Compute SUM8, XOR8, LRC and the common CRC-8 / CRC-16 variants for one frame",
+    },
+    keywords: ["校验和", "crc", "crc16", "crc8", "modbus", "nmea", "串口", "checksum", "lrc"],
+    icon: Brackets,
+  }),
+];
+
 const financeTools: ToolMeta[] = [
   financeTool({
     slug: "salary-tax",
@@ -2116,6 +2190,16 @@ export const categories: CategoryMeta[] = [
     },
     icon: Sigma,
     tools: mathTools,
+  },
+  {
+    id: "electronics",
+    name: { zh: "电子 / 硬件", en: "Electronics / Hardware" },
+    description: {
+      zh: "电阻色环、欧姆定律、分压器、电池续航、PCB 线宽与串口校验",
+      en: "Resistor codes, Ohm's law, dividers, battery runtime, PCB trace widths and serial checksums",
+    },
+    icon: CircuitBoard,
+    tools: electronicsTools,
   },
   {
     id: "finance",
