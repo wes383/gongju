@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Download } from "lucide-react";
+import { Download, FileSpreadsheet } from "lucide-react";
 import {
   CopyButton,
   InputArea,
@@ -46,14 +46,15 @@ const COPY = {
     latin: "英文词",
     cjk: "汉字",
     limit: "生词数",
+    all: "全部",
     minCount: "至少出现",
     times: (n: number) => `${n} 次`,
     transcript: "台词",
     vocab: "生词",
     noVocab: "没有可提取的生词，试试降低「至少出现」或换一种分词方式",
     copyMarkdown: "复制 Markdown",
-    copyCsv: "复制 CSV",
-    download: "下载 Markdown",
+    downloadMarkdown: "下载 Markdown",
+    downloadCsv: "下载 CSV",
     empty: "左侧贴入字幕后，这里列出带时间码的台词和生词",
     summary: (cues: number, words: number, minutes: number) =>
       `${cues} 条字幕 · ${minutes} 分钟 · ${words} 个生词`,
@@ -71,14 +72,15 @@ const COPY = {
     latin: "English",
     cjk: "Han",
     limit: "Words",
+    all: "All",
     minCount: "Appears at least",
     times: (n: number) => `${n}×`,
     transcript: "Transcript",
     vocab: "Vocabulary",
     noVocab: "Nothing to extract — lower the minimum count or switch the tokeniser",
     copyMarkdown: "Copy Markdown",
-    copyCsv: "Copy CSV",
-    download: "Download Markdown",
+    downloadMarkdown: "Download Markdown",
+    downloadCsv: "Download CSV",
     empty: "Paste subtitles on the left to get a timestamped transcript and a study list",
     summary: (cues: number, words: number, minutes: number) =>
       `${cues} cues · ${minutes} min · ${words} words`,
@@ -93,7 +95,8 @@ const MODES: { value: StudyMode; key: "auto" | "latin" | "cjk" }[] = [
   { value: "cjk", key: "cjk" },
 ];
 
-const LIMITS = [30, 50, 100];
+/** 0 means "keep every word" — the sheet skips slicing for a falsy limit */
+const LIMITS = [20, 30, 50, 100, 200, 500, 0];
 const MIN_COUNTS = [1, 2, 3];
 
 export function SubtitleStudyTool() {
@@ -117,11 +120,22 @@ export function SubtitleStudyTool() {
     setFileName(name);
   };
 
+  const baseName = fileName.replace(/\.[^.]+$/, "") || "subtitle";
+
   const downloadMarkdown = () => {
     if (!sheet) return;
     downloadBlob(
       new Blob([sheet.markdown], { type: "text/markdown;charset=utf-8" }),
-      `${(fileName.replace(/\.[^.]+$/, "") || "subtitle")}-study.md`
+      `${baseName}-study.md`
+    );
+  };
+
+  const downloadCsv = () => {
+    if (!sheet) return;
+    // The BOM keeps Excel from reading the Chinese context column as mojibake.
+    downloadBlob(
+      new Blob(["\uFEFF", sheet.csv], { type: "text/csv;charset=utf-8" }),
+      `${baseName}-vocab.csv`
     );
   };
 
@@ -143,7 +157,7 @@ export function SubtitleStudyTool() {
             <SelectContent>
               {LIMITS.map((value) => (
                 <SelectItem key={value} value={String(value)}>
-                  {value}
+                  {value === 0 ? t.all : value}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -213,10 +227,13 @@ export function SubtitleStudyTool() {
             {sheet && (
               <div className="ml-auto flex items-center gap-1">
                 <CopyButton value={sheet.markdown} label={t.copyMarkdown} size="xs" />
-                <CopyButton value={sheet.csv} label={t.copyCsv} size="xs" />
                 <PaneButton onClick={downloadMarkdown}>
                   <Download className="size-3.5" />
-                  {t.download}
+                  {t.downloadMarkdown}
+                </PaneButton>
+                <PaneButton onClick={downloadCsv}>
+                  <FileSpreadsheet className="size-3.5" />
+                  {t.downloadCsv}
                 </PaneButton>
               </div>
             )}
