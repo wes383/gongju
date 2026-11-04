@@ -2086,6 +2086,15 @@ export function toolDescription(tool: ToolMeta, locale: Locale): string {
   return tool.description[locale];
 }
 
+/** Match a category against a search query by its title, in either locale */
+export function categoryMatches(category: CategoryMeta, query: string): boolean {
+  const q = query.trim().toLowerCase();
+  if (!q) return true;
+  return (
+    category.name.zh.toLowerCase().includes(q) || category.name.en.toLowerCase().includes(q)
+  );
+}
+
 /** Match a tool against a search query (name, description, keywords) */
 export function toolMatches(tool: ToolMeta, query: string): boolean {
   const q = query.trim().toLowerCase();

@@ -20,6 +20,7 @@ import { useDocumentTitle } from "@/components/use-document-title";
 import { useScrollRestoration } from "@/components/use-scroll-restoration";
 import {
   categories,
+  categoryMatches,
   toolDescription,
   toolMatches,
   toolName,
@@ -115,11 +116,12 @@ export function ToolDirectory() {
 
   const groups = React.useMemo(() => {
     const q = query.trim();
+    if (!q) return categories;
+    // A title hit keeps the whole category, so searching "图片" lists every image tool
     return categories
-      .map((c) => ({
-        ...c,
-        tools: q ? c.tools.filter((tool) => toolMatches(tool, q)) : c.tools,
-      }))
+      .map((c) =>
+        categoryMatches(c, q) ? c : { ...c, tools: c.tools.filter((tool) => toolMatches(tool, q)) }
+      )
       .filter((c) => c.tools.length > 0);
   }, [query]);
 
