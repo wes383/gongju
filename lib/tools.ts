@@ -162,6 +162,12 @@ import {
   Droplets,
   Footprints,
   Moon,
+  Tag,
+  BadgePercent,
+  Package,
+  Megaphone,
+  Scale,
+  Store,
 } from "lucide-react";
 import type { Locale } from "@/lib/i18n";
 
@@ -193,6 +199,7 @@ export type CategoryId =
   | "photography"
   | "language"
   | "health"
+  | "ecommerce"
   | "pdf"
   | "office"
   | "ai"
@@ -243,6 +250,10 @@ const electronicsTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({
 const photoTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "photography" });
 const languageTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "language" });
 const healthTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "health" });
+const ecommerceTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({
+  ...t,
+  category: "ecommerce",
+});
 
 const encodingTools: ToolMeta[] = [
   tool({
@@ -1843,6 +1854,91 @@ const healthTools: ToolMeta[] = [
   }),
 ];
 
+const ecommerceTools: ToolMeta[] = [
+  ecommerceTool({
+    slug: "pricing",
+    name: { zh: "定价与利润计算", en: "Pricing & Profit" },
+    description: {
+      zh: "按成本、佣金、运费与退货率算出每单毛利，并给出保本售价与保本 ROAS",
+      en: "Unit profit from cost, commission, shipping and returns, with the break-even price and ROAS",
+    },
+    keywords: [
+      "定价",
+      "利润率",
+      "毛利",
+      "保本",
+      "佣金",
+      "退货率",
+      "roi",
+      "pricing",
+      "profit",
+      "margin",
+      "break even",
+    ],
+    icon: Tag,
+  }),
+  ecommerceTool({
+    slug: "discount-stack",
+    name: { zh: "促销叠加计算", en: "Discount Stack" },
+    description: {
+      zh: "店铺折扣、优惠券、平台满减与补贴逐层叠加，看清买家实付和商家实收",
+      en: "Stack a store discount, coupons, marketplace tiers and a subsidy to see what the buyer pays and the seller keeps",
+    },
+    keywords: [
+      "折扣",
+      "满减",
+      "优惠券",
+      "叠加",
+      "双十一",
+      "补贴",
+      "discount",
+      "coupon",
+      "promotion",
+    ],
+    icon: BadgePercent,
+  }),
+  ecommerceTool({
+    slug: "sku-matrix",
+    name: { zh: "SKU 组合生成", en: "SKU Matrix Generator" },
+    description: {
+      zh: "把颜色、尺码等属性值展开成全部 SKU，生成编码并导出可导入的 CSV",
+      en: "Expand colour, size and other options into every SKU, with codes and an import-ready CSV",
+    },
+    keywords: ["sku", "规格", "组合", "变体", "属性", "上新", "variant", "matrix", "csv"],
+    icon: Boxes,
+  }),
+  ecommerceTool({
+    slug: "roas",
+    name: { zh: "广告投产比计算", en: "ROAS & Ad Metrics" },
+    description: {
+      zh: "从曝光、点击、订单算 CTR、CPC、CVR、CPA、ROAS 与 ACoS，并标出保本线",
+      en: "CTR, CPC, CVR, CPA, ROAS and ACoS from the funnel, with the break-even line",
+    },
+    keywords: ["roas", "roi", "acos", "广告", "投产", "点击率", "转化率", "cpc", "cpa", "ads"],
+    icon: Megaphone,
+  }),
+  ecommerceTool({
+    slug: "inventory",
+    name: { zh: "库存周转与补货", en: "Stock Cover & Replenishment" },
+    description: {
+      zh: "按日均销量、采购交期与安全库存算出可售天数、补货点和建议下单量",
+      en: "Days of cover, reorder point and order quantity from daily sales, lead time and safety stock",
+    },
+    keywords: ["库存", "补货", "周转", "断货", "安全库存", "交期", "起订量", "inventory", "stock"],
+    icon: Package,
+  }),
+  ecommerceTool({
+    slug: "dimensional-weight",
+    name: { zh: "体积重与计费重", en: "Volumetric & Chargeable Weight" },
+    description: {
+      zh: "按长宽高算体积重，得到计费重与运费，看清包裹是不是按抛货计费",
+      en: "Volumetric weight from the box, the billed weight after rounding and the freight cost",
+    },
+    keywords: ["体积重", "计费重", "抛货", "快递", "运费", "物流", "volumetric", "dimensional weight"],
+    icon: Scale,
+  }),
+];
+
 const financeTools: ToolMeta[] = [
   financeTool({
     slug: "salary-tax",
@@ -2427,6 +2523,16 @@ export const categories: CategoryMeta[] = [
     },
     icon: Landmark,
     tools: financeTools,
+  },
+  {
+    id: "ecommerce",
+    name: { zh: "电商运营", en: "E-commerce" },
+    description: {
+      zh: "定价毛利、促销叠加、SKU 生成、广告投产、库存补货与物流计费重",
+      en: "Pricing, promotions, SKU matrices, ad returns, replenishment and chargeable weight",
+    },
+    icon: Store,
+    tools: ecommerceTools,
   },
   {
     id: "pdf",
