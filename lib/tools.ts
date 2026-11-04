@@ -53,6 +53,7 @@ import {
   ListFilter,
   ListChecks,
   Lock,
+  LockKeyhole,
   Merge,
   Palette,
   SwatchBook,
@@ -61,6 +62,7 @@ import {
   Shuffle,
   Blend,
   Square,
+  SquareDashed,
   SquareRoundCorner,
   LayoutGrid,
   Pilcrow,
@@ -80,6 +82,7 @@ import {
   Triangle,
   Search,
   Share2,
+  ShieldAlert,
   ShieldCheck,
   SortAsc,
   SpellCheck,
@@ -160,6 +163,7 @@ export type CategoryId =
   | "visualization"
   | "files"
   | "finance"
+  | "privacy"
   | "misc";
 
 export interface CategoryMeta {
@@ -188,6 +192,7 @@ const mediaTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category
 const vizTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "visualization" });
 const filesTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "files" });
 const financeTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "finance" });
+const privacyTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "privacy" });
 
 const encodingTools: ToolMeta[] = [
   tool({
@@ -1714,6 +1719,49 @@ const filesTools: ToolMeta[] = [
   }),
 ];
 
+const privacyTools: ToolMeta[] = [
+  privacyTool({
+    slug: "file-encrypt",
+    name: { zh: "文件加密 / 解密", en: "File Encrypt / Decrypt" },
+    description: {
+      zh: "用密码把任意文件封装成 .enc，或还原成原始文件；AES-256-GCM，全程本地",
+      en: "Password-encrypt any file into a .enc container and restore it later, with AES-256-GCM and no uploads",
+    },
+    keywords: ["文件加密", "加密文件", "encrypt file", "aes", "gcm", "解密", "decrypt", "隐私", "密码保护", "enc"],
+    icon: LockKeyhole,
+  }),
+  privacyTool({
+    slug: "redact-text",
+    name: { zh: "文本脱敏", en: "Text Redaction" },
+    description: {
+      zh: "识别手机号、身份证、银行卡、邮箱与 IP，按遮盖、替换或保留格式脱敏",
+      en: "Detect phone, ID, bank card, email and IP values, then mask, replace or keep the layout",
+    },
+    keywords: ["脱敏", "打码", "敏感信息", "隐私", "redact", "mask", "手机号", "身份证", "银行卡", "pii", "匿名"],
+    icon: ScanEye,
+  }),
+  privacyTool({
+    slug: "pdf-redact",
+    name: { zh: "PDF 涂销", en: "PDF Redaction" },
+    description: {
+      zh: "框选敏感区域并重建页面，彻底删除底层文字，而不是盖一层黑框",
+      en: "Box the sensitive areas and rebuild the pages so the text underneath is really gone, not just covered",
+    },
+    keywords: ["pdf 涂销", "涂黑", "脱敏", "redact", "打码", "遮盖", "删除文字", "隐私", "敏感信息"],
+    icon: SquareDashed,
+  }),
+  privacyTool({
+    slug: "metadata-cleaner",
+    name: { zh: "文件元数据清除", en: "Metadata Cleaner" },
+    description: {
+      zh: "批量清除图片的 EXIF / GPS 与 PDF 的文档信息，可一次处理多个文件并打包下载",
+      en: "Strip EXIF and GPS from images and the info dictionary from PDFs, in batch with a zip download",
+    },
+    keywords: ["元数据", "metadata", "exif", "gps", "清除", "隐私", "批量", "pdf 属性", "匿名"],
+    icon: Eraser,
+  }),
+];
+
 export const categories: CategoryMeta[] = [
   {
     id: "text",
@@ -1754,6 +1802,16 @@ export const categories: CategoryMeta[] = [
     },
     icon: FolderTree,
     tools: filesTools,
+  },
+  {
+    id: "privacy",
+    name: { zh: "隐私 / 文件安全", en: "Privacy / File Security" },
+    description: {
+      zh: "文件加密、文本脱敏、PDF 涂销与元数据清除，全部在本机完成",
+      en: "File encryption, text redaction, PDF redaction and metadata stripping, all on-device",
+    },
+    icon: ShieldAlert,
+    tools: privacyTools,
   },
   {
     id: "color",
