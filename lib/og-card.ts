@@ -104,3 +104,62 @@ export function displayHost(value: string): string {
     return raw;
   }
 }
+
+const CJK = /[\u3400-\u9fff\u3040-\u30ff\uac00-\ud7af]/;
+
+/**
+ * Greedy wrap driven by a caller-supplied width function, which in the browser
+ * is `ctx.measureText(...).width` at the font the text will be drawn in.
+ * Passing the measurement in keeps this testable, but it also means the font
+ * has to be set *before* calling: measure with one font and draw with another
+ * and every line break lands in the wrong place.
+ *
+ * CJK breaks between any two characters; Latin breaks between words, and only
+ * mid-word when a single word is wider than the column.
+ */
+export function wrapLines(
+  text: string,
+  maxWidth: number,
+  maxLines: number,
+  measure: (value: string) => number
+): string[] {
+  const tokens = text.match(
+    /[\u3400-\u9fff\u3040-\u30ff\uac00-\ud7af]|[^\s\u3400-\u9fff\u3040-\u30ff\uac00-\ud7af]+/g
+  );
+  if (!tokens) return [];
+
+  const lines: string[] = [];
+  let line = "";
+  const push = () => {
+    if (line) lines.push(line);
+    line = "";
+  };
+
+  for (const token of tokens) {
+    const glued = line && !CJK.test(token) && !CJK.test(line.slice(-1)) ? `${line} ${token}` : line + token;
+    if (measure(glued) <= maxWidth) {
+      line = glued;
+      continue;
+    }
+    if (line) push();
+    if (measure(token) <= maxWidth) {
+      line = token;
+      continue;
+    }
+    // A single token wider than the column: break it character by character
+    for (const char of token) {
+      if (measure(line + char) > maxWidth && line) push();
+      line += char;
+    }
+  }
+  push();
+
+  if (lines.length <= maxLines) return lines;
+  const kept = lines.slice(0, maxLines);
+  let last = kept[maxLines - 1];
+  while (last.length > 1 && measure(`${last}…`) > maxWidth) {
+    last = last.slice(0, -1);
+  }
+  kept[maxLines - 1] = `${last.trimEnd()}…`;
+  return kept;
+}

@@ -24,6 +24,7 @@ import {
   displayHost,
   ogTheme,
   titleFontSize,
+  wrapLines,
   type OgTheme,
 } from "@/lib/og-card";
 import { downloadBlob } from "@/lib/files";
@@ -69,58 +70,6 @@ function fontFamily(element: HTMLElement): string {
   const display = style.getPropertyValue("--font-plus-jakarta-sans").trim();
   const cjk = style.getPropertyValue("--font-noto-sans-sc").trim();
   return [display, cjk, "system-ui", "sans-serif"].filter(Boolean).join(", ");
-}
-
-const CJK = /[\u3400-\u9fff\u3040-\u30ff\uac00-\ud7af]/;
-
-/**
- * Greedy wrap driven by real glyph widths. CJK breaks between any two
- * characters; Latin breaks between words, and only mid-word when a single word
- * is wider than the column.
- */
-function wrapLines(
-  ctx: CanvasRenderingContext2D,
-  text: string,
-  maxWidth: number,
-  maxLines: number
-): string[] {
-  const tokens = text.match(/[\u3400-\u9fff\u3040-\u30ff\uac00-\ud7af]|[^\s\u3400-\u9fff\u3040-\u30ff\uac00-\ud7af]+/g);
-  if (!tokens) return [];
-
-  const lines: string[] = [];
-  let line = "";
-  const push = () => {
-    if (line) lines.push(line);
-    line = "";
-  };
-
-  for (const token of tokens) {
-    const glued = line && !CJK.test(token) && !CJK.test(line.slice(-1)) ? `${line} ${token}` : line + token;
-    if (ctx.measureText(glued).width <= maxWidth) {
-      line = glued;
-      continue;
-    }
-    if (line) push();
-    if (ctx.measureText(token).width <= maxWidth) {
-      line = token;
-      continue;
-    }
-    // A single token wider than the column: break it character by character
-    for (const char of token) {
-      if (ctx.measureText(line + char).width > maxWidth && line) push();
-      line += char;
-    }
-  }
-  push();
-
-  if (lines.length <= maxLines) return lines;
-  const kept = lines.slice(0, maxLines);
-  let last = kept[maxLines - 1];
-  while (last.length > 1 && ctx.measureText(`${last}…`).width > maxWidth) {
-    last = last.slice(0, -1);
-  }
-  kept[maxLines - 1] = `${last.trimEnd()}…`;
-  return kept;
 }
 
 function roundRect(
@@ -195,11 +144,20 @@ function drawCard(canvas: HTMLCanvasElement, input: CardInput) {
 
   const titleSize = titleFontSize(title);
   const titleLineHeight = Math.round(titleSize * 1.2);
-  const titleLines = wrapLines(ctx, title, width - pad * 2, 3);
+  // The font must be set before measuring: wrapLines asks the canvas for the
+  // width of each candidate line, and a stale font makes long CJK titles look
+  // like they fit on one line, so they run off the card once drawn at full size.
+  ctx.font = `700 ${titleSize}px ${input.font}`;
+  const titleLines = wrapLines(title, width - pad * 2, 3, (value) =>
+    ctx.measureText(value).width
+  );
 
   const descSize = descriptionFontSize(description);
   const descLineHeight = Math.round(descSize * 1.45);
-  const descLines = description ? wrapLines(ctx, description, width - pad * 2, 2) : [];
+  ctx.font = `400 ${descSize}px ${input.font}`;
+  const descLines = description
+    ? wrapLines(description, width - pad * 2, 2, (value) => ctx.measureText(value).width)
+    : [];
 
   const titleBlock = titleLines.length * titleLineHeight;
   const descBlock = descLines.length > 0 ? 34 + descLines.length * descLineHeight : 0;
