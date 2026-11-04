@@ -62,7 +62,7 @@ export const CHART_PALETTES: Record<ChartPalette, readonly string[]> = {
   default: CHART_COLORS,
   soft: ["#a5b4fc", "#67e8f9", "#fcd34d", "#fca5a5", "#6ee7b7", "#d8b4fe", "#fdba74", "#7dd3fc"],
   contrast: ["#ef4444", "#f59e0b", "#10b981", "#3b82f6", "#a855f7", "#ec4899", "#14b8a6", "#eab308"],
-  mono: ["#3730a3", "#4338ca", "#4f46e5", "#6366f1", "#818cf8", "#a5b4fc", "#c7d2fe", "#8b5cf6"],
+  mono: ["#1d4ed8", "#2563eb", "#3b82f6", "#60a5fa", "#93c5fd"],
 };
 
 const MAX_POINTS = 240;
