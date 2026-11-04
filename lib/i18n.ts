@@ -158,6 +158,14 @@ const zh: Dict = {
     "video.emptyRange": "请选择一段有效的视频范围",
     "video.canvasUnavailable": "当前浏览器无法创建画布，请更换浏览器后重试",
     "video.encodeFailed": "GIF 生成失败，请缩短片段、降低分辨率或帧率后重试",
+    "chart.empty": "没有可用的数据，粘贴 CSV 或 JSON 后再试",
+    "chart.noSeries": "没有找到数值列：第一列作为分类，其余列需要是数字",
+    "chart.jsonInvalid": "JSON 解析失败，检查引号、逗号与括号是否完整",
+    "chart.exportFailed": "导出 PNG 失败，请重试",
+    "mindmap.empty": "请先写大纲：第一行是中心主题，之后用缩进表示层级",
+    "mindmap.tooDeep": "层级太深了，最多支持 {0} 层",
+    "mindmap.tooMany": "节点太多了，最多支持 {0} 个",
+    "mermaid.failed": "无法渲染这段图表代码，检查语法后重试",
   },
 };
 
@@ -258,6 +266,14 @@ const en: Dict = {
     "video.emptyRange": "Pick a valid range in the video",
     "video.canvasUnavailable": "This browser cannot create a canvas, try another browser",
     "video.encodeFailed": "GIF export failed — try a shorter clip, lower resolution or frame rate",
+    "chart.empty": "No data yet — paste CSV or JSON first",
+    "chart.noSeries": "No numeric column found: the first column is the category, the rest must be numbers",
+    "chart.jsonInvalid": "Could not parse this JSON — check quotes, commas and brackets",
+    "chart.exportFailed": "PNG export failed — try again",
+    "mindmap.empty": "Start with an outline: the first line is the topic, indentation sets the depth",
+    "mindmap.tooDeep": "Too many levels — {0} is the maximum",
+    "mindmap.tooMany": "Too many nodes — {0} is the maximum",
+    "mermaid.failed": "Could not render this diagram — check the syntax and try again",
   },
 };
 

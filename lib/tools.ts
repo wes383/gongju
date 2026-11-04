@@ -9,6 +9,7 @@ import {
   Calculator,
   CalendarClock,
   Captions,
+  ChartColumn,
   CalendarDays,
   CalendarPlus,
   CalendarRange,
@@ -75,6 +76,7 @@ import {
   Landmark,
   Triangle,
   Search,
+  Share2,
   ShieldCheck,
   SortAsc,
   SpellCheck,
@@ -119,6 +121,7 @@ import {
   Wand2,
   Wrench,
   WrapText,
+  Workflow,
 } from "lucide-react";
 import type { Locale } from "@/lib/i18n";
 
@@ -148,6 +151,7 @@ export type CategoryId =
   | "pdf"
   | "subtitle"
   | "media"
+  | "visualization"
   | "finance"
   | "misc";
 
@@ -174,6 +178,7 @@ const pdfTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: 
 const miscTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "misc" });
 const subtitleTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "subtitle" });
 const mediaTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "media" });
+const vizTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "visualization" });
 const financeTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "finance" });
 
 const encodingTools: ToolMeta[] = [
@@ -1615,6 +1620,39 @@ const mediaTools: ToolMeta[] = [
   }),
 ];
 
+const visualizationTools: ToolMeta[] = [
+  vizTool({
+    slug: "chart-maker",
+    name: { zh: "CSV 转图表", en: "Chart Maker" },
+    description: {
+      zh: "把 CSV / JSON 数据画成柱状、折线、面积、饼图或散点图，并导出 SVG / PNG",
+      en: "Turn CSV or JSON data into bar, line, area, pie or scatter charts and export SVG or PNG",
+    },
+    keywords: ["chart", "csv", "json", "graph", "bar", "pie", "图表", "可视化", "柱状图", "折线图", "饼图", "散点图", "svg"],
+    icon: ChartColumn,
+  }),
+  vizTool({
+    slug: "mermaid-editor",
+    name: { zh: "Mermaid 图表编辑器", en: "Mermaid Editor" },
+    description: {
+      zh: "用 Mermaid 语法画流程图、时序图、甘特图、类图与状态图，实时预览并导出",
+      en: "Draw flowcharts, sequence diagrams, Gantt charts, class and state diagrams with live preview",
+    },
+    keywords: ["mermaid", "diagram", "flowchart", "sequence", "gantt", "流程图", "时序图", "甘特图", "类图", "状态图", "uml"],
+    icon: Workflow,
+  }),
+  vizTool({
+    slug: "mindmap",
+    name: { zh: "思维导图", en: "Mind Map" },
+    description: {
+      zh: "把缩进大纲或 Markdown 标题转换成思维导图，支持导出 SVG / PNG",
+      en: "Turn an indented outline or Markdown headings into a mind map and export SVG or PNG",
+    },
+    keywords: ["mindmap", "outline", "tree", "brainstorm", "思维导图", "脑图", "大纲", "导图"],
+    icon: Share2,
+  }),
+];
+
 export const categories: CategoryMeta[] = [
   {
     id: "text",
@@ -1715,6 +1753,16 @@ export const categories: CategoryMeta[] = [
     },
     icon: AudioLines,
     tools: mediaTools,
+  },
+  {
+    id: "visualization",
+    name: { zh: "数据可视化 / 图表", en: "Visualization / Charts" },
+    description: {
+      zh: "CSV 转图表、Mermaid 图表与思维导图，均可导出 SVG / PNG",
+      en: "Charts from CSV, Mermaid diagrams and mind maps, exported as SVG or PNG",
+    },
+    icon: ChartColumn,
+    tools: visualizationTools,
   },
   {
     id: "misc",
