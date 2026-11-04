@@ -203,7 +203,7 @@ export function OgImageTool() {
   const [title, setTitle] = React.useState(t.sampleTitle);
   const [description, setDescription] = React.useState(t.sampleDescription);
   const [site, setSite] = React.useState("GongJu");
-  const [host, setHost] = React.useState("gongju.app");
+  const [host, setHost] = React.useState("gongju.wesluma.com");
   const [themeId, setThemeId] = React.useState<OgTheme["id"]>("light");
 
   const theme = ogTheme(themeId);
