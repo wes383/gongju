@@ -341,19 +341,34 @@ export function ChartMakerTool() {
                 ]}
               />
             </OptionField>
-            <OptionField label={t.dots}>
-              <Segmented
-                ariaLabel={t.dots}
-                value={dotSize}
-                onChange={setDotSize}
-                options={[
-                  { value: "none", label: t.dotsNone },
-                  { value: "small", label: t.dotsSmall },
-                  { value: "medium", label: t.dotsMedium },
-                ]}
-              />
-            </OptionField>
           </>
+        )}
+        {(kind === "line" || kind === "area") && (
+          <OptionField label={t.dots}>
+            <Segmented
+              ariaLabel={t.dots}
+              value={dotSize}
+              onChange={setDotSize}
+              options={[
+                { value: "none", label: t.dotsNone },
+                { value: "small", label: t.dotsSmall },
+                { value: "medium", label: t.dotsMedium },
+              ]}
+            />
+          </OptionField>
+        )}
+        {kind === "scatter" && (
+          <OptionField label={t.dots}>
+            <Segmented
+              ariaLabel={t.dots}
+              value={dotSize === "none" ? "small" : dotSize}
+              onChange={setDotSize}
+              options={[
+                { value: "small", label: t.dotsSmall },
+                { value: "medium", label: t.dotsMedium },
+              ]}
+            />
+          </OptionField>
         )}
         {kind === "bar" && <Toggle checked={rounded} onChange={setRounded} label={t.round} />}
         <Toggle checked={showGrid} onChange={setShowGrid} label={t.grid} />
@@ -495,7 +510,9 @@ export function ChartMakerTool() {
                   colors={CHART_PALETTES[palette]}
                   lineWidth={LINE_WIDTHS[lineWidth]}
                   curve={curve}
-                  dotSize={DOT_SIZES[dotSize]}
+                  dotSize={
+                    kind === "scatter" && dotSize === "none" ? DOT_SIZES.small : DOT_SIZES[dotSize]
+                  }
                   barRadius={rounded ? 4 : 0}
                   showGrid={showGrid}
                 />

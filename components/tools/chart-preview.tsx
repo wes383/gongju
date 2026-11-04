@@ -328,6 +328,19 @@ function ChartCanvas({
             fill={colors[seriesIndex]}
             fillOpacity={0.9}
             isAnimationActive={false}
+            // A custom shape keeps the marker size in sync with the dot control.
+            shape={(point: { cx?: number | null; cy?: number | null }) => {
+              if (typeof point.cx !== "number" || typeof point.cy !== "number") return <g />;
+              return (
+                <circle
+                  cx={point.cx}
+                  cy={point.cy}
+                  r={dotSize}
+                  fill={colors[seriesIndex]}
+                  fillOpacity={0.9}
+                />
+              );
+            }}
             data={data.labels
               .map((_, index) => ({
                 x: xNumeric ? (xValues[index] as number) : index,
