@@ -174,7 +174,7 @@ export function Pane({
         </span>
         <div className="ml-auto flex items-center gap-0.5">{actions}</div>
       </header>
-      <div className="min-h-0 flex-1">{children}</div>
+      <div className="flex min-h-0 flex-1 flex-col">{children}</div>
       {footer && (
         <footer className="flex h-8 shrink-0 items-center gap-3 border-t border-border px-3 font-mono text-[11px] text-foreground-faint">
           {footer}
@@ -185,7 +185,7 @@ export function Pane({
 }
 
 const areaBase =
-  "w-full resize-y bg-transparent px-3.5 py-3 font-mono text-[13px] leading-relaxed text-foreground placeholder:text-foreground-faint focus:outline-none";
+  "w-full flex-1 resize-y bg-transparent px-3.5 py-3 font-mono text-[13px] leading-relaxed text-foreground placeholder:text-foreground-faint focus:outline-none";
 
 export const InputArea = React.forwardRef<
   HTMLTextAreaElement,

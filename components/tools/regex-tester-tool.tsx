@@ -217,7 +217,7 @@ export function RegexTesterTool() {
             spellCheck={false}
             placeholder={t.inputPlaceholder}
             aria-label={t.input}
-            className="min-h-[200px] w-full resize-y bg-transparent px-3.5 py-3 font-mono text-[13px] leading-relaxed text-foreground placeholder:text-foreground-faint focus:outline-none"
+            className="min-h-[200px] w-full flex-1 resize-y bg-transparent px-3.5 py-3 font-mono text-[13px] leading-relaxed text-foreground placeholder:text-foreground-faint focus:outline-none"
           />
         </div>
 
@@ -227,7 +227,7 @@ export function RegexTesterTool() {
               {t.preview}
             </span>
           </header>
-          <div className="min-h-[200px] overflow-auto px-3.5 py-3 font-mono text-[13px] leading-relaxed text-foreground">
+          <div className="max-h-[60vh] min-h-[200px] overflow-auto px-3.5 py-3 font-mono text-[13px] leading-relaxed text-foreground">
             {!pattern ? (
               <span className="text-foreground-faint">{t.empty}</span>
             ) : input && result.matches.length === 0 ? (

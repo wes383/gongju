@@ -196,6 +196,7 @@ export function CsvMergeTool() {
           <div key={side.key} className="overflow-hidden rounded-lg border border-border bg-surface">
             <Pane
               label={side.label}
+              className="h-full"
               actions={
                 <>
                   <UploadFileButton

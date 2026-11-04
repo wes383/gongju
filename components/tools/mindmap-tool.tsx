@@ -104,6 +104,7 @@ export function MindmapTool() {
       <div className="overflow-hidden rounded-lg border border-border bg-surface">
         <Pane
           label={t.outline}
+          className="h-full"
           actions={
             <>
               <PaneButton

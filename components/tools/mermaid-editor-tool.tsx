@@ -368,6 +368,7 @@ export function MermaidEditorTool() {
         <div className="overflow-hidden rounded-lg border border-border bg-surface">
           <Pane
             label={t.code}
+            className="h-full"
             actions={<CopyButton value={`\`\`\`mermaid\n${code}\n\`\`\``} label={t.copyCode} />}
             footer={<span>{rendering ? t.rendering : t.ready}</span>}
           >
