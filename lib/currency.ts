@@ -130,7 +130,7 @@ export async function refreshCodes(): Promise<string[] | null> {
   try {
     const response = await fetch(LIST_API, {
       headers: { accept: "application/json" },
-      signal: AbortSignal.timeout(8000),
+      signal: timeoutSignal(8000),
     });
     if (!response.ok) return null;
     rows = (await response.json()) as { iso_code?: unknown }[];
@@ -163,33 +163,73 @@ export interface RateQuote {
   rate: number;
 }
 
-const API = "https://api.frankfurter.dev/v2/rate";
-const CACHE_TTL = 6 * 60 * 60 * 1000;
-const STORAGE_PREFIX = "gongju:fx:";
+export type RateSourceId = "frankfurter" | "currency-api" | "er-api";
 
-const memory = new Map<string, { quote: RateQuote; at: number }>();
+/** Proper nouns: a source keeps its own name in both locales */
+export const RATE_SOURCE_NAMES: Record<RateSourceId, string> = {
+  frankfurter: "Frankfurter",
+  "currency-api": "Currency API",
+  "er-api": "ExchangeRate-API",
+};
+
+export const RATE_SOURCE_URLS: Record<RateSourceId, string> = {
+  frankfurter: "https://frankfurter.dev",
+  "currency-api": "https://github.com/fawazahmed0/exchange-api",
+  "er-api": "https://www.exchangerate-api.com/docs/free",
+};
+
+export interface RateQuote {
+  /** Publication date reported by the source, YYYY-MM-DD */
+  date: string;
+  base: string;
+  quote: string;
+  rate: number;
+  /** Which service answered; absent for the identity pair */
+  source?: RateSourceId;
+  /** True when every source failed and this came from an expired cache */
+  stale?: boolean;
+}
+
+const CACHE_TTL = 6 * 60 * 60 * 1000;
+/** Oldest cached rate still worth showing when the network is gone */
+const STALE_TTL = 30 * 24 * 60 * 60 * 1000;
+const STORAGE_PREFIX = "gongju:fx:v2:";
+const SOURCE_KEY = "gongju:fx:source";
+
+interface CacheEntry {
+  quote: RateQuote;
+  at: number;
+}
+
+const memory = new Map<string, CacheEntry>();
 
 function cacheKey(base: string, quote: string) {
   return `${base.toUpperCase()}:${quote.toUpperCase()}`;
 }
 
-function readCache(key: string): RateQuote | null {
+function readEntry(key: string): CacheEntry | null {
   const hit = memory.get(key);
-  if (hit && Date.now() - hit.at < CACHE_TTL) return hit.quote;
+  if (hit) return hit;
   try {
     const raw = localStorage.getItem(STORAGE_PREFIX + key);
     if (!raw) return null;
-    const parsed = JSON.parse(raw) as { quote: RateQuote; at: number };
-    if (Date.now() - parsed.at > CACHE_TTL) return null;
-    memory.set(key, parsed);
-    return parsed.quote;
+    const parsed = JSON.parse(raw) as Partial<CacheEntry>;
+    if (typeof parsed?.at !== "number" || typeof parsed.quote?.rate !== "number") return null;
+    const entry = parsed as CacheEntry;
+    memory.set(key, entry);
+    return entry;
   } catch {
     return null;
   }
 }
 
+function readFresh(key: string): RateQuote | null {
+  const entry = readEntry(key);
+  return entry && Date.now() - entry.at < CACHE_TTL ? entry.quote : null;
+}
+
 function writeCache(key: string, quote: RateQuote) {
-  const entry = { quote, at: Date.now() };
+  const entry: CacheEntry = { quote, at: Date.now() };
   memory.set(key, entry);
   try {
     localStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(entry));
@@ -198,9 +238,169 @@ function writeCache(key: string, quote: RateQuote) {
   }
 }
 
+/** `AbortSignal.timeout` is missing before Safari 16, so fall back to a controller */
+function timeoutSignal(ms: number): AbortSignal | undefined {
+  try {
+    if (typeof AbortSignal !== "undefined" && typeof AbortSignal.timeout === "function") {
+      return AbortSignal.timeout(ms);
+    }
+  } catch {
+    // Old implementation without the static: use the controller below
+  }
+  try {
+    const controller = new AbortController();
+    setTimeout(() => controller.abort(), ms);
+    return controller.signal;
+  } catch {
+    return undefined;
+  }
+}
+
+async function requestJson(url: string, ms: number): Promise<unknown> {
+  const response = await fetch(url, {
+    headers: { accept: "application/json" },
+    signal: timeoutSignal(ms),
+    cache: "no-store",
+  });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  return response.json();
+}
+
+function record(value: unknown): Record<string, unknown> | null {
+  return value !== null && typeof value === "object" ? (value as Record<string, unknown>) : null;
+}
+
+function positiveRate(value: unknown): number | null {
+  return typeof value === "number" && Number.isFinite(value) && value > 0 ? value : null;
+}
+
+function isoDay(value: unknown): string {
+  if (typeof value !== "string") return "";
+  const parsed = Date.parse(value);
+  if (Number.isNaN(parsed)) return value.slice(0, 10);
+  return new Date(parsed).toISOString().slice(0, 10);
+}
+
+interface RateSource {
+  id: RateSourceId;
+  /** Milliseconds before we give up on this source and try the next */
+  timeout: number;
+  url: (base: string, quote: string) => string;
+  parse: (data: unknown, base: string, quote: string) => RateQuote | null;
+}
+
 /**
- * Latest published rate for a pair. Same-currency pairs short-circuit to 1.
- * `force` skips the cache when the user asks for a refresh.
+ * Three independent services, tried in turn. Frankfurter carries central-bank
+ * reference rates but sits behind one host; the CDN table covers crypto and
+ * metals; the last one is a plain fiat table. Any of them is good enough to
+ * convert money, so a single unreachable host must not break the tool.
+ */
+const SOURCES: RateSource[] = [
+  {
+    id: "frankfurter",
+    timeout: 5000,
+    url: (base, quote) =>
+      `https://api.frankfurter.dev/v2/rate/${base.toLowerCase()}/${quote.toLowerCase()}`,
+    parse: (data, base, quote) => {
+      const root = record(data);
+      const rate = positiveRate(root?.rate);
+      if (!root || rate === null) return null;
+      return { date: isoDay(root.date), base, quote, rate, source: "frankfurter" };
+    },
+  },
+  {
+    id: "currency-api",
+    timeout: 6000,
+    url: (base) =>
+      `https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/${base.toLowerCase()}.min.json`,
+    parse: (data, base, quote) => {
+      const root = record(data);
+      const table = record(root?.[base.toLowerCase()]);
+      const rate = positiveRate(table?.[quote.toLowerCase()]);
+      if (!table || rate === null) return null;
+      return { date: isoDay(root?.date), base, quote, rate, source: "currency-api" };
+    },
+  },
+  {
+    id: "er-api",
+    timeout: 6000,
+    url: (base) => `https://open.er-api.com/v6/latest/${base.toUpperCase()}`,
+    parse: (data, base, quote) => {
+      const root = record(data);
+      if (root?.result !== "success") return null;
+      const rate = positiveRate(record(root.rates)?.[quote.toUpperCase()]);
+      if (rate === null) return null;
+      return { date: isoDay(root.time_last_update_utc), base, quote, rate, source: "er-api" };
+    },
+  },
+];
+
+function isSourceId(value: unknown): value is RateSourceId {
+  return value === "frankfurter" || value === "currency-api" || value === "er-api";
+}
+
+let preferredSource: RateSourceId | null | undefined;
+
+function readPreferred(): RateSourceId | null {
+  try {
+    const raw = localStorage.getItem(SOURCE_KEY);
+    return isSourceId(raw) ? raw : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Start with whichever service answered last: if one host is blocked on this
+ * network, the next pair pays the timeout once rather than every time.
+ */
+function sourceOrder(): RateSource[] {
+  if (preferredSource === undefined) preferredSource = readPreferred();
+  const first = preferredSource ?? "frankfurter";
+  return [
+    SOURCES.find((source) => source.id === first)!,
+    ...SOURCES.filter((source) => source.id !== first),
+  ];
+}
+
+function rememberSource(id: RateSourceId) {
+  preferredSource = id;
+  try {
+    localStorage.setItem(SOURCE_KEY, id);
+  } catch {
+    // A preference is a nicety, not state the tool depends on
+  }
+}
+
+/** Walk the sources until one answers with a usable rate */
+async function liveRate(base: string, quote: string): Promise<RateQuote> {
+  let delivered = false;
+
+  for (const source of sourceOrder()) {
+    let data: unknown;
+    try {
+      data = await requestJson(source.url(base, quote), source.timeout);
+    } catch {
+      continue;
+    }
+    delivered = true;
+    const parsed = source.parse(data, base, quote);
+    if (parsed) {
+      rememberSource(source.id);
+      return parsed;
+    }
+  }
+
+  // At least one service answered but none knows this pair, versus nothing
+  // answered at all — the two cases need different advice.
+  throw codedError(delivered ? "currency.unsupported" : "currency.unreachable");
+}
+
+/**
+ * Latest rate for a pair. Same-currency pairs short-circuit to 1. `force`
+ * skips the cache when the user asks for a refresh; if every source is down we
+ * fall back to an expired cache entry and mark it stale rather than showing
+ * nothing.
  */
 export async function fetchRate(base: string, quote: string, force = false): Promise<RateQuote> {
   const from = base.toUpperCase();
@@ -209,31 +409,17 @@ export async function fetchRate(base: string, quote: string, force = false): Pro
 
   const key = cacheKey(from, to);
   if (!force) {
-    const cached = readCache(key);
+    const cached = readFresh(key);
     if (cached) return cached;
   }
 
-  let response: Response;
   try {
-    response = await fetch(`${API}/${from.toLowerCase()}/${to.toLowerCase()}`, {
-      headers: { accept: "application/json" },
-      signal: AbortSignal.timeout(12_000),
-    });
-  } catch {
-    throw codedError("currency.unreachable");
+    const quote = await liveRate(from, to);
+    writeCache(key, quote);
+    return quote;
+  } catch (error) {
+    const entry = readEntry(key);
+    if (entry && Date.now() - entry.at < STALE_TTL) return { ...entry.quote, stale: true };
+    throw error;
   }
-  if (!response.ok) throw codedError("currency.unreachable");
-
-  let data: RateQuote;
-  try {
-    data = (await response.json()) as RateQuote;
-  } catch {
-    throw codedError("currency.unreachable");
-  }
-  if (typeof data?.rate !== "number" || !Number.isFinite(data.rate)) {
-    throw codedError("currency.unreachable");
-  }
-
-  writeCache(key, data);
-  return data;
 }

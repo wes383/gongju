@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CopyButton, ErrorNote, SwapButton } from "@/components/tools/tool-ui";
 import { Combobox, type ComboboxOption } from "@/components/ui/combobox";
@@ -9,6 +10,8 @@ import { useCopy, useLocale } from "@/components/locale-provider";
 import { errorText } from "@/lib/errors";
 import {
   CURRENCY_CODES,
+  RATE_SOURCE_NAMES,
+  RATE_SOURCE_URLS,
   fetchRate,
   mergeCodes,
   refreshCodes,
@@ -31,8 +34,11 @@ const COPY = {
     search: "搜索币种",
     empty: "没有匹配的币种",
     noteBefore: "汇率来自 ",
-    noteAfter: "，每个工作日更新一次。请求只发送货币代码，金额始终留在本机。",
+    noteAfter: "，更新频率以来源为准。请求只发送货币代码，金额始终留在本机。",
     invalid: "请输入金额",
+    retry: "重试",
+    stale: (date: string) => `网络不可用，显示的是 ${date} 的缓存汇率，可能已经过期。`,
+    staleNoDate: "网络不可用，显示的是本地缓存的汇率，可能已经过期。",
   },
   en: {
     amount: "Amount",
@@ -47,8 +53,11 @@ const COPY = {
     search: "Search currencies",
     empty: "No currency matches",
     noteBefore: "Rates come from ",
-    noteAfter: " and update once per working day. Only the currency codes are sent; the amount stays on your device.",
+    noteAfter: "; how fresh it is depends on the source. Only the currency codes are sent; the amount stays on your device.",
     invalid: "Enter an amount",
+    retry: "Retry",
+    stale: (date: string) => `The rate services did not answer — showing the cached rate from ${date}, which may be out of date.`,
+    staleNoDate: "The rate services did not answer — showing a cached rate, which may be out of date.",
   },
 };
 
@@ -91,11 +100,16 @@ export function CurrencyTool() {
     fetchRate(from, to, forceNext.current)
       .then((next) => {
         forceNext.current = false;
-        if (!cancelled) setEntry({ from, to, quote: next });
+        if (cancelled) return;
+        // A retry that succeeds must clear the error it was recovering from
+        setFailure(null);
+        setEntry({ from, to, quote: next });
       })
       .catch((err: unknown) => {
         forceNext.current = false;
-        if (!cancelled) setFailure({ from, to, error: err });
+        if (cancelled) return;
+        setEntry(null);
+        setFailure({ from, to, error: err });
       });
     return () => {
       cancelled = true;
@@ -142,6 +156,15 @@ export function CurrencyTool() {
     setTo(from);
   };
 
+  const retry = () => {
+    // Clear the failure first so the panel goes back to the loading state
+    setFailure(null);
+    forceNext.current = true;
+    setNonce((n) => n + 1);
+  };
+
+  const source = quote?.source ?? "frankfurter";
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-3 rounded-lg border border-border bg-surface p-3 sm:flex-row sm:items-center">
@@ -185,7 +208,15 @@ export function CurrencyTool() {
       </div>
 
       {error ? (
-        <ErrorNote>{errorText(error, locale)}</ErrorNote>
+        <div className="flex flex-wrap items-start gap-2">
+          <div className="min-w-0 flex-1">
+            <ErrorNote>{errorText(error, locale)}</ErrorNote>
+          </div>
+          <Button type="button" variant="outline" size="xs" onClick={retry} className="gap-1.5">
+            <RefreshCw className="h-3.5 w-3.5" />
+            {t.retry}
+          </Button>
+        </div>
       ) : (
         <section className="overflow-hidden rounded-lg border border-border bg-surface">
           <header className="flex h-10 items-center gap-2 border-b border-border px-3">
@@ -198,10 +229,7 @@ export function CurrencyTool() {
               )}
               <button
                 type="button"
-                onClick={() => {
-                  forceNext.current = true;
-                  setNonce((n) => n + 1);
-                }}
+                onClick={retry}
                 aria-label={t.refresh}
                 title={t.refresh}
                 className="flex h-7 w-7 items-center justify-center rounded-md text-foreground-subtle transition-colors hover:bg-hover-bg hover:text-foreground"
@@ -210,6 +238,12 @@ export function CurrencyTool() {
               </button>
             </div>
           </header>
+
+          {quote?.stale && (
+            <p className="border-b border-orange-border bg-orange-soft px-4 py-2 text-[11px] leading-relaxed text-orange-fg">
+              {quote.date ? t.stale(quote.date) : t.staleNoDate}
+            </p>
+          )}
 
           <div className="px-4 py-4">
             {loading ? (
@@ -254,12 +288,12 @@ export function CurrencyTool() {
       <p className="text-[11px] leading-relaxed text-foreground-subtle">
         {t.noteBefore}
         <a
-          href="https://frankfurter.dev"
+          href={RATE_SOURCE_URLS[source]}
           target="_blank"
           rel="noreferrer"
           className="text-foreground-muted underline decoration-border-strong underline-offset-2 transition-colors hover:text-foreground"
         >
-          Frankfurter
+          {RATE_SOURCE_NAMES[source]}
         </a>
         {t.noteAfter}
       </p>
