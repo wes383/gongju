@@ -82,6 +82,9 @@ import {
   Landmark,
   Triangle,
   Search,
+  Sigma,
+  Bell,
+  ChartSpline,
   Share2,
   ShieldAlert,
   ShieldCheck,
@@ -165,6 +168,7 @@ export type CategoryId =
   | "dev"
   | "network"
   | "convert"
+  | "math"
   | "pdf"
   | "office"
   | "ai"
@@ -207,6 +211,7 @@ const privacyTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, catego
 const officeTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "office" });
 const aiTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "ai" });
 const seoTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "seo" });
+const mathTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "math" });
 
 const encodingTools: ToolMeta[] = [
   tool({
@@ -1331,16 +1336,6 @@ const convertTools: ToolMeta[] = [
     icon: Triangle,
   }),
   convertTool({
-    slug: "calculator",
-    name: { zh: "科学计算器", en: "Scientific Calculator" },
-    description: {
-      zh: "支持三角函数、对数、阶乘与常量的表达式计算器",
-      en: "Expression calculator with trigonometry, logs, factorials and constants",
-    },
-    keywords: ["calculator", "计算器", "科学", "sin", "log", "math", "表达式"],
-    icon: Calculator,
-  }),
-  convertTool({
     slug: "data-speed",
     name: { zh: "数据传输速度换算", en: "Data Transfer Speed" },
     description: {
@@ -1495,6 +1490,59 @@ const miscTools: ToolMeta[] = [
     },
     keywords: ["card", "credit", "luhn", "银行卡", "信用卡", "校验", "卡号", "mod10"],
     icon: CreditCard,
+  }),
+];
+
+const mathTools: ToolMeta[] = [
+  mathTool({
+    slug: "calculator",
+    name: { zh: "科学计算器", en: "Scientific Calculator" },
+    description: {
+      zh: "支持三角函数、对数、阶乘与常量的表达式计算器",
+      en: "Expression calculator with trigonometry, logs, factorials and constants",
+    },
+    keywords: ["calculator", "计算器", "科学", "sin", "log", "math", "表达式", "阶乘", "三角"],
+    icon: Calculator,
+  }),
+  mathTool({
+    slug: "function-plot",
+    name: { zh: "函数图像", en: "Function Plotter" },
+    description: {
+      zh: "输入一条或多条表达式，实时绘制函数图像并导出 SVG / PNG",
+      en: "Plot one or more expressions and export the chart as SVG or PNG",
+    },
+    keywords: ["函数", "图像", "绘图", "曲线", "plot", "graph", "sin", "抛物线", "坐标轴"],
+    icon: ChartSpline,
+  }),
+  mathTool({
+    slug: "matrix-calc",
+    name: { zh: "矩阵计算", en: "Matrix Calculator" },
+    description: {
+      zh: "矩阵乘法、加减、转置、行列式、逆矩阵、秩与迹",
+      en: "Matrix multiplication, addition, transpose, determinant, inverse, rank and trace",
+    },
+    keywords: ["矩阵", "matrix", "行列式", "det", "逆矩阵", "转置", "秩", "线性代数"],
+    icon: Grid3x3,
+  }),
+  mathTool({
+    slug: "statistics",
+    name: { zh: "描述统计", en: "Descriptive Statistics" },
+    description: {
+      zh: "平均值、中位数、分位数、标准差、偏度峰度与异常值，附直方图",
+      en: "Mean, median, quartiles, spread, shape and outliers for a column of numbers, with a histogram",
+    },
+    keywords: ["统计", "平均值", "中位数", "标准差", "方差", "分位数", "异常值", "statistics"],
+    icon: ChartColumn,
+  }),
+  mathTool({
+    slug: "distribution",
+    name: { zh: "概率分布", en: "Probability Distributions" },
+    description: {
+      zh: "正态、二项、泊松、指数与均匀分布的密度、累积概率与分位数",
+      en: "Density, cumulative probability and quantiles for the five common distributions",
+    },
+    keywords: ["概率", "分布", "正态", "二项", "泊松", "分位数", "p 值", "normal", "cdf"],
+    icon: Bell,
   }),
 ];
 
@@ -2017,11 +2065,21 @@ export const categories: CategoryMeta[] = [
     id: "convert",
     name: { zh: "转换器 / 单位", en: "Converters / Units" },
     description: {
-      zh: "单位换算、汇率、百分比、BMI 与计算器",
-      en: "Units, currency, percentages, BMI and calculators",
+      zh: "单位换算、汇率、百分比与 BMI",
+      en: "Units, currency, percentages and BMI",
     },
     icon: Ruler,
     tools: convertTools,
+  },
+  {
+    id: "math",
+    name: { zh: "数学 / 科学计算", en: "Math / Science" },
+    description: {
+      zh: "计算器、函数图像、矩阵、描述统计与概率分布",
+      en: "Calculator, function plots, matrices, descriptive statistics and distributions",
+    },
+    icon: Sigma,
+    tools: mathTools,
   },
   {
     id: "finance",
