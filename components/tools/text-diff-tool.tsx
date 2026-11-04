@@ -1,10 +1,17 @@
 "use client";
 
 import * as React from "react";
-import { diffLines, DIFF_LINE_LIMIT, type LineDiff } from "@/lib/text";
+import {
+  DIFF_LINE_LIMIT,
+  DIFF_WORD_LIMIT,
+  diffLines,
+  diffWords,
+  type LineDiff,
+  type WordDiff,
+} from "@/lib/text";
 import { useCopy, useT } from "@/components/locale-provider";
 import { Badge } from "@/components/ui/badge";
-import { ErrorNote, OptionBar, SampleButton, Toggle } from "@/components/tools/tool-ui";
+import { ErrorNote, OptionBar, SampleButton, Segmented, Toggle } from "@/components/tools/tool-ui";
 import { cn } from "@/lib/utils";
 
 const COPY = {
@@ -12,6 +19,9 @@ const COPY = {
     left: "原始文本",
     right: "修改后文本",
     sample: "示例",
+    mode: "对比粒度",
+    line: "按行",
+    word: "按词",
     onlyDiff: "仅显示差异",
     added: "新增",
     removed: "删除",
@@ -32,6 +42,9 @@ const COPY = {
     left: "Original",
     right: "Modified",
     sample: "Sample",
+    mode: "Granularity",
+    line: "Lines",
+    word: "Words",
     onlyDiff: "Changes only",
     added: "Added",
     removed: "Removed",
@@ -121,37 +134,58 @@ export function TextDiffTool() {
   const [left, setLeft] = React.useState("");
   const [right, setRight] = React.useState("");
   const [onlyDiff, setOnlyDiff] = React.useState(false);
+  const [mode, setMode] = React.useState<"line" | "word">("line");
 
   const result = React.useMemo(() => {
-    if (!left && !right) return { rows: [] as LineDiff[], error: null as string | null };
-    try {
-      return { rows: diffLines(left, right), error: null };
-    } catch {
-      return { rows: [] as LineDiff[], error: t.tooLarge(DIFF_LINE_LIMIT) };
+    if (!left && !right) {
+      return { rows: [] as LineDiff[], words: [] as WordDiff[], error: null as string | null };
     }
-  }, [left, right, t]);
+    try {
+      return mode === "line"
+        ? { rows: diffLines(left, right), words: [] as WordDiff[], error: null }
+        : { rows: [] as LineDiff[], words: diffWords(left, right), error: null };
+    } catch {
+      const limit = mode === "line" ? DIFF_LINE_LIMIT : DIFF_WORD_LIMIT;
+      return { rows: [] as LineDiff[], words: [] as WordDiff[], error: t.tooLarge(limit) };
+    }
+  }, [left, right, mode, t]);
 
-  const counts = React.useMemo(
-    () => ({
+  const counts = React.useMemo(() => {
+    if (mode === "word") {
+      return {
+        added: result.words.filter((r) => r.kind === "added").length,
+        removed: result.words.filter((r) => r.kind === "removed").length,
+      };
+    }
+    return {
       added: result.rows.filter((r) => r.kind === "added").length,
       removed: result.rows.filter((r) => r.kind === "removed").length,
-    }),
-    [result.rows]
-  );
+    };
+  }, [result, mode]);
 
   const visible = onlyDiff ? result.rows.filter((r) => r.kind !== "same") : result.rows;
   const bothEmpty = !left && !right;
+  const nothingVisible = mode === "line" ? visible.length === 0 : result.words.length === 0;
 
   return (
     <div className="flex flex-col gap-4">
       <OptionBar>
+        <Segmented
+          ariaLabel={t.mode}
+          value={mode}
+          onChange={setMode}
+          options={[
+            { value: "line", label: t.line },
+            { value: "word", label: t.word },
+          ]}
+        />
         <SampleButton
           onClick={() => {
             setLeft(t.sampleLeft);
             setRight(t.sampleRight);
           }}
         />
-        <Toggle checked={onlyDiff} onChange={setOnlyDiff} label={t.onlyDiff} />
+        {mode === "line" && <Toggle checked={onlyDiff} onChange={setOnlyDiff} label={t.onlyDiff} />}
         {!bothEmpty && !result.error && (
           <div className="ml-auto flex items-center gap-1.5">
             <Badge variant="success" size="xs">
@@ -179,10 +213,25 @@ export function TextDiffTool() {
         </header>
         {bothEmpty ? (
           <p className="px-4 py-10 text-center text-sm text-foreground-subtle">{t.empty}</p>
-        ) : visible.length === 0 ? (
+        ) : nothingVisible ? (
           <p className="px-4 py-10 text-center text-sm text-foreground-subtle">
-            {onlyDiff ? t.identical : shared.outputPlaceholder}
+            {onlyDiff || mode === "word" ? t.identical : shared.outputPlaceholder}
           </p>
+        ) : mode === "word" ? (
+          <div className="max-h-[520px] overflow-auto whitespace-pre-wrap break-words px-3.5 py-3 font-mono text-[13px] leading-relaxed">
+            {result.words.map((item, i) => (
+              <span
+                key={`${item.kind}-${i}`}
+                className={cn(
+                  item.kind === "added" && "bg-green-soft text-green-fg",
+                  item.kind === "removed" && "bg-red-soft text-red-fg line-through decoration-red-border",
+                  item.kind === "same" && "text-foreground-muted"
+                )}
+              >
+                {item.text}
+              </span>
+            ))}
+          </div>
         ) : (
           <div className="max-h-[520px] overflow-auto py-1">
             {visible.map((item, i) => (

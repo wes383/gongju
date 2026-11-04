@@ -260,6 +260,79 @@ export function diffLines(left: string, right: string): LineDiff[] {
 }
 
 /* ══════════════════════════════════════════════════════════════
+   Word diff
+   ══════════════════════════════════════════════════════════════ */
+
+export interface WordDiff {
+  kind: LineDiffKind;
+  text: string;
+}
+
+export const DIFF_WORD_LIMIT = 2000;
+
+/**
+ * Words, single CJK characters, whitespace runs and punctuation. Latin words
+ * stay whole so "retry" reads as one change instead of six, while Chinese is
+ * diffed character by character, which is what readers expect there.
+ */
+const WORD_TOKEN =
+  /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]|[\p{L}\p{M}\p{N}_]+|\s+|[^\s\p{L}\p{M}\p{N}_]/gu;
+
+/**
+ * Inline diff for prompts and single-paragraph text, where a line-level diff
+ * would mark the whole line as changed.
+ */
+export function diffWords(left: string, right: string): WordDiff[] {
+  const a = left.match(WORD_TOKEN) ?? [];
+  const b = right.match(WORD_TOKEN) ?? [];
+  const n = a.length;
+  const m = b.length;
+
+  if (n > DIFF_WORD_LIMIT || m > DIFF_WORD_LIMIT) {
+    throw codedError("text.tooLarge", DIFF_WORD_LIMIT);
+  }
+
+  const width = m + 1;
+  const lengths = new Uint32Array((n + 1) * width);
+  for (let i = n - 1; i >= 0; i--) {
+    for (let j = m - 1; j >= 0; j--) {
+      lengths[i * width + j] =
+        a[i] === b[j]
+          ? lengths[(i + 1) * width + j + 1] + 1
+          : Math.max(lengths[(i + 1) * width + j], lengths[i * width + j + 1]);
+    }
+  }
+
+  const out: WordDiff[] = [];
+  const push = (kind: LineDiffKind, text: string) => {
+    const last = out[out.length - 1];
+    // Adjacent tokens of the same kind read better as one run
+    if (last && last.kind === kind) last.text += text;
+    else out.push({ kind, text });
+  };
+
+  let i = 0;
+  let j = 0;
+  while (i < n && j < m) {
+    if (a[i] === b[j]) {
+      push("same", a[i]);
+      i++;
+      j++;
+    } else if (lengths[(i + 1) * width + j] >= lengths[i * width + j + 1]) {
+      push("removed", a[i]);
+      i++;
+    } else {
+      push("added", b[j]);
+      j++;
+    }
+  }
+  while (i < n) push("removed", a[i++]);
+  while (j < m) push("added", b[j++]);
+
+  return out;
+}
+
+/* ══════════════════════════════════════════════════════════════
    Lorem Ipsum
    ══════════════════════════════════════════════════════════════ */
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cleanText, convertCase, diffLines, splitWords, textStats } from "@/lib/text";
+import { cleanText, convertCase, diffLines, diffWords, splitWords, textStats } from "@/lib/text";
 
 describe("textStats", () => {
   it("counts characters, words, lines and bytes", () => {
@@ -71,5 +71,40 @@ describe("diffLines", () => {
   it("rejects input beyond the line limit", () => {
     const huge = Array.from({ length: 5000 }, (_, i) => `line ${i}`).join("\n");
     expect(() => diffLines(huge, huge)).toThrow();
+  });
+});
+
+describe("diffWords", () => {
+  it("keeps a single edited word instead of flagging the whole line", () => {
+    const parts = diffWords("Summarise the report briefly.", "Summarise the report carefully.");
+
+    const removed = parts.filter((part) => part.kind === "removed").map((part) => part.text);
+    const added = parts.filter((part) => part.kind === "added").map((part) => part.text);
+    expect(removed).toEqual(["briefly"]);
+    expect(added).toEqual(["carefully"]);
+  });
+
+  it("diffs Chinese character by character", () => {
+    const parts = diffWords("把这段文字改成摘要", "把这段文字改成要点");
+    expect(parts.some((part) => part.kind === "removed" && part.text === "摘")).toBe(true);
+    expect(parts.some((part) => part.kind === "added" && part.text === "点")).toBe(true);
+  });
+
+  it("merges neighbouring changes into one run", () => {
+    const parts = diffWords("one two three", "one two four five");
+    expect(parts.filter((part) => part.kind !== "same")).toEqual([
+      { kind: "removed", text: "three" },
+      { kind: "added", text: "four five" },
+    ]);
+  });
+
+  it("reports a pure addition when one side is empty", () => {
+    const parts = diffWords("", "hello world");
+    expect(parts).toEqual([{ kind: "added", text: "hello world" }]);
+  });
+
+  it("rejects input beyond the word limit", () => {
+    const huge = "word ".repeat(3000);
+    expect(() => diffWords(huge, huge)).toThrow();
   });
 });
