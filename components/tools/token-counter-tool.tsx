@@ -11,6 +11,7 @@ import {
   OptionField,
   SampleButton,
   Segmented,
+  Toggle,
 } from "@/components/tools/tool-ui";
 import { useCopy, useLocale } from "@/components/locale-provider";
 import { cn } from "@/lib/utils";
@@ -24,6 +25,7 @@ import {
   tokenizerProfile,
   type TokenizerFamily,
 } from "@/lib/tokens";
+import { countTokensExact, supportsExact } from "@/lib/tokenizer-exact";
 
 const COPY = {
   zh: {
@@ -53,7 +55,15 @@ const COPY = {
     usage: "窗口占用",
     sample: "示例",
     clear: "清空",
-    note: "没有加载真正的分词词表：按拉丁词、中日韩字符、数字、标点与 Emoji 分段估算。英文段落通常偏差 5% 以内，代码偏低约 10%，中文可能差 15%（生僻字与缩写更多）。要精确数字，请用对应模型的官方 tokenizer。上下文预算里的“预留回答”是给模型留的空间，剩下的才是提示词可用的上限。",
+    exactMode: "精确模式",
+    exactHint: "用官方 BPE 词表计数，首次开启需要下载约 1 MB 词表",
+    exact: "精确",
+    estimate: "估算",
+    exactLoading: "加载词表…",
+    exactFailed: "词表加载失败，已回退估算",
+    exactUnsupported: "该家族没有公开词表，仍为估算",
+    compareEstimate: "各分词器对比（估算）",
+    note: "默认按拉丁词、中日韩字符、数字、标点与 Emoji 分段估算：英文段落通常偏差 5% 以内，代码偏低约 10%，中文可能差 15%。开启精确模式后，GPT-4o 与 GPT-4 家族改用官方词表计算总数（首次加载约 1 MB），构成明细仍是估算拆分；其余家族没有公开词表，只能估算。上下文预算里的“预留回答”是给模型留的空间，剩下的才是提示词可用的上限。",
     sampleText:
       "检索增强生成的第一步是把文档切成合适的片段。片段太大，检索会带回一堆无关内容；片段太小，答案需要的上下文又被切断。所以切分点通常选在句子边界，并保留少量重叠。",
   },
@@ -84,7 +94,15 @@ const COPY = {
     usage: "Window used",
     sample: "Sample",
     clear: "Clear",
-    note: "No real vocabulary is loaded: the estimate splits text into Latin words, CJK characters, digits, punctuation and emoji. English prose usually lands within five percent, code runs about ten percent low, and Chinese can drift fifteen percent (rare characters and abbreviations drift more). For exact numbers use the vendor tokenizer. In the budget below, the reserve is the room you leave for the model, and the rest is what the prompt may use.",
+    exactMode: "Exact mode",
+    exactHint: "Counts with the official BPE vocabulary; the first run downloads about 1 MB",
+    exact: "Exact",
+    estimate: "Estimate",
+    exactLoading: "Loading vocabulary…",
+    exactFailed: "Vocabulary failed to load, falling back to the estimate",
+    exactUnsupported: "No public vocabulary for this family, still an estimate",
+    compareEstimate: "Across tokenizers (estimate)",
+    note: "By default the estimate splits text into Latin words, CJK characters, digits, punctuation and emoji: English prose usually lands within five percent, code runs about ten percent low, Chinese can drift fifteen percent. Turn on exact mode and the GPT-4o and GPT-4 families count with their official vocabulary (about 1 MB on first load), while the breakdown stays an estimate; the other families have no public vocabulary. In the budget below, the reserve is the room you leave for the model, and the rest is what the prompt may use.",
     sampleText:
       "Retrieval augmented generation starts by cutting documents into chunks. Make them too large and the retriever drags in unrelated paragraphs; make them too small and the answer loses the context it needs. That is why cut points land on sentence boundaries, with a little overlap.",
   },
@@ -133,23 +151,79 @@ function Field({
   );
 }
 
+type ExactCount = { key: string; tokens: number } | { key: string; failed: true };
+
+/** Debounce so a fast typist does not re-encode on every keystroke */
+const EXACT_DELAY_MS = 250;
+
 export function TokenCounterTool() {
   const t = useCopy(COPY);
   const locale = useLocale();
   const [text, setText] = React.useState("");
   const [family, setFamily] = React.useState<TokenizerFamily>("o200k");
-  const [window, setWindow] = React.useState("128000");
+  const [contextWindow, setContextWindow] = React.useState("128000");
   const [used, setUsed] = React.useState("");
   const [reserve, setReserve] = React.useState("4000");
   const [expected, setExpected] = React.useState("800");
+  const [exact, setExact] = React.useState(false);
+  const [exactCount, setExactCount] = React.useState<ExactCount | null>(null);
 
   const families = tokenizerChoices(locale);
   const estimate = React.useMemo(() => estimateTokens(text, family), [text, family]);
   const profile = tokenizerProfile(family);
   const format = (value: number) => formatTokens(value, locale);
 
+  // Results are keyed by family + text, so switching either one shows "loading"
+  // immediately without a synchronous state update inside the effect.
+  const exactKey = `${family}\u0000${text}`;
+  const current = exactCount?.key === exactKey ? exactCount : null;
+  const exactTokens = exact && current && "tokens" in current ? current.tokens : null;
+
+  const exactStatus: "off" | "unsupported" | "empty" | "loading" | "failed" | "done" = !exact
+    ? "off"
+    : !supportsExact(family)
+      ? "unsupported"
+      : text.trim() === ""
+        ? "empty"
+        : !current
+          ? "loading"
+          : "tokens" in current
+            ? "done"
+            : "failed";
+
+  React.useEffect(() => {
+    if (!exact || text.trim() === "" || !supportsExact(family)) return;
+    const target = family;
+    let cancelled = false;
+    const timer = window.setTimeout(() => {
+      countTokensExact(text, target)
+        .then((tokens) => {
+          if (!cancelled) setExactCount({ key: exactKey, tokens });
+        })
+        .catch(() => {
+          if (!cancelled) setExactCount({ key: exactKey, failed: true });
+        });
+    }, EXACT_DELAY_MS);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [exact, text, family, exactKey]);
+
+  const displayTotal = exactTokens ?? estimate.total;
+  const exactNote =
+    exactStatus === "done"
+      ? `${t.exact} · ${profile.detail}`
+      : exactStatus === "loading"
+        ? t.exactLoading
+        : exactStatus === "failed"
+          ? t.exactFailed
+          : exactStatus === "unsupported"
+            ? t.exactUnsupported
+            : t.estimate;
+
   const budget = contextBudget({
-    window: num(window),
+    window: num(contextWindow),
     used: num(used),
     reserve: num(reserve),
     expected: num(expected),
@@ -189,6 +263,9 @@ export function TokenCounterTool() {
           />
         </OptionField>
         <span className="font-mono text-[11px] text-foreground-subtle">{profile.detail}</span>
+        <div className="ml-auto flex items-center gap-3">
+          <Toggle checked={exact} onChange={setExact} label={t.exactMode} hint={t.exactHint} />
+        </div>
       </OptionBar>
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
@@ -217,11 +294,23 @@ export function TokenCounterTool() {
             </span>
           </header>
 
-          <div className="flex items-baseline gap-2 px-4 pb-3 pt-4">
+          <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 px-4 pb-3 pt-4">
             <span className="font-mono text-3xl font-semibold tabular-nums text-foreground">
-              {format(estimate.total)}
+              {format(displayTotal)}
             </span>
             <span className="text-[11px] text-foreground-faint">{t.tokens}</span>
+            <span
+              className={cn(
+                "text-[11px]",
+                exactStatus === "done"
+                  ? "text-green-fg"
+                  : exactStatus === "failed"
+                    ? "text-red-fg"
+                    : "text-foreground-faint"
+              )}
+            >
+              {exactNote}
+            </span>
           </div>
 
           <div className="flex h-1.5 gap-px overflow-hidden px-4">
@@ -255,7 +344,7 @@ export function TokenCounterTool() {
                 variant="ghost"
                 size="xs"
                 className="font-mono text-[11px]"
-                onClick={() => setWindow(String(preset))}
+                onClick={() => setContextWindow(String(preset))}
               >
                 {preset >= 1_000_000 ? `${preset / 1_000_000}M` : `${preset / 1000}k`}
               </Button>
@@ -264,7 +353,7 @@ export function TokenCounterTool() {
         </header>
 
         <div className="grid gap-x-6 gap-y-4 px-4 py-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Field label={t.window} suffix="tokens" value={window} onChange={setWindow} />
+          <Field label={t.window} suffix="tokens" value={contextWindow} onChange={setContextWindow} />
           <Field
             label={t.used}
             suffix="tokens"
@@ -273,7 +362,7 @@ export function TokenCounterTool() {
             action={
               <button
                 type="button"
-                onClick={() => setUsed(String(estimate.total))}
+                onClick={() => setUsed(String(displayTotal))}
                 className="inline-flex items-center gap-0.5 rounded px-1 text-[10px] text-foreground-faint transition-colors hover:bg-hover-bg hover:text-foreground"
               >
                 <ArrowDownToLine className="h-3 w-3" />
@@ -324,7 +413,7 @@ export function TokenCounterTool() {
       <section className="overflow-hidden rounded-lg border border-border bg-surface">
         <header className="flex h-9 items-center border-b border-border px-4">
           <span className="font-mono text-[11px] uppercase tracking-wide text-foreground-subtle">
-            {t.compare}
+            {exact ? t.compareEstimate : t.compare}
           </span>
         </header>
         <div className="divide-y divide-border">

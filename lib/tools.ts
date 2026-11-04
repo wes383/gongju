@@ -1811,10 +1811,10 @@ const aiTools: ToolMeta[] = [
     slug: "token-counter",
     name: { zh: "Token 计数与上下文预算", en: "Token Counter & Context Budget" },
     description: {
-      zh: "按 GPT / Claude / Gemini 的分词规则估算 token，并算出上下文窗口还剩多少",
-      en: "Estimate tokens the way GPT, Claude and Gemini split text, and see what the context window has left",
+      zh: "统计 token 并计算上下文预算：GPT-4o / GPT-4 可切换官方词表精确计数，其余按分词规则估算",
+      en: "Count tokens and budget a context window: exact counting with the official GPT-4o and GPT-4 vocabularies, estimates for the rest",
     },
-    keywords: ["token", "计数器", "token 计算", "上下文", "context window", "prompt 长度", "gpt", "claude", "计费"],
+    keywords: ["token", "计数器", "token 计算", "上下文", "context window", "prompt 长度", "gpt", "claude", "计费", "精确", "bpe"],
     icon: ScanText,
   }),
   aiTool({
