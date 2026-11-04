@@ -15,6 +15,7 @@ import {
   CalendarRange,
   Clock,
   Code2,
+  CopyCheck,
   CreditCard,
   Dices,
   Eraser,
@@ -35,6 +36,7 @@ import {
   ImageUpscale,
   Images,
   FileImage,
+  FileScan,
   Info,
   Stamp,
   ScanEye,
@@ -49,6 +51,7 @@ import {
   ListTree,
   Link2,
   ListFilter,
+  ListChecks,
   Lock,
   Merge,
   Palette,
@@ -112,6 +115,9 @@ import {
   Banknote,
   Combine,
   FileCheck2,
+  FolderCog,
+  FolderSearch,
+  FolderTree,
   Gauge,
   ScanText,
   Laptop,
@@ -152,6 +158,7 @@ export type CategoryId =
   | "subtitle"
   | "media"
   | "visualization"
+  | "files"
   | "finance"
   | "misc";
 
@@ -179,6 +186,7 @@ const miscTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category:
 const subtitleTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "subtitle" });
 const mediaTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "media" });
 const vizTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "visualization" });
+const filesTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "files" });
 const financeTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "finance" });
 
 const encodingTools: ToolMeta[] = [
@@ -341,16 +349,6 @@ const encodingTools: ToolMeta[] = [
     },
     keywords: ["gzip", "压缩", "解压", "deflate", "compress", "解压缩"],
     icon: FileArchive,
-  }),
-  tool({
-    slug: "zip",
-    name: { zh: "ZIP 压缩 / 解压", en: "ZIP Compress / Unzip" },
-    description: {
-      zh: "多文件打包成 ZIP，或查看、取出压缩包里的文件",
-      en: "Bundle files into a ZIP, or list and extract what is inside one",
-    },
-    keywords: ["zip", "压缩包", "打包", "unzip", "解压", "archive"],
-    icon: FolderArchive,
   }),
   tool({
     slug: "mojibake",
@@ -783,16 +781,6 @@ const hashTools: ToolMeta[] = [
     },
     keywords: ["强度", "strength", "密码", "安全", "熵"],
     icon: ShieldCheck,
-  }),
-  hashTool({
-    slug: "file-hash",
-    name: { zh: "文件哈希", en: "File Hash" },
-    description: {
-      zh: "上传文件算出 MD5、SHA-1、SHA-256 等摘要，大文件流式读取",
-      en: "Hash a file with MD5, SHA-1, SHA-256 and more, streamed in slices",
-    },
-    keywords: ["file hash", "文件哈希", "校验", "checksum", "sha256", "md5", "文件校验"],
-    icon: FileCheck2,
   }),
   hashTool({
     slug: "totp",
@@ -1653,6 +1641,79 @@ const visualizationTools: ToolMeta[] = [
   }),
 ];
 
+const filesTools: ToolMeta[] = [
+  filesTool({
+    slug: "batch-rename",
+    name: { zh: "批量重命名", en: "Batch Rename" },
+    description: {
+      zh: "按前缀、后缀、查找替换与递增序号批量生成新文件名，先预览重名冲突，再打包下载",
+      en: "Build new file names from prefixes, suffixes, find/replace and counters, preview conflicts, then download a zip",
+    },
+    keywords: ["批量重命名", "重命名", "rename", "batch", "文件名", "序号", "编号", "前缀", "后缀"],
+    icon: FolderCog,
+  }),
+  filesTool({
+    slug: "duplicate-finder",
+    name: { zh: "重复文件查找", en: "Duplicate Finder" },
+    description: {
+      zh: "先按文件大小初筛，再用 SHA-256 确认，找出内容完全相同或整组重复的文件并导出清单",
+      en: "Filter by size, confirm with SHA-256, and list files with identical content plus a cleanup report",
+    },
+    keywords: ["重复文件", "重复", "duplicate", "查重", "去重", "相同文件", "sha256", "清理"],
+    icon: CopyCheck,
+  }),
+  filesTool({
+    slug: "file-type",
+    name: { zh: "文件类型识别", en: "File Type Detection" },
+    description: {
+      zh: "读取文件头判断真实类型，找出改了扩展名的文件，显示 MIME 与文件头字节",
+      en: "Read the file header to detect the real type, flag renamed extensions and show MIME and header bytes",
+    },
+    keywords: ["文件类型", "file type", "magic number", "文件头", "mime", "扩展名", "识别", "真实格式"],
+    icon: FileScan,
+  }),
+  filesTool({
+    slug: "folder-compare",
+    name: { zh: "文件夹对比", en: "Folder Compare" },
+    description: {
+      zh: "按相对路径对比两个文件夹，列出只在一侧存在、大小不同或哈希不同的文件",
+      en: "Compare two folders by relative path and list files only on one side or with different sizes or hashes",
+    },
+    keywords: ["文件夹对比", "目录对比", "folder compare", "diff", "差异", "同步", "哈希", "备份"],
+    icon: FolderSearch,
+  }),
+  filesTool({
+    slug: "file-hash",
+    name: { zh: "文件哈希", en: "File Hash" },
+    description: {
+      zh: "上传文件算出 MD5、SHA-1、SHA-256 等摘要，大文件流式读取",
+      en: "Hash a file with MD5, SHA-1, SHA-256 and more, streamed in slices",
+    },
+    keywords: ["file hash", "文件哈希", "校验", "checksum", "sha256", "md5", "文件校验"],
+    icon: FileCheck2,
+  }),
+  filesTool({
+    slug: "file-manifest",
+    name: { zh: "文件清单与校验和", en: "File Manifest & Checksums" },
+    description: {
+      zh: "为整批文件计算 MD5 / SHA 校验和，导出 CSV、JSON 或 sha256sum 格式的校验文件",
+      en: "Hash every file with MD5 or SHA and export a CSV, JSON or sha256sum-compatible checksum file",
+    },
+    keywords: ["文件清单", "manifest", "校验和", "checksum", "sha256", "批量哈希", "inventory", "归档"],
+    icon: ListChecks,
+  }),
+  filesTool({
+    slug: "zip",
+    name: { zh: "ZIP 压缩 / 解压", en: "ZIP Compress / Unzip" },
+    description: {
+      zh: "多文件打包成 ZIP，或查看、取出压缩包里的文件",
+      en: "Bundle files into a ZIP, or list and extract what is inside one",
+    },
+    keywords: ["zip", "压缩包", "打包", "unzip", "解压", "archive"],
+    icon: FolderArchive,
+  }),
+];
+
 export const categories: CategoryMeta[] = [
   {
     id: "text",
@@ -1683,6 +1744,16 @@ export const categories: CategoryMeta[] = [
     },
     icon: ImageIcon,
     tools: imageTools,
+  },
+  {
+    id: "files",
+    name: { zh: "文件批处理", en: "File Batch" },
+    description: {
+      zh: "批量重命名、重复文件查找、类型识别、文件夹对比、文件哈希、ZIP 打包与校验清单",
+      en: "Batch rename, duplicate detection, type sniffing, folder diffs, file hashing, ZIP packing and checksum manifests",
+    },
+    icon: FolderTree,
+    tools: filesTools,
   },
   {
     id: "color",

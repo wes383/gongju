@@ -428,13 +428,15 @@ export function OptionField({
   label,
   children,
   hint,
+  className,
 }: {
   label: string;
   children: React.ReactNode;
   hint?: string;
+  className?: string;
 }) {
   return (
-    <div className="flex items-center gap-2">
+    <div className={cn("flex items-center gap-2", className)}>
       <span className="text-xs font-medium text-foreground-muted" title={hint}>
         {label}
       </span>
