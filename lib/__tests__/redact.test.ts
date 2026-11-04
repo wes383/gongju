@@ -5,6 +5,7 @@ import {
   findSensitive,
   isValidBankCard,
   isValidIdCard,
+  isValidSsn,
   maskValue,
   redactText,
   type RedactMode,
@@ -12,6 +13,7 @@ import {
 
 const ID = "11010519491231002X";
 const CARD = "4111111111111111";
+const SSN = "412-88-7361";
 
 const run = (text: string, mode: RedactMode, kinds = ALL_KINDS, locale: "zh" | "en" = "zh") =>
   redactText(text, { mode, kinds, locale });
@@ -20,6 +22,29 @@ describe("sensitive detection", () => {
   it("finds a mobile number with and without a country code", () => {
     const found = findSensitive("联系电话 13812345678，备用 +8613900139000。", ["phone"]);
     expect(found.map((m) => m.value)).toEqual(["13812345678", "+8613900139000"]);
+  });
+
+  it("finds North American phone numbers only when they keep their separators", () => {
+    const found = findSensitive(
+      "call (415) 555-0132, backup 415-555-0132 or +1 415-555-0132, ref 4155550132",
+      ["phone"]
+    );
+    expect(found.map((m) => m.value)).toEqual([
+      "(415) 555-0132",
+      "415-555-0132",
+      "+1 415-555-0132",
+    ]);
+  });
+
+  it("validates SSN ranges", () => {
+    expect(isValidSsn(SSN)).toBe(true);
+    expect(isValidSsn("666-12-3456")).toBe(false);
+    expect(isValidSsn("900-12-3456")).toBe(false);
+    expect(isValidSsn("412-00-7361")).toBe(false);
+    expect(isValidSsn("412-88-0000")).toBe(false);
+
+    const found = findSensitive(`ssn ${SSN}, bad 666-12-3456`, ["ssn"]);
+    expect(found.map((m) => m.value)).toEqual([SSN]);
   });
 
   it("requires a valid check digit for ID numbers", () => {
@@ -63,6 +88,8 @@ describe("sensitive detection", () => {
 describe("redaction modes", () => {
   it("masks by keeping the head and tail of each value", () => {
     expect(run("13812345678", "mask").text).toBe("138****5678");
+    expect(run("(415) 555-0132", "mask").text).toBe("(415) ***-0132");
+    expect(run(SSN, "mask").text).toBe("***-**-7361");
     expect(run(ID, "mask").text).toBe("110105*******1002X");
     expect(run(CARD, "mask").text).toBe("************1111");
     expect(run("zhangsan@example.com", "mask").text).toBe("z***@example.com");

@@ -1734,10 +1734,10 @@ const privacyTools: ToolMeta[] = [
     slug: "redact-text",
     name: { zh: "文本脱敏", en: "Text Redaction" },
     description: {
-      zh: "识别手机号、身份证、银行卡、邮箱与 IP，按遮盖、替换或保留格式脱敏",
-      en: "Detect phone, ID, bank card, email and IP values, then mask, replace or keep the layout",
+      zh: "识别手机号、身份证 / SSN、银行卡、邮箱与 IP，按遮盖、替换或保留格式脱敏",
+      en: "Detect phone, ID, SSN, bank card, email and IP values, then mask, replace or keep the layout",
     },
-    keywords: ["脱敏", "打码", "敏感信息", "隐私", "redact", "mask", "手机号", "身份证", "银行卡", "pii", "匿名"],
+    keywords: ["脱敏", "打码", "敏感信息", "隐私", "redact", "mask", "手机号", "身份证", "ssn", "银行卡", "pii", "匿名"],
     icon: ScanEye,
   }),
   privacyTool({

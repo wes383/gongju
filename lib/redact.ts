@@ -8,7 +8,7 @@
 
 import type { Locale } from "./i18n";
 
-export type SensitiveKind = "phone" | "idcard" | "email" | "bankcard" | "ipv4";
+export type SensitiveKind = "phone" | "idcard" | "ssn" | "email" | "bankcard" | "ipv4";
 export type RedactMode = "mask" | "replace" | "keep-format";
 
 export interface SensitiveMatch {
@@ -28,6 +28,7 @@ export interface RedactOptions {
 export const SENSITIVE_KINDS: { value: SensitiveKind; zh: string; en: string }[] = [
   { value: "phone", zh: "手机号", en: "Phone" },
   { value: "idcard", zh: "身份证号", en: "ID number" },
+  { value: "ssn", zh: "SSN", en: "SSN" },
   { value: "bankcard", zh: "银行卡号", en: "Bank card" },
   { value: "email", zh: "邮箱", en: "Email" },
   { value: "ipv4", zh: "IPv4 地址", en: "IPv4" },
@@ -39,6 +40,7 @@ const LABELS: Record<Locale, Record<SensitiveKind, string>> = {
   zh: {
     phone: "[手机号]",
     idcard: "[身份证号]",
+    ssn: "[SSN]",
     bankcard: "[银行卡号]",
     email: "[邮箱]",
     ipv4: "[IP 地址]",
@@ -46,15 +48,22 @@ const LABELS: Record<Locale, Record<SensitiveKind, string>> = {
   en: {
     phone: "[PHONE]",
     idcard: "[ID]",
+    ssn: "[SSN]",
     bankcard: "[CARD]",
     email: "[EMAIL]",
     ipv4: "[IP]",
   },
 };
 
-const PHONE = /(?<!\d)(?:\+?86[-\s]?)?1[3-9]\d{9}(?!\d)/g;
+// Mainland mobile numbers, plus North American numbers. NANP numbers only match
+// when they keep their separators, otherwise any 10-digit run would qualify.
+const PHONE =
+  /(?<![\d+])(?:(?:\+?86[-\s]?)?1[3-9]\d{9}|(?:\+?1[-\s.]?)?(?:\(\d{3}\)[-\s.]?|\d{3}[-\s.])\d{3}[-\s.]\d{4})(?!\d)/g;
 const EMAIL = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g;
 const ID_CARD = /(?<![\dA-Za-z])(?:\d{17}[\dXx]|\d{15})(?![\dA-Za-z])/g;
+// US social security numbers are written with dashes; requiring them keeps
+// invoice and order numbers out of the results.
+const SSN = /(?<!\d)\d{3}-\d{2}-\d{4}(?!\d)/g;
 const BANK_CARD = /(?<!\d)(?:\d[ -]?){15,18}\d(?!\d)/g;
 const IPV4 =
   /(?<![\d.])(?:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(?![\d.])/g;
@@ -70,6 +79,19 @@ export function isValidIdCard(value: string): boolean {
   let sum = 0;
   for (let i = 0; i < 17; i += 1) sum += Number(normalized[i]) * weights[i];
   return checks[sum % 11] === normalized[17].toUpperCase();
+}
+
+/**
+ * US SSN rules: area 001–899 except 666, group not 00, serial not 0000.
+ * Area 900 and above is reserved, so those are rejected as well.
+ */
+export function isValidSsn(value: string): boolean {
+  const match = /^(\d{3})-(\d{2})-(\d{4})$/.exec(value.trim());
+  if (!match) return false;
+  const area = Number(match[1]);
+  const group = Number(match[2]);
+  const serial = Number(match[3]);
+  return area >= 1 && area <= 899 && area !== 666 && group !== 0 && serial !== 0;
 }
 
 /** Luhn checksum, which keeps random 16-digit runs out of the results. */
@@ -93,6 +115,7 @@ export function isValidBankCard(value: string): boolean {
 
 const PRIORITY: Record<SensitiveKind, number> = {
   idcard: 5,
+  ssn: 5,
   bankcard: 4,
   phone: 3,
   email: 2,
@@ -121,6 +144,7 @@ export function findSensitive(text: string, kinds: SensitiveKind[] = ALL_KINDS):
   const candidates: SensitiveMatch[] = [];
 
   if (wanted.has("idcard")) candidates.push(...collect(text, ID_CARD, "idcard", isValidIdCard));
+  if (wanted.has("ssn")) candidates.push(...collect(text, SSN, "ssn", isValidSsn));
   if (wanted.has("bankcard")) {
     candidates.push(...collect(text, BANK_CARD, "bankcard", isValidBankCard));
   }
@@ -176,6 +200,8 @@ export function maskValue(value: string, kind: SensitiveKind): string {
       return maskDigits(value, 3, 4);
     case "idcard":
       return maskDigits(value, 6, 4);
+    case "ssn":
+      return maskDigits(value, 0, 4);
     case "bankcard":
       return maskDigits(value, 0, 4);
     case "email":
