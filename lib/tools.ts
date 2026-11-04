@@ -150,6 +150,10 @@ import {
   Split,
   BatteryCharging,
   Brackets,
+  Camera,
+  Sun,
+  Focus,
+  Aperture,
 } from "lucide-react";
 import type { Locale } from "@/lib/i18n";
 
@@ -178,6 +182,7 @@ export type CategoryId =
   | "convert"
   | "math"
   | "electronics"
+  | "photography"
   | "pdf"
   | "office"
   | "ai"
@@ -225,6 +230,7 @@ const electronicsTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({
   ...t,
   category: "electronics",
 });
+const photoTool = (t: Omit<ToolMeta, "category">): ToolMeta => ({ ...t, category: "photography" });
 
 const encodingTools: ToolMeta[] = [
   tool({
@@ -1656,6 +1662,59 @@ const electronicsTools: ToolMeta[] = [
   }),
 ];
 
+const photoTools: ToolMeta[] = [
+  photoTool({
+    slug: "exposure",
+    name: { zh: "曝光计算 / 等效曝光", en: "Exposure Calculator" },
+    description: {
+      zh: "由光圈、快门与 ISO 算出 EV，并给出各档光圈下曝光量相同的快门组合",
+      en: "Get the EV from aperture, shutter and ISO, plus the shutter that keeps the same exposure at every aperture",
+    },
+    keywords: ["曝光", "ev", "等效曝光", "光圈", "快门", "iso", "阳光十六", "exposure"],
+    icon: Sun,
+  }),
+  photoTool({
+    slug: "depth-of-field",
+    name: { zh: "景深 / 超焦距", en: "Depth of Field" },
+    description: {
+      zh: "按焦距、光圈、对焦距离与画幅算景深与超焦距，附清晰范围示意图",
+      en: "Depth of field and hyperfocal distance from focal length, aperture, focus distance and sensor, with a range chart",
+    },
+    keywords: ["景深", "超焦距", "弥散圆", "对焦", "dof", "hyperfocal", "虚化", "画幅"],
+    icon: Focus,
+  }),
+  photoTool({
+    slug: "nd-filter",
+    name: { zh: "ND 减光镜快门换算", en: "ND Filter Shutter" },
+    description: {
+      zh: "按减光档数或 ND 倍率换算长曝光快门，附常见滤镜对照表",
+      en: "Convert a shutter speed through any ND filter, by factor or by stops, with a comparison table",
+    },
+    keywords: ["nd", "减光镜", "中灰镜", "长曝光", "慢门", "nd1000", "滤镜", "曝光"],
+    icon: Aperture,
+  }),
+  photoTool({
+    slug: "print-size",
+    name: { zh: "打印尺寸 / DPI", en: "Print Size & DPI" },
+    description: {
+      zh: "像素与 DPI 换算打印尺寸，并列出常见纸张上的实际精度",
+      en: "Turn pixels and DPI into a physical print size, and check the ppi on common papers",
+    },
+    keywords: ["dpi", "ppi", "打印尺寸", "冲印", "分辨率", "像素", "print", "画质"],
+    icon: FileImage,
+  }),
+  photoTool({
+    slug: "paper-size",
+    name: { zh: "纸张尺寸与出血", en: "Paper Size & Bleed" },
+    description: {
+      zh: "A 系列、Letter 与照片尺寸的成品、出血与安全区域，含像素换算",
+      en: "Trim, bleed and safe area for A-series, Letter and photo sizes, with pixel dimensions",
+    },
+    keywords: ["纸张", "出血", "a4", "印刷", "安全边距", "尺寸", "paper", "bleed", "排版"],
+    icon: Frame,
+  }),
+];
+
 const financeTools: ToolMeta[] = [
   financeTool({
     slug: "salary-tax",
@@ -2200,6 +2259,16 @@ export const categories: CategoryMeta[] = [
     },
     icon: CircuitBoard,
     tools: electronicsTools,
+  },
+  {
+    id: "photography",
+    name: { zh: "摄影 / 印刷", en: "Photography / Print" },
+    description: {
+      zh: "曝光、景深、ND 减光、打印尺寸与纸张出血",
+      en: "Exposure, depth of field, ND filters, print sizes and paper bleed",
+    },
+    icon: Camera,
+    tools: photoTools,
   },
   {
     id: "finance",
