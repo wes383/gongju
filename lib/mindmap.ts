@@ -272,7 +272,9 @@ export function renderMindmapSvg(root: MindNode, options: { theme: ChartTheme } 
   );
 }
 
-export const MINDMAP_SAMPLE = `产品规划
+export const MINDMAP_SAMPLES = {
+  zh: {
+    indent: `产品规划
   用户研究
     访谈
     问卷
@@ -282,9 +284,8 @@ export const MINDMAP_SAMPLE = `产品规划
   上线节奏
     内测
     公测
-    正式版`;
-
-export const MINDMAP_HEADING_SAMPLE = `# 季度目标
+    正式版`,
+    heading: `# 季度目标
 ## 增长
 ### 拉新
 ### 留存
@@ -293,4 +294,29 @@ export const MINDMAP_HEADING_SAMPLE = `# 季度目标
 ### 可访问性
 ## 团队
 ### 招聘
-### 培训`;
+### 培训`,
+  },
+  en: {
+    indent: `Product plan
+  User research
+    Interviews
+    Surveys
+  Feature design
+    Core flows
+    Edge cases
+  Release plan
+    Internal test
+    Public beta
+    General release`,
+    heading: `# Quarterly goals
+## Growth
+### Acquisition
+### Retention
+## Experience
+### Performance
+### Accessibility
+## Team
+### Hiring
+### Training`,
+  },
+} as const;

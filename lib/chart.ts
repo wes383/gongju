@@ -628,13 +628,23 @@ function arcPath(cx: number, cy: number, radius: number, start: number, end: num
   )} L ${round(cx)} ${round(cy)} Z`;
 }
 
-export const CHART_SAMPLES: Record<string, string> = {
-  sales: `月份,销售额,利润
+export const CHART_SAMPLES = {
+  zh: {
+    sales: `月份,销售额,利润
 1月,120,32
 2月,156,41
 3月,178,52
 4月,204,61
 5月,232,70
 6月,260,84`,
-  traffic: `[{"day":"周一","visits":820,"signups":46},{"day":"周二","visits":910,"signups":52},{"day":"周三","visits":760,"signups":38},{"day":"周四","visits":1180,"signups":66},{"day":"周五","visits":1320,"signups":74}]`,
-};
+  },
+  en: {
+    sales: `Month,Sales,Profit
+Jan,120,32
+Feb,156,41
+Mar,178,52
+Apr,204,61
+May,232,70
+Jun,260,84`,
+  },
+} as const;

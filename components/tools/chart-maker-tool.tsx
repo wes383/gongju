@@ -109,7 +109,10 @@ export function ChartMakerTool() {
   const dark = mounted && resolvedTheme === "dark";
   const theme = dark ? DARK_THEME : LIGHT_THEME;
 
-  const [input, setInput] = React.useState(CHART_SAMPLES.sales);
+  // `null` means "show the sample for the active locale", so switching the UI
+  // language localises the sample until the user edits the text themselves.
+  const [customInput, setCustomInput] = React.useState<string | null>(null);
+  const input = customInput ?? CHART_SAMPLES[locale].sales;
   const [kind, setKind] = React.useState<ChartKind>("bar");
   const [size, setSize] = React.useState<ChartSize>("wide");
   const [title, setTitle] = React.useState("");
@@ -199,8 +202,8 @@ export function ChartMakerTool() {
             label={t.data}
             actions={
               <>
-                <SampleButton onClick={() => setInput(CHART_SAMPLES.sales)} />
-                <ClearButton onClick={() => setInput("")} />
+                <SampleButton onClick={() => setCustomInput(null)} />
+                <ClearButton onClick={() => setCustomInput("")} />
               </>
             }
             footer={
@@ -215,7 +218,7 @@ export function ChartMakerTool() {
           >
             <InputArea
               value={input}
-              onChange={(event) => setInput(event.target.value)}
+              onChange={(event) => setCustomInput(event.target.value)}
               spellCheck={false}
               className="min-h-[360px] font-mono"
               placeholder={t.hint}

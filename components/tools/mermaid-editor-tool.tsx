@@ -166,14 +166,16 @@ export function MermaidEditorTool() {
   const dark = mounted && resolvedTheme === "dark";
 
   const [kind, setKind] = React.useState<Kind>("flowchart");
-  const [codes, setCodes] = React.useState<Record<Kind, string>>(() => TEMPLATES[locale]);
+  // Only edited diagrams are stored, so the untouched ones keep following the
+  // UI language instead of being frozen at the locale used during first render.
+  const [codes, setCodes] = React.useState<Partial<Record<Kind, string>>>({});
   const [svg, setSvg] = React.useState("");
   const [error, setError] = React.useState<unknown>(null);
   const [rendering, setRendering] = React.useState(false);
   const [exportError, setExportError] = React.useState<unknown>(null);
   const sequence = React.useRef(0);
 
-  const code = codes[kind];
+  const code = codes[kind] ?? TEMPLATES[locale][kind];
 
   React.useEffect(() => {
     if (!mounted) return;

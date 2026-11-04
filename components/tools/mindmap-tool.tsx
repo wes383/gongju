@@ -16,7 +16,7 @@ import {
 import { DARK_THEME, LIGHT_THEME } from "@/lib/chart";
 import { downloadBlob } from "@/lib/files";
 import { codedError, errorText, safe } from "@/lib/errors";
-import { MINDMAP_HEADING_SAMPLE, MINDMAP_SAMPLE, parseOutline, renderMindmapSvg, type MindNode } from "@/lib/mindmap";
+import { MINDMAP_SAMPLES, parseOutline, renderMindmapSvg, type MindNode } from "@/lib/mindmap";
 import { rasterizeSvg, svgSize } from "@/lib/svg";
 
 const COPY = {
@@ -63,7 +63,11 @@ export function MindmapTool() {
   );
   const theme = mounted && resolvedTheme === "dark" ? DARK_THEME : LIGHT_THEME;
 
-  const [input, setInput] = React.useState(MINDMAP_SAMPLE);
+  // `null` means "show the locale-specific sample", so the text follows the UI
+  // language until the user edits it.
+  const [custom, setCustom] = React.useState<string | null>(null);
+  const [sampleKey, setSampleKey] = React.useState<"indent" | "heading">("indent");
+  const input = custom ?? MINDMAP_SAMPLES[locale][sampleKey];
   const [exportError, setExportError] = React.useState<unknown>(null);
 
   const parsed = safe(() => parseOutline(input));
@@ -102,9 +106,23 @@ export function MindmapTool() {
           label={t.outline}
           actions={
             <>
-              <PaneButton onClick={() => setInput(MINDMAP_SAMPLE)}>{t.sampleIndent}</PaneButton>
-              <PaneButton onClick={() => setInput(MINDMAP_HEADING_SAMPLE)}>{t.sampleHeading}</PaneButton>
-              <ClearButton onClick={() => setInput("")} />
+              <PaneButton
+                onClick={() => {
+                  setCustom(null);
+                  setSampleKey("indent");
+                }}
+              >
+                {t.sampleIndent}
+              </PaneButton>
+              <PaneButton
+                onClick={() => {
+                  setCustom(null);
+                  setSampleKey("heading");
+                }}
+              >
+                {t.sampleHeading}
+              </PaneButton>
+              <ClearButton onClick={() => setCustom("")} />
             </>
           }
           footer={
@@ -117,7 +135,7 @@ export function MindmapTool() {
         >
           <InputArea
             value={input}
-            onChange={(event) => setInput(event.target.value)}
+            onChange={(event) => setCustom(event.target.value)}
             spellCheck={false}
             className="min-h-[420px] font-mono"
             placeholder={t.hint}
