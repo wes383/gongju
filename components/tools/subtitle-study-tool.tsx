@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Download, FileSpreadsheet } from "lucide-react";
+import { Download } from "lucide-react";
 import {
   CopyButton,
   InputArea,
@@ -232,7 +232,7 @@ export function SubtitleStudyTool() {
                   {t.downloadMarkdown}
                 </PaneButton>
                 <PaneButton onClick={downloadCsv}>
-                  <FileSpreadsheet className="size-3.5" />
+                  <Download className="size-3.5" />
                   {t.downloadCsv}
                 </PaneButton>
               </div>
