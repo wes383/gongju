@@ -366,8 +366,17 @@ function ChartCanvas({
             fill={colors[seriesIndex]}
             fillOpacity={0.16}
             strokeWidth={2.2}
-            dot={data.labels.length <= 24 ? { r: 3.4, stroke: theme.background, strokeWidth: 1.6 } : false}
-            activeDot={{ r: 5 }}
+            dot={
+              data.labels.length <= 24
+                ? {
+                    r: 3.4,
+                    fill: colors[seriesIndex],
+                    stroke: theme.background,
+                    strokeWidth: 1.4,
+                  }
+                : false
+            }
+            activeDot={{ r: 5, fill: colors[seriesIndex], stroke: theme.background, strokeWidth: 1.4 }}
             isAnimationActive={false}
           />
         ))}
@@ -388,8 +397,17 @@ function ChartCanvas({
           name={series.name}
           stroke={colors[seriesIndex]}
           strokeWidth={2.2}
-          dot={data.labels.length <= 24 ? { r: 3.4, stroke: theme.background, strokeWidth: 1.6 } : false}
-          activeDot={{ r: 5 }}
+          dot={
+            data.labels.length <= 24
+              ? {
+                  r: 3.4,
+                  fill: colors[seriesIndex],
+                  stroke: theme.background,
+                  strokeWidth: 1.4,
+                }
+              : false
+          }
+          activeDot={{ r: 5, fill: colors[seriesIndex], stroke: theme.background, strokeWidth: 1.4 }}
           connectNulls={false}
           isAnimationActive={false}
         />

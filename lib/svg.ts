@@ -148,9 +148,10 @@ export async function rasterizeSvg(
   source: string,
   { width, height, background }: RasterizeOptions
 ): Promise<Blob> {
-  const markup = source.trim().startsWith("<svg")
-    ? source
-    : `<?xml version="1.0" encoding="UTF-8"?>${source}`;
+  // Always emit exactly one XML declaration; callers may already supply one.
+  const markup = `<?xml version="1.0" encoding="UTF-8"?>${source
+    .trim()
+    .replace(/^<\?xml[^>]*>\s*/i, "")}`;
   const blob = new Blob([markup], { type: "image/svg+xml;charset=utf-8" });
   const url = URL.createObjectURL(blob);
 
