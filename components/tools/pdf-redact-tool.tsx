@@ -367,6 +367,42 @@ export function PdfRedactTool() {
             </div>
           </OptionBar>
 
+          {busy && progress.total > 0 && (
+            <div className="flex items-center gap-3 rounded-lg border border-border bg-surface px-4 py-3">
+              <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-hover-bg-strong">
+                <div
+                  className="h-full rounded-full bg-accent transition-[width] duration-200"
+                  style={{ width: `${(progress.done / Math.max(1, progress.total)) * 100}%` }}
+                />
+              </div>
+              <span className="font-mono text-[11px] text-foreground-muted">
+                {t.progress(progress.done, progress.total)}
+              </span>
+            </div>
+          )}
+
+          {result && (
+            <section className="flex flex-wrap items-center gap-3 rounded-lg border border-green-border bg-surface px-4 py-3">
+              <Badge variant="success" size="sm" dot>
+                {t.result}
+              </Badge>
+              <span className="font-mono text-[11px] text-foreground-subtle">
+                {t.size} {formatBytes(result.blob.size)}
+              </span>
+              <span className="ml-auto">
+                <Button
+                  type="button"
+                  size="xs"
+                  className="gap-1.5"
+                  onClick={() => downloadBlob(result.blob, result.name)}
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  {t.download}
+                </Button>
+              </span>
+            </section>
+          )}
+
           <p className="text-xs leading-relaxed text-foreground-subtle">{t.hint}</p>
 
           <section
@@ -485,42 +521,6 @@ export function PdfRedactTool() {
               </div>
             </div>
           </section>
-
-          {busy && progress.total > 0 && (
-            <div className="flex items-center gap-3 rounded-lg border border-border bg-surface px-4 py-3">
-              <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-hover-bg-strong">
-                <div
-                  className="h-full rounded-full bg-accent transition-[width] duration-200"
-                  style={{ width: `${(progress.done / Math.max(1, progress.total)) * 100}%` }}
-                />
-              </div>
-              <span className="font-mono text-[11px] text-foreground-muted">
-                {t.progress(progress.done, progress.total)}
-              </span>
-            </div>
-          )}
-
-          {result && (
-            <section className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-surface px-4 py-3">
-              <Badge variant="success" size="sm" dot>
-                {t.result}
-              </Badge>
-              <span className="font-mono text-[11px] text-foreground-subtle">
-                {t.size} {formatBytes(result.blob.size)}
-              </span>
-              <span className="ml-auto">
-                <Button
-                  type="button"
-                  size="xs"
-                  className="gap-1.5"
-                  onClick={() => downloadBlob(result.blob, result.name)}
-                >
-                  <Download className="h-3.5 w-3.5" />
-                  {t.download}
-                </Button>
-              </span>
-            </section>
-          )}
 
           <WarningNote>{t.warning}</WarningNote>
         </>
