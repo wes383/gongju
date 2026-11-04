@@ -5,9 +5,10 @@
 
 import type { CodedError } from "./errors";
 
-const ITERATIONS = 210_000; // OWASP 2023 guidance for PBKDF2-HMAC-SHA256
-const SALT_BYTES = 16;
-const IV_BYTES = 12;
+export const PBKDF2_ITERATIONS = 210_000; // OWASP 2023 guidance for PBKDF2-HMAC-SHA256
+export const SALT_BYTES = 16;
+export const IV_BYTES = 12;
+const ITERATIONS = PBKDF2_ITERATIONS;
 const VERSION = "v1";
 
 export class CryptoError extends Error implements CodedError {
@@ -21,7 +22,7 @@ export class CryptoError extends Error implements CodedError {
   }
 }
 
-function assertCrypto() {
+export function assertWebCrypto() {
   if (typeof crypto === "undefined" || !crypto.subtle) {
     throw new CryptoError("crypto.unavailable");
   }
@@ -40,7 +41,11 @@ function fromBase64(value: string): Uint8Array<ArrayBuffer> {
   return bytes;
 }
 
-async function deriveKey(
+/**
+ * Derive an AES-GCM key from a password. Shared with the binary file container
+ * in `file-crypto.ts` so both paths use the same KDF parameters.
+ */
+export async function deriveAesKey(
   password: string,
   salt: Uint8Array<ArrayBuffer>,
   iterations: number
@@ -68,11 +73,11 @@ async function deriveKey(
  * password produces a different string every time.
  */
 export async function encryptText(text: string, password: string): Promise<string> {
-  assertCrypto();
+  assertWebCrypto();
 
   const salt = crypto.getRandomValues(new Uint8Array(SALT_BYTES));
   const iv = crypto.getRandomValues(new Uint8Array(IV_BYTES));
-  const key = await deriveKey(password, salt, ITERATIONS);
+  const key = await deriveAesKey(password, salt, ITERATIONS);
 
   const cipher = await crypto.subtle.encrypt(
     { name: "AES-GCM", iv },
@@ -86,7 +91,7 @@ export async function encryptText(text: string, password: string): Promise<strin
 }
 
 export async function decryptText(payload: string, password: string): Promise<string> {
-  assertCrypto();
+  assertWebCrypto();
 
   const parts = payload.trim().split(".");
   if (parts.length !== 5 || parts[0] !== VERSION) {
@@ -109,7 +114,7 @@ export async function decryptText(payload: string, password: string): Promise<st
     throw new CryptoError("crypto.badFormat");
   }
 
-  const key = await deriveKey(password, salt, iterations);
+  const key = await deriveAesKey(password, salt, iterations);
 
   try {
     const plain = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, data);
