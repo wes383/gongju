@@ -181,6 +181,21 @@ describe("layoutPages", () => {
     expect(pages[0][0]).toMatchObject({ kind: "quote", rule: true, indent: 17, top: 0 });
   });
 
+  it("hugs the text at both ends of a wrapped quote so the bar stays one piece", () => {
+    const pages = layoutPages(parseBlocks(`> ${"引".repeat(200)}`), OPTIONS, measure);
+    const lines = pages[0];
+
+    expect(lines.length).toBe(3);
+    expect(lines[0]).toMatchObject({ ruleFromText: true, ruleToText: false });
+    expect(lines[1]).toMatchObject({ ruleFromText: false, ruleToText: false });
+    expect(lines[2]).toMatchObject({ ruleFromText: false, ruleToText: true });
+  });
+
+  it("keeps the rule off body lines", () => {
+    const pages = layoutPages(parseBlocks("普通正文"), OPTIONS, measure);
+    expect(pages[0][0]).toMatchObject({ rule: false, ruleFromText: false, ruleToText: false });
+  });
+
   it("returns one empty page for empty input", () => {
     const pages = layoutPages([], OPTIONS, measure);
     expect(pages).toEqual([[]]);

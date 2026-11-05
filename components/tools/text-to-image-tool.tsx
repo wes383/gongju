@@ -288,7 +288,8 @@ function drawPage(canvas: HTMLCanvasElement, page: PlacedLine[], options: DrawOp
     ctx.font = line.font;
     ctx.fillStyle = line.kind === "quote" ? theme.muted : theme.text;
 
-    const lineWidth = ctx.measureText(line.text).width;
+    const metrics = ctx.measureText(line.text);
+    const lineWidth = metrics.width;
     const room = contentWidth - line.indent;
     const left = padding + line.indent;
     const x =
@@ -296,14 +297,27 @@ function drawPage(canvas: HTMLCanvasElement, page: PlacedLine[], options: DrawOp
     const top = padding + offset + line.top;
 
     if (line.rule) {
+      /*
+       * The bar has to line up with the ink, not the em square: with the box
+       * top as reference a quote looks like it starts above its own text. The
+       * first and last line take the glyph bounds, the rest fill their box so
+       * a wrapped quote stays one continuous bar.
+       */
+      const ascent = metrics.fontBoundingBoxAscent || line.size * 0.8;
+      const inkAscent = metrics.actualBoundingBoxAscent || line.size * 0.72;
+      const inkDescent = metrics.actualBoundingBoxDescent || line.size * 0.18;
+      const baseline = top + ascent;
+      const barTop = line.ruleFromText ? baseline - inkAscent : top;
+      const barBottom = line.ruleToText ? baseline + inkDescent : top + line.lineHeight;
+
       ctx.save();
       ctx.globalAlpha = 0.6;
       ctx.fillStyle = theme.accent;
       ctx.fillRect(
         left - Math.round(line.size * 0.62),
-        top + Math.round(line.lineHeight * 0.1),
+        Math.round(barTop),
         Math.max(3, Math.round(line.size * 0.07)),
-        Math.round(line.lineHeight * 0.74)
+        Math.max(2, Math.round(barBottom - barTop))
       );
       ctx.restore();
     }

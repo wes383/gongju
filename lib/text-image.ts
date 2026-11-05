@@ -501,6 +501,13 @@ export interface PlacedLine {
   indent: number;
   /** Quote blocks draw a vertical rule to the left of the indent */
   rule: boolean;
+  /**
+   * Where the rule starts and ends. The first and last line of a quote hug the
+   * glyphs, so the bar reads as tall as the text; the lines in between run the
+   * full box so the pieces join into one continuous bar.
+   */
+  ruleFromText?: boolean;
+  ruleToText?: boolean;
 }
 
 /**
@@ -549,6 +556,8 @@ export function layoutPages(
         lineHeight: spec.lineHeight,
         indent: spec.indent,
         rule: block.kind === "quote",
+        ruleFromText: block.kind === "quote" && index === 0,
+        ruleToText: block.kind === "quote" && index === lines.length - 1,
       });
       y += spec.lineHeight;
     });
