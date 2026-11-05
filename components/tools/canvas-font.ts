@@ -18,24 +18,14 @@ export function canvasFontFamily(
 }
 
 /**
- * A serif counterpart that ships with the OS rather than a webfont: loading a
- * CJK serif would cost megabytes, and the system faces (Songti on macOS, SimSun
- * on Windows, Noto Serif CJK elsewhere) already cover it. A `--font-noto-serif-sc`
- * variable is honoured first so a future webfont slots in without a code change.
+ * The serif pair the watermark tool already draws with: Playfair for Latin,
+ * Noto Serif SC for CJK. Same variables, so both tools stay in one type system.
  */
 export function canvasSerifFamily(element: HTMLElement): string {
   const style = getComputedStyle(element);
+  const latin = style.getPropertyValue("--font-playfair").trim();
   const cjk = style.getPropertyValue("--font-noto-serif-sc").trim();
-  return [
-    "Georgia",
-    '"Times New Roman"',
-    cjk,
-    '"Songti SC"',
-    "STSong",
-    "SimSun",
-    '"Noto Serif CJK SC"',
-    "serif",
-  ]
-    .filter(Boolean)
-    .join(", ");
+  const stack = [latin, cjk].filter(Boolean).join(", ");
+  const fallback = '"Songti SC", SimSun, "Noto Serif SC", serif';
+  return stack ? `${stack}, ${fallback}` : fallback;
 }

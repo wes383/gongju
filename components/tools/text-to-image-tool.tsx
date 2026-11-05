@@ -62,7 +62,7 @@ const COPY = {
     fontSize: "字号",
     font: "字体",
     fonts: { sans: "无衬线", serif: "衬线" },
-    fontNote: "衬线用系统自带的宋体类字体（macOS 的 Songti SC、Windows 的宋体），和预览一致；行内代码始终等宽。",
+    fontNote: "衬线用 Playfair + Noto Serif SC，首次切换要下载中文字形，加载完会自动重排；行内代码始终等宽。",
     lineHeight: "行高",
     padding: "边距",
     align: "对齐",
@@ -117,7 +117,7 @@ const COPY = {
     fontSize: "Font size",
     font: "Typeface",
     fonts: { sans: "Sans", serif: "Serif" },
-    fontNote: "Serif uses a serif face installed on your system, so the export matches the preview; inline code stays monospaced.",
+    fontNote: "Serif is Playfair with Noto Serif SC; the CJK glyphs download on first use and the layout settles once they land. Inline code stays monospaced.",
     lineHeight: "Leading",
     padding: "Margin",
     align: "Align",
@@ -492,6 +492,8 @@ export function TextToImageTool() {
   const t = useCopy(COPY);
   const locale = useLocale();
   const previewRef = React.useRef<HTMLCanvasElement>(null);
+  /** The tool's own root: this is where the route-level font variables live */
+  const [rootEl, setRootEl] = React.useState<HTMLDivElement | null>(null);
 
   const [text, setText] = React.useState(t.sampleText);
   const [sizeChoice, setSizeChoice] = React.useState<SizeChoice>("story");
@@ -563,12 +565,17 @@ export function TextToImageTool() {
   const contentWidth = Math.max(40, frameWidth - padding * 2);
   const frameContentHeight = Math.max(40, frameHeight - padding * 2);
 
-  /* The canvas has no CSS inheritance, so the family stack is read off the DOM */
-  const family = isClient
-    ? fontId === "serif"
-      ? canvasSerifFamily(document.body)
-      : canvasFontFamily(document.body, "--font-inter")
-    : "system-ui, sans-serif";
+  /*
+   * The canvas has no CSS inheritance, so the family stack is read off this
+   * tool's own root: the serif variables are declared on the page wrapper
+   * rather than the body, and only resolve once that element is mounted.
+   */
+  const family =
+    !isClient || !rootEl
+      ? "system-ui, sans-serif"
+      : fontId === "serif"
+        ? canvasSerifFamily(rootEl)
+        : canvasFontFamily(rootEl, "--font-inter");
 
   const layout = React.useMemo<LayoutResult>(() => {
     const empty: LayoutResult = {
@@ -633,6 +640,31 @@ export function TextToImageTool() {
     single,
     parseMode,
   ]);
+
+  /**
+   * A canvas never requests a webfont by itself, so the serif faces are asked
+   * for here: without it the first draw measures fallback glyphs and the line
+   * breaks would not match what is eventually painted.
+   */
+  const loadedFamily = React.useRef<string | null>(null);
+  React.useEffect(() => {
+    if (!isClient || typeof document === "undefined" || !document.fonts) return;
+    if (loadedFamily.current === family) return;
+    let cancelled = false;
+    const sample = `${text.slice(0, 120)}Aa中`;
+    void document.fonts
+      .load(`400 16px ${family}`, sample)
+      .then(() => document.fonts.load(`700 16px ${family}`, sample))
+      .then(() => {
+        if (cancelled) return;
+        loadedFamily.current = family;
+        setFontEpoch((value) => value + 1);
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [isClient, family, text]);
 
   const pageCount = layout.pages.length;
   // Editing can shorten the document while a later page is open
@@ -756,7 +788,7 @@ export function TextToImageTool() {
   const failure = layout.failure;
 
   return (
-    <div className="flex flex-col gap-4">
+    <div ref={setRootEl} className="flex flex-col gap-4">
       <OptionBar>
         <OptionField label={t.mode}>
           <Segmented
