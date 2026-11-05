@@ -287,9 +287,13 @@ function drawPage(canvas: HTMLCanvasElement, page: PlacedLine[], options: DrawOp
 
   const contentWidth = width - padding * 2;
   const contentHeight = height - padding * 2;
-  /* The chip follows the page, not the palette: light ink means light plate */
+  /*
+   * The chip follows the ink: dark type means a light page, so the plate has
+   * to darken it. Getting this backwards drew white on white and the plate
+   * was simply invisible.
+   */
   const codePlate =
-    relativeLuminance(theme.text) < 0.5 ? "rgba(255, 255, 255, 0.14)" : "rgba(15, 23, 42, 0.07)";
+    relativeLuminance(theme.text) < 0.5 ? "rgba(15, 23, 42, 0.09)" : "rgba(255, 255, 255, 0.16)";
   const used = usedHeight(page);
   const offset =
     valign === "center" && options.pageCount === 1 && used < contentHeight
