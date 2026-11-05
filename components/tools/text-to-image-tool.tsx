@@ -36,6 +36,7 @@ import {
   layoutSingle,
   normalizeHex,
   parseBlocks,
+  runFont,
   solidTheme,
   textTheme,
   usedHeight,
@@ -78,7 +79,7 @@ const COPY = {
     paddingUnit: "px",
     sample: "示例",
     clear: "清空",
-    hint: "行首写 # 标题、## 小标题、> 引用、- 列表，其余按原文排版；切到纯文本则原样输出，标记不再生效。一张图只需设置宽度（200–4000），高度跟着内容走；分页模式选固定尺寸，含 A4。",
+    hint: "行首写 # 一级、## 二级、### 三级标题，> 引用，- 列表，1. 有序列表，--- 分隔线；正文里用 **加粗**、*斜体*、`代码`、~~删除线~~。切到纯文本则原样输出，标记不再生效。一张图只需设置宽度（200–4000），高度跟着内容走；分页模式选固定尺寸，含 A4。",
     note: "图片在本机用 Canvas 绘制，文字不会上传到任何服务器。内容超出一页时按同一版式自动分页，可以逐张下载，也可以打包成 zip 一次拿走。",
     width: "宽度",
     lineHeights: { xTight: "很紧", tight: "紧凑", normal: "标准", loose: "宽松", xLoose: "很宽" },
@@ -92,7 +93,7 @@ const COPY = {
     shrinkNote: (size: number) => `这个字号放不下，已自动缩到 ${size}px，文字仍全部保留`,
     sampleText: `# 每天十分钟
 
-把一件事拆到「现在就能开始」的大小，然后只做那一件。
+把一件事拆到**「现在就能开始」**的大小，然后只做那一件。
 
 > 拖延常常不是懒，而是任务在脑子里太大。
 
@@ -130,7 +131,7 @@ const COPY = {
     paddingUnit: "px",
     sample: "Sample",
     clear: "Clear",
-    hint: "Start a line with # for a heading, ## for a subheading, > for a quote and - for a list; plain text keeps those markers literal. In one-image mode you only set the width (200–4000) and the height follows the content; paged mode uses a fixed size, A4 included.",
+    hint: "Start a line with # for a heading, ## or ### for deeper levels, > for a quote, - for a list, 1. for numbered items and --- for a divider; inline, use **bold**, *italic*, `code` and ~~struck~~. Plain text keeps those markers literal. In one-image mode you only set the width (200–4000) and the height follows the content; paged mode uses a fixed size, A4 included.",
     note: "The image is drawn on a canvas on your device, so the text never reaches a server. Content that overflows is paged with the same layout: download pages one by one, or take them all as a zip.",
     width: "Width",
     lineHeights: { xTight: "Tightest", tight: "Tight", normal: "Normal", loose: "Loose", xLoose: "Loosest" },
@@ -144,7 +145,7 @@ const COPY = {
     shrinkNote: (size: number) => `That size did not fit, so the type was scaled to ${size}px — nothing is cut`,
     sampleText: `# Ten minutes a day
 
-Break the task down until it is small enough to start right now, then do only that.
+Break the task down until it is **small enough to start right now**, then do only that.
 
 > Procrastination is rarely laziness. The task is simply too big inside your head.
 
@@ -294,25 +295,45 @@ function drawPage(canvas: HTMLCanvasElement, page: PlacedLine[], options: DrawOp
   ctx.textBaseline = "alphabetic";
 
   for (const line of page) {
+    // The base font is what the quote metrics are read from; runs override it
     ctx.font = line.font;
     ctx.fillStyle = line.kind === "quote" ? theme.muted : theme.text;
 
-    const metrics = ctx.measureText(line.text);
-    const lineWidth = metrics.width;
-    const room = contentWidth - line.indent;
-    const left = padding + line.indent;
-    const x =
-      align === "center" ? left + (room - lineWidth) / 2 : align === "right" ? left + room - lineWidth : left;
     const top = padding + offset + line.top;
+    const left = padding + line.indent;
+    const room = contentWidth - line.indent;
+
+    if (line.kind === "hr") {
+      ctx.save();
+      ctx.globalAlpha = 0.26;
+      ctx.fillStyle = theme.text;
+      ctx.fillRect(
+        left,
+        top + Math.round(line.lineHeight / 2),
+        room,
+        Math.max(1, Math.round(line.lineHeight * 0.04))
+      );
+      ctx.restore();
+      continue;
+    }
 
     /*
      * Both the glyphs and the quote rule hang off one explicit baseline. The
      * canvas "top" baseline is not something the metrics can vouch for — for
-     * CJK faces it sits a fraction of an em away from the ascent reported by
-     * measureText — and guessing it is what left the bar below its own text.
+     * CJK faces it sits a fraction of an em away from the ascent measureText
+     * reports, and guessing it is what left the bar below its own text.
      */
+    const metrics = ctx.measureText(line.text);
     const ascent = emAscent(metrics, line.size);
     const baseline = top + ascent;
+
+    const widths = line.runs.map((run) => {
+      ctx.font = runFont(line.size, line.weight, family, run);
+      return ctx.measureText(run.text).width;
+    });
+    const lineWidth = widths.reduce((total, value) => total + value, 0);
+    const start =
+      align === "center" ? left + (room - lineWidth) / 2 : align === "right" ? left + room - lineWidth : left;
 
     if (line.rule) {
       /*
@@ -337,7 +358,24 @@ function drawPage(canvas: HTMLCanvasElement, page: PlacedLine[], options: DrawOp
       ctx.restore();
     }
 
-    ctx.fillText(line.text, x, baseline);
+    // Run by run, so bold, italic, code and strike keep their own treatment
+    let cursor = start;
+    line.runs.forEach((run, index) => {
+      const runFill = run.code ? theme.accent : line.kind === "quote" ? theme.muted : theme.text;
+      ctx.font = runFont(line.size, line.weight, family, run);
+      ctx.fillStyle = runFill;
+      ctx.fillText(run.text, cursor, baseline);
+
+      if (run.strike) {
+        ctx.fillRect(
+          cursor,
+          baseline - Math.round(line.size * 0.3),
+          widths[index],
+          Math.max(1, Math.round(line.size * 0.06))
+        );
+      }
+      cursor += widths[index];
+    });
   }
 
   // The footer keeps the box-relative "top" baseline it was measured against

@@ -9,12 +9,29 @@
 
 import { codedError } from "./errors";
 
-export type BlockKind = "h1" | "h2" | "quote" | "body" | "bullet" | "space";
+export type BlockKind = "h1" | "h2" | "h3" | "quote" | "body" | "bullet" | "ordered" | "hr" | "space";
+
+/** Which inline Markdown the run was written with */
+export interface RunStyle {
+  bold: boolean;
+  italic: boolean;
+  code: boolean;
+  strike: boolean;
+}
+
+export interface InlineRun extends RunStyle {
+  text: string;
+}
 
 export interface Block {
   kind: BlockKind;
   text: string;
+  /** Inline runs; plain mode produces a single unstyled run */
+  runs: InlineRun[];
 }
+
+/** Monospace face for inline code, with the usual suspects behind it */
+export const CODE_FAMILY = "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
 
 export interface SizePreset {
   id: "story" | "square" | "card" | "a4";
@@ -218,40 +235,92 @@ export function solidTheme(background: string): ThemeColors {
 
 export type ParseMode = "smart" | "plain";
 
+const PLAIN_STYLE: RunStyle = { bold: false, italic: false, code: false, strike: false };
+
+function plainRun(text: string): InlineRun {
+  return { text, ...PLAIN_STYLE };
+}
+
+/**
+ * Inline Markdown for a single line: `code`, **bold**, *italic* and ~~struck~~.
+ * Underscores are left alone on purpose — `snake_case_name` in a pasted code
+ * sample should not come out in italics. Anything unmatched stays literal.
+ */
+export function parseInline(text: string): InlineRun[] {
+  if (!text) return [];
+
+  const pattern = /`([^`]+)`|\*\*([^*]+)\*\*|\*([^*]+)\*|~~([^~]+)~~/g;
+  const runs: InlineRun[] = [];
+  let end = 0;
+
+  for (const match of text.matchAll(pattern)) {
+    const start = match.index ?? 0;
+    if (start > end) runs.push(plainRun(text.slice(end, start)));
+
+    runs.push({
+      text: match[1] ?? match[2] ?? match[3] ?? match[4] ?? "",
+      bold: match[2] !== undefined,
+      italic: match[3] !== undefined,
+      code: match[1] !== undefined,
+      strike: match[4] !== undefined,
+    });
+    end = start + match[0].length;
+  }
+
+  if (end < text.length) runs.push(plainRun(text.slice(end)));
+  return runs;
+}
+
+/** A line made only of three or more dashes, stars or underscores */
+const HORIZONTAL_RULE = /^(?:-{3,}|\*{3,}|_{3,})$/;
+
 /**
  * Split source text into styled blocks.
  *
- * `smart` honours line-leading markers (`#`, `##`, `>`, `-`); inline Markdown
- * stays literal, because silently stripping asterisks from pasted text would
- * change what the user asked to render. `plain` treats every line as body text,
- * so `#` and `-` that belong to the content survive verbatim.
+ * `smart` honours line-leading markers (`#`, `###`, `>`, `-`, `1.`, `---`) and
+ * inline emphasis (bold, italic, code, strikethrough). `plain` treats every
+ * line as body text, so markers and asterisks that belong to the content
+ * survive verbatim.
  */
 export function parseBlocks(source: string, mode: ParseMode = "smart"): Block[] {
   const blocks: Block[] = [];
   const lines = source.replace(/\r\n?/g, "\n").split("\n");
   const plain = mode === "plain";
 
+  const push = (kind: BlockKind, text: string) => {
+    const runs = plain ? [plainRun(text)] : parseInline(text);
+    // The block keeps the words without their markers, so callers never have to
+    // strip anything themselves
+    blocks.push({ kind, text: runs.map((run) => run.text).join(""), runs });
+  };
+
   for (const raw of lines) {
     const line = raw.trim();
     if (!line) {
       if (blocks.length > 0 && blocks[blocks.length - 1].kind !== "space") {
-        blocks.push({ kind: "space", text: "" });
+        blocks.push({ kind: "space", text: "", runs: [] });
       }
       continue;
     }
 
     if (plain) {
-      blocks.push({ kind: "body", text: line });
-    } else if (/^#{2,6}\s+/.test(line)) {
-      blocks.push({ kind: "h2", text: line.replace(/^#{2,6}\s+/, "") });
+      push("body", line);
+    } else if (HORIZONTAL_RULE.test(line)) {
+      push("hr", "");
+    } else if (/^#{3,6}\s+/.test(line)) {
+      push("h3", line.replace(/^#{3,6}\s+/, ""));
+    } else if (/^##\s+/.test(line)) {
+      push("h2", line.replace(/^##\s+/, ""));
     } else if (/^#\s+/.test(line)) {
-      blocks.push({ kind: "h1", text: line.replace(/^#\s+/, "") });
+      push("h1", line.replace(/^#\s+/, ""));
     } else if (/^>\s?/.test(line)) {
-      blocks.push({ kind: "quote", text: line.replace(/^>\s?/, "") });
+      push("quote", line.replace(/^>\s?/, ""));
+    } else if (/^\d{1,3}[.)]\s+/.test(line)) {
+      push("ordered", line);
     } else if (/^[-*+]\s+/.test(line)) {
-      blocks.push({ kind: "bullet", text: `• ${line.replace(/^[-*+]\s+/, "")}` });
+      push("bullet", `• ${line.replace(/^[-*+]\s+/, "")}`);
     } else {
-      blocks.push({ kind: "body", text: line });
+      push("body", line);
     }
   }
 
@@ -386,6 +455,122 @@ export function wrapText(text: string, maxWidth: number, measure: (value: string
   return lines;
 }
 
+interface StyledToken {
+  text: string;
+  style: RunStyle;
+}
+
+/** Flatten runs into the word and character tokens wrapText breaks on */
+function styledTokens(runs: InlineRun[]): StyledToken[] {
+  const tokens: StyledToken[] = [];
+  for (const run of runs) {
+    // Only the flags, so merging a token back cannot carry the run's text along
+    const style: RunStyle = { bold: run.bold, italic: run.italic, code: run.code, strike: run.strike };
+    for (const token of tokenize(run.text)) tokens.push({ text: token, style });
+  }
+  return tokens;
+}
+
+/** Fold neighbouring tokens back into as few runs as the styling allows */
+function mergeTokens(tokens: StyledToken[]): InlineRun[] {
+  const runs: InlineRun[] = [];
+
+  for (const token of tokens) {
+    const last = runs[runs.length - 1];
+    const same =
+      last &&
+      last.bold === token.style.bold &&
+      last.italic === token.style.italic &&
+      last.code === token.style.code &&
+      last.strike === token.style.strike;
+
+    if (same) last.text += token.text;
+    else runs.push({ text: token.text, ...token.style });
+  }
+
+  // The space carried along with the last word does not belong to the line
+  const tail = runs[runs.length - 1];
+  if (tail) tail.text = tail.text.replace(/\s+$/, "");
+  return runs.filter((run) => run.text !== "");
+}
+
+/**
+ * The same greedy line breaking as `wrapText`, but every token keeps the style
+ * it was written with, so bold and italic survive a line break.
+ */
+export function wrapRuns(
+  runs: InlineRun[],
+  maxWidth: number,
+  fontFor: (style: RunStyle) => string,
+  measure: Measure
+): InlineRun[][] {
+  if (maxWidth <= 0) return [];
+
+  const tokens = styledTokens(runs);
+  if (tokens.length === 0) return [];
+
+  const widthOf = (token: StyledToken) => measure(token.text, fontFor(token.style));
+  const widthOfLine = (line: StyledToken[]) => line.reduce((total, token) => total + widthOf(token), 0);
+
+  const lines: InlineRun[][] = [];
+  let line: StyledToken[] = [];
+
+  const flush = () => {
+    const merged = mergeTokens(line);
+    if (merged.length > 0) lines.push(merged);
+    line = [];
+  };
+
+  /** Cut a token that is wider than a whole line into character chunks */
+  const chunksOf = (token: StyledToken): StyledToken[] => {
+    const font = fontFor(token.style);
+    const chunks = breakToken(token.text, maxWidth, (value) => measure(value, font));
+    return chunks.map((text) => ({ text, style: token.style }));
+  };
+
+  /** Open a line with a token, closing every chunk but the last as its own line */
+  const startLine = (token: StyledToken) => {
+    const chunks = chunksOf(token);
+    const last = chunks.pop();
+    for (const chunk of chunks) lines.push(mergeTokens([chunk]));
+    line = last ? [last] : [];
+  };
+
+  for (const token of tokens) {
+    if (widthOfLine([...line, token]) <= maxWidth) {
+      line.push(token);
+      continue;
+    }
+
+    if (line.length === 0) {
+      startLine(token);
+      continue;
+    }
+
+    // Closing punctuation stays with the line it closes, even if it overflows
+    if (NO_LINE_START.includes(Array.from(token.text)[0])) {
+      line.push(token);
+      continue;
+    }
+
+    let rest = token;
+    const tail = line[line.length - 1];
+    const chars = Array.from(tail.text);
+    if (NO_LINE_END.includes(chars[chars.length - 1])) {
+      const opened = chars.pop() ?? "";
+      rest = { text: opened + token.text, style: token.style };
+      line = [...line.slice(0, -1), { text: chars.join(""), style: tail.style }];
+    }
+
+    flush();
+    // A token moved to its own line may still be too wide there
+    startLine(rest);
+  }
+
+  flush();
+  return lines;
+}
+
 export interface LayoutOptions {
   /** Base body size in px; every other block scales from it */
   size: number;
@@ -402,6 +587,7 @@ export interface LayoutOptions {
 export interface TextStyleSpec {
   font: string;
   size: number;
+  weight: number;
   lineHeight: number;
   indent: number;
   spaceBefore: number;
@@ -412,6 +598,13 @@ export interface TextStyleSpec {
 
 function fontSpec(weight: number, size: number, family: string): string {
   return `${weight} ${Math.round(size)}px ${family}`;
+}
+
+/** Font a run is drawn with: inline code switches to monospace, bold lifts the weight */
+export function runFont(size: number, weight: number, family: string, style: RunStyle): string {
+  const face = style.code ? CODE_FAMILY : family;
+  const lifted = style.bold ? Math.max(700, weight) : weight;
+  return `${style.italic ? "italic " : ""}${lifted} ${Math.round(size)}px ${face}`;
 }
 
 export function styleFor(kind: BlockKind, options: LayoutOptions): TextStyleSpec {
@@ -425,6 +618,7 @@ export function styleFor(kind: BlockKind, options: LayoutOptions): TextStyleSpec
       return {
         font: fontSpec(700, size, family),
         size,
+        weight: 700,
         lineHeight: Math.round(size * 1.22),
         indent: 0,
         spaceBefore: Math.round(base * 0.55),
@@ -437,6 +631,7 @@ export function styleFor(kind: BlockKind, options: LayoutOptions): TextStyleSpec
       return {
         font: fontSpec(600, size, family),
         size,
+        weight: 600,
         lineHeight: Math.round(size * 1.34),
         indent: 0,
         spaceBefore: Math.round(base * 0.34),
@@ -444,11 +639,25 @@ export function styleFor(kind: BlockKind, options: LayoutOptions): TextStyleSpec
         keepWithNext: Math.round(body * 1.1),
       };
     }
+    case "h3": {
+      const size = Math.round(base * 1.1);
+      return {
+        font: fontSpec(600, size, family),
+        size,
+        weight: 600,
+        lineHeight: Math.round(size * 1.42),
+        indent: 0,
+        spaceBefore: Math.round(base * 0.3),
+        spaceAfter: Math.round(base * 0.12),
+        keepWithNext: Math.round(body * 1.05),
+      };
+    }
     case "quote": {
       const size = Math.round(base * 0.96);
       return {
         font: fontSpec(400, size, family),
         size,
+        weight: 400,
         lineHeight: Math.round(size * 1.62),
         indent: Math.round(base * 0.85),
         spaceBefore: Math.round(base * 0.24),
@@ -457,19 +666,34 @@ export function styleFor(kind: BlockKind, options: LayoutOptions): TextStyleSpec
       };
     }
     case "bullet":
+    case "ordered":
       return {
         font: fontSpec(400, base, family),
         size: Math.round(base),
+        weight: 400,
         lineHeight: body,
         indent: 0,
         spaceBefore: 0,
         spaceAfter: Math.round(base * 0.22),
         keepWithNext: 0,
       };
+    case "hr":
+      // No text: the line box only reserves room for the drawn rule
+      return {
+        font: "",
+        size: 0,
+        weight: 400,
+        lineHeight: Math.round(base * 1.3),
+        indent: 0,
+        spaceBefore: Math.round(base * 0.4),
+        spaceAfter: Math.round(base * 0.4),
+        keepWithNext: 0,
+      };
     case "space":
       return {
         font: "",
         size: 0,
+        weight: 400,
         lineHeight: Math.round(base * 0.58),
         indent: 0,
         spaceBefore: 0,
@@ -481,6 +705,7 @@ export function styleFor(kind: BlockKind, options: LayoutOptions): TextStyleSpec
       return {
         font: fontSpec(400, base, family),
         size: Math.round(base),
+        weight: 400,
         lineHeight: body,
         indent: 0,
         spaceBefore: 0,
@@ -490,10 +715,16 @@ export function styleFor(kind: BlockKind, options: LayoutOptions): TextStyleSpec
   }
 }
 
+/** One laid-out line, already cut to the content width */
 export interface PlacedLine {
+  /** Styled pieces of the line, in reading order */
+  runs: InlineRun[];
+  /** The same text unstyled, for measuring and for tests */
   text: string;
   kind: BlockKind;
   size: number;
+  weight: number;
+  /** Font of an unstyled run */
   font: string;
   /** Distance from the content top to the top of this line box */
   top: number;
@@ -532,11 +763,14 @@ export function layoutPages(
     }
 
     const spec = styleFor(block.kind, options);
-    const lines = wrapText(block.text, options.width - spec.indent, (value) =>
-      measure(value, spec.font)
-    );
+    const fontFor = (style: RunStyle) => runFont(spec.size, spec.weight, options.fontFamily, style);
+    // A rule carries no text: one empty line is enough to hold the drawn line
+    const lines =
+      block.kind === "hr"
+        ? [[]]
+        : wrapRuns(block.runs, options.width - spec.indent, fontFor, measure);
 
-    lines.forEach((text, index) => {
+    lines.forEach((runs, index) => {
       let gap = index === 0 && current().length > 0 ? spec.spaceBefore : 0;
       const reserve = index === 0 ? spec.keepWithNext : 0;
 
@@ -548,9 +782,11 @@ export function layoutPages(
 
       y += gap;
       current().push({
-        text,
+        runs,
+        text: runs.map((run) => run.text).join(""),
         kind: block.kind,
         size: spec.size,
+        weight: spec.weight,
         font: spec.font,
         top: y,
         lineHeight: spec.lineHeight,

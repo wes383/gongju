@@ -18,11 +18,13 @@ import {
   layoutSingle,
   normalizeHex,
   parseBlocks,
+  parseInline,
   relativeLuminance,
   solidTheme,
   styleFor,
   textTheme,
   usedHeight,
+  wrapRuns,
   wrapText,
   type LayoutOptions,
   type Measure,
@@ -54,12 +56,31 @@ describe("parseBlocks", () => {
     ]);
     expect(blocks[0].text).toBe("标题");
     expect(blocks[3].text).toBe("• 条目");
-    // Inline Markdown stays literal instead of losing characters
-    expect(blocks[5].text).toBe("**加粗**");
+    // Inline emphasis keeps its text and hands the styling to the runs
+    expect(blocks[5].text).toBe("加粗");
+    expect(blocks[5].runs).toEqual([
+      { text: "加粗", bold: true, italic: false, code: false, strike: false },
+    ]);
   });
 
-  it("treats any heading deeper than two levels as a subheading", () => {
-    expect(parseBlocks("#### 四级")[0]).toMatchObject({ kind: "h2", text: "四级" });
+  it("keeps three heading levels apart", () => {
+    const blocks = parseBlocks("# 一级\n## 二级\n### 三级\n#### 四级");
+    expect(blocks.map((block) => block.kind)).toEqual(["h1", "h2", "h3", "h3"]);
+    expect(blocks[3].text).toBe("四级");
+  });
+
+  it("numbers ordered items and leaves the digits as typed", () => {
+    const blocks = parseBlocks("1. 第一步\n2) 第二步\n2024 年是年份");
+    expect(blocks.map((block) => block.kind)).toEqual(["ordered", "ordered", "body"]);
+    expect(blocks[0].text).toBe("1. 第一步");
+    expect(blocks[1].text).toBe("2) 第二步");
+  });
+
+  it("reads a line of dashes as a rule", () => {
+    const blocks = parseBlocks("上文\n\n---\n\n下文");
+    expect(blocks.map((block) => block.kind)).toEqual(["body", "space", "hr", "space", "body"]);
+    // A dash that is part of the copy is not a rule
+    expect(parseBlocks("-- 只是两个短横")[0].kind).toBe("body");
   });
 
   it("collapses runs of blank lines and drops them at the end", () => {
@@ -69,6 +90,34 @@ describe("parseBlocks", () => {
 
   it("returns nothing for whitespace-only input", () => {
     expect(parseBlocks("   \n\n  ")).toEqual([]);
+  });
+});
+
+describe("parseInline", () => {
+  it("splits bold, italic, code and strikethrough out of one line", () => {
+    const runs = parseInline("普通**加粗**与*斜体*和`代码`以及~~删除~~");
+    expect(runs.map((run) => [run.text, run.bold, run.italic, run.code, run.strike])).toEqual([
+      ["普通", false, false, false, false],
+      ["加粗", true, false, false, false],
+      ["与", false, false, false, false],
+      ["斜体", false, true, false, false],
+      ["和", false, false, false, false],
+      ["代码", false, false, true, false],
+      ["以及", false, false, false, false],
+      ["删除", false, false, false, true],
+    ]);
+  });
+
+  it("leaves unmatched markers and snake_case alone", () => {
+    expect(parseInline("3 * 4 = 12")).toEqual([
+      { text: "3 * 4 = 12", bold: false, italic: false, code: false, strike: false },
+    ]);
+    expect(parseInline("user_name_here")[0].italic).toBe(false);
+  });
+
+  it("does not read markers inside a code span", () => {
+    const runs = parseInline("`a ** b`");
+    expect(runs).toEqual([{ text: "a ** b", bold: false, italic: false, code: true, strike: false }]);
   });
 });
 
@@ -124,6 +173,30 @@ describe("wrapText", () => {
 
   it("returns no lines for empty input", () => {
     expect(wrapText("   ", 100, narrow)).toEqual([]);
+  });
+});
+
+describe("wrapRuns", () => {
+  const font = () => "400 20px sans-serif";
+
+  it("carries bold across a line break", () => {
+    const lines = wrapRuns(parseInline("普通**加粗很长的一段**"), 60, font, narrow);
+    const text = lines.map((line) => line.map((run) => run.text).join("")).join("");
+
+    expect(lines.length).toBeGreaterThan(1);
+    expect(text).toBe("普通加粗很长的一段");
+    expect(lines.flat().some((run) => run.bold)).toBe(true);
+  });
+
+  it("never overflows the width, even mid-word", () => {
+    const lines = wrapRuns(parseInline("`https://example.com/abcdef`"), 40, font, narrow);
+    expect(lines.every((line) => narrow(line.map((run) => run.text).join("")) <= 40)).toBe(true);
+    expect(lines.flat().every((run) => run.code)).toBe(true);
+  });
+
+  it("returns nothing for empty text or no room", () => {
+    expect(wrapRuns([], 100, font, narrow)).toEqual([]);
+    expect(wrapRuns(parseInline("文字"), 0, font, narrow)).toEqual([]);
   });
 });
 
@@ -194,6 +267,18 @@ describe("layoutPages", () => {
   it("keeps the rule off body lines", () => {
     const pages = layoutPages(parseBlocks("普通正文"), OPTIONS, measure);
     expect(pages[0][0]).toMatchObject({ rule: false, ruleFromText: false, ruleToText: false });
+  });
+
+  it("gives a rule its own empty line box", () => {
+    const pages = layoutPages(parseBlocks("a\n---\nb"), { ...OPTIONS, height: 400 }, measure);
+    expect(pages[0].map((line) => line.kind)).toEqual(["body", "hr", "body"]);
+    expect(pages[0][1].runs).toEqual([]);
+    expect(pages[0][1].text).toBe("");
+  });
+
+  it("lays ordered items out like bullets", () => {
+    const pages = layoutPages(parseBlocks("1. 第一步"), OPTIONS, measure);
+    expect(pages[0][0]).toMatchObject({ kind: "ordered", text: "1. 第一步", indent: 0 });
   });
 
   it("returns one empty page for empty input", () => {
