@@ -12,6 +12,7 @@ import {
   SampleButton,
   Segmented,
 } from "@/components/tools/tool-ui";
+import { canvasFontFamily } from "@/components/tools/canvas-font";
 import { useCopy, useLocale } from "@/components/locale-provider";
 import {
   OG_DESCRIPTION_LIMIT,
@@ -63,14 +64,6 @@ const COPY = {
     sampleDescription: "Encoding, conversion, encryption, PDF and Office parsing without uploading a byte.",
   },
 };
-
-/** Read the next/font family list off the document so canvas text matches the page */
-function fontFamily(element: HTMLElement): string {
-  const style = getComputedStyle(element);
-  const display = style.getPropertyValue("--font-plus-jakarta-sans").trim();
-  const cjk = style.getPropertyValue("--font-noto-sans-sc").trim();
-  return [display, cjk, "system-ui", "sans-serif"].filter(Boolean).join(", ");
-}
 
 function roundRect(
   ctx: CanvasRenderingContext2D,
@@ -214,7 +207,7 @@ export function OgImageTool() {
     let cancelled = false;
     const paint = () => {
       if (cancelled) return;
-      drawCard(canvas, { title, description, site, host, theme, font: fontFamily(document.body) });
+      drawCard(canvas, { title, description, site, host, theme, font: canvasFontFamily(document.body) });
     };
     // Wait for the webfonts so the preview and the export use the same metrics
     void document.fonts?.ready.then(paint);
