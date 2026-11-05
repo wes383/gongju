@@ -4,7 +4,10 @@ import {
   MAX_AUTO_HEIGHT,
   MIN_FIT_FONT,
   MAX_PAGES,
+  MAX_FONT,
+  MIN_FONT,
   autoHeightCap,
+  clampFont,
   layoutPages,
   layoutSingle,
   normalizeHex,
@@ -330,5 +333,18 @@ describe("relativeLuminance", () => {
 
   it("keeps mid grey on the dark-text side of the threshold", () => {
     expect(relativeLuminance("#808080")).toBeGreaterThan(0.179);
+  });
+});
+
+describe("clampFont", () => {
+  it("lets poster-sized type through", () => {
+    expect(clampFont(600)).toBe(600);
+    expect(clampFont(MAX_FONT)).toBe(MAX_FONT);
+  });
+
+  it("still refuses sizes a canvas cannot draw", () => {
+    expect(clampFont(5000)).toBe(MAX_FONT);
+    expect(clampFont(1)).toBe(MIN_FONT);
+    expect(clampFont(Number.NaN)).toBe(32);
   });
 });

@@ -1,7 +1,14 @@
 "use client";
 
 import * as React from "react";
-import { ChevronLeft, ChevronRight, Download, FileArchive, ImageIcon } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  FileArchive,
+  ImageIcon,
+  TriangleAlert,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -76,7 +83,7 @@ const COPY = {
     modes: { single: "一张图", pages: "分页" },
     backgrounds: { gradient: "渐变", solid: "纯色" },
     parses: { smart: "Markdown", plain: "纯文本" },
-    shrinkNote: (size: number) => `内容较长，字号已自动缩到 ${size}px，所有文字仍在这一张图里`,
+    shrinkNote: (size: number) => `这个字号放不下，已自动缩到 ${size}px，文字仍全部保留`,
     sampleText: `# 每天十分钟
 
 把一件事拆到「现在就能开始」的大小，然后只做那一件。
@@ -124,7 +131,7 @@ const COPY = {
     modes: { single: "One image", pages: "Pages" },
     backgrounds: { gradient: "Gradient", solid: "Solid" },
     parses: { smart: "Markdown", plain: "Plain text" },
-    shrinkNote: (size: number) => `Long text, so the type was scaled to ${size}px — everything is still on this one image`,
+    shrinkNote: (size: number) => `That size did not fit, so the type was scaled to ${size}px — nothing is cut`,
     sampleText: `# Ten minutes a day
 
 Break the task down until it is small enough to start right now, then do only that.
@@ -347,6 +354,9 @@ export function TextToImageTool() {
   const [bgHex, setBgHex] = React.useState(SOLID_SWATCHES[6]);
   const [parseMode, setParseMode] = React.useState<ParseMode>("smart");
   const [fontInput, setFontInput] = React.useState("44");
+  /** Size the auto-shrink settled on, kept after the field is rewritten to it */
+  const [autoSize, setAutoSize] = React.useState<number | null>(null);
+  const [fontFocused, setFontFocused] = React.useState(false);
   const [lineHeightId, setLineHeightId] = React.useState<LineHeightId>("normal");
   const [paddingId, setPaddingId] = React.useState<PaddingId>("normal");
   const [align, setAlign] = React.useState<Align>("left");
@@ -468,31 +478,21 @@ export function TextToImageTool() {
     : "system-ui, sans-serif";
 
   /**
-   * Sizes the user typed in the field, kept so a shrink they caused does not
-   * immediately overwrite their number. Anything else that triggers a shrink —
-   * pasting text, narrowing the frame, changing the margins — writes the size
-   * that was actually used back into the field, so it never claims a size the
-   * image is not drawn at.
+   * Report the size the shrink actually used back into the field, so it never
+   * claims a size the image is not drawn at. The one exception is a field with
+   * focus: replacing the number mid-keystroke makes a multi-digit size
+   * impossible to type, so the write waits for the blur.
    */
-  const typedFontRef = React.useRef<string | null>(null);
-
   React.useEffect(() => {
-    if (!layout.shrunk) {
-      // A size that fitted is spent; the next shrink is not the user's doing
-      typedFontRef.current = null;
-      return;
-    }
-    if (typedFontRef.current !== null) {
-      typedFontRef.current = null;
-      return;
-    }
-    const next = String(layout.usedSize);
-    if (next === fontInput) return;
+    if (!layout.shrunk) return;
     // Deferred by a tick: writing state straight from an effect re-renders in a
     // loop the lint rule quite rightly refuses
-    const id = setTimeout(() => setFontInput(next), 0);
+    const id = setTimeout(() => {
+      setAutoSize(layout.usedSize);
+      if (!fontFocused) setFontInput(String(layout.usedSize));
+    }, 0);
     return () => clearTimeout(id);
-  }, [layout.shrunk, layout.usedSize, fontInput]);
+  }, [layout.shrunk, layout.usedSize, fontFocused]);
 
   React.useEffect(() => {
     const canvas = previewRef.current;
@@ -575,6 +575,12 @@ export function TextToImageTool() {
     if (normalized) setBgColor(normalized);
   };
 
+  /** Editing the copy retires the last shrink notice: it described other text */
+  const updateText = (value: string) => {
+    setAutoSize(null);
+    setText(value);
+  };
+
   const failure = layout.failure;
 
   return (
@@ -649,7 +655,7 @@ export function TextToImageTool() {
             </span>
             <InputArea
               value={text}
-              onChange={(event) => setText(event.target.value)}
+              onChange={(event) => updateText(event.target.value)}
               aria-label={t.text}
               spellCheck={false}
               className="min-h-[240px] text-[13px] leading-relaxed"
@@ -762,22 +768,39 @@ export function TextToImageTool() {
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-3">
-            <label className="flex flex-col gap-1.5">
-              <span className="text-[11px] text-foreground-muted">{t.fontSize}</span>
-              <Input
-                value={fontInput}
-                onChange={(event) => {
-                  // Remember that this number came from the user, so the shrink
-                  // it triggers does not bounce the field back at them
-                  typedFontRef.current = event.target.value;
-                  setFontInput(event.target.value);
-                }}
-                inputMode="numeric"
-                size="xs"
-                aria-label={t.fontSize}
-              />
-            </label>
+          <div className="grid grid-cols-2 items-start gap-3">
+            <div className="flex flex-col gap-1.5">
+              <label className="flex flex-col gap-1.5">
+                <span className="text-[11px] text-foreground-muted">{t.fontSize}</span>
+                <Input
+                  value={fontInput}
+                  onChange={(event) => {
+                    // The user is back in charge of the size, so the notice
+                    // about the last shrink no longer describes the canvas
+                    setAutoSize(null);
+                    setFontInput(event.target.value);
+                  }}
+                  onFocus={() => setFontFocused(true)}
+                  onBlur={() => {
+                    setFontFocused(false);
+                    // Round the field to what the canvas would actually use
+                    setFontInput(String(clampFont(Number.parseInt(fontInput, 10))));
+                  }}
+                  inputMode="numeric"
+                  size="xs"
+                  aria-label={t.fontSize}
+                />
+              </label>
+              {autoSize !== null && (
+                <p
+                  role="status"
+                  className="flex items-start gap-1 text-[11px] leading-relaxed text-orange-fg"
+                >
+                  <TriangleAlert className="mt-0.5 h-3 w-3 shrink-0" />
+                  <span>{t.shrinkNote(autoSize)}</span>
+                </p>
+              )}
+            </div>
             <label className="flex flex-col gap-1.5">
               <span className="text-[11px] text-foreground-muted">{t.footer}</span>
               <Input
@@ -822,8 +845,8 @@ export function TextToImageTool() {
           </div>
 
           <div className="flex items-center gap-1">
-            <SampleButton onClick={() => setText(t.sampleText)} label={t.sample} />
-            <ClearButton onClick={() => setText("")} label={t.clear} />
+            <SampleButton onClick={() => updateText(t.sampleText)} label={t.sample} />
+            <ClearButton onClick={() => updateText("")} label={t.clear} />
           </div>
           <p className="text-[11px] leading-relaxed text-foreground-subtle">{t.hint}</p>
         </section>
@@ -900,12 +923,6 @@ export function TextToImageTool() {
                 </Button>
               )}
             </div>
-          )}
-
-          {layout.shrunk && (
-            <p className="px-1 text-[11px] leading-relaxed text-orange-fg">
-              {t.shrinkNote(layout.usedSize)}
-            </p>
           )}
 
           <div className="flex items-start gap-1.5 px-1 text-[11px] leading-relaxed text-foreground-subtle">

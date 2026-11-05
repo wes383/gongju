@@ -53,7 +53,8 @@ export const SIZE_PRESETS: SizePreset[] = [
 export const MIN_EDGE = 200;
 export const MAX_EDGE = 4000;
 export const MIN_FONT = 12;
-export const MAX_FONT = 160;
+/** Big poster type: a 1080px card takes a single 800px glyph edge to edge */
+export const MAX_FONT = 800;
 
 /** Page cap: a wall of text should be split by the user, not by an endless loop */
 export const MAX_PAGES = 40;
