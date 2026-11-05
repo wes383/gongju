@@ -574,16 +574,6 @@ export function TextToImageTool() {
             ]}
           />
         </OptionField>
-        {bgMode === "gradient" && (
-          <OptionField label={t.theme}>
-            <Segmented
-              ariaLabel={t.theme}
-              value={themeId}
-              onChange={setThemeId}
-              options={TEXT_THEMES.map((item) => ({ value: item.id, label: item.label[locale] }))}
-            />
-          </OptionField>
-        )}
         <OptionField label={t.parse}>
           <Segmented
             ariaLabel={t.parse}
@@ -638,7 +628,7 @@ export function TextToImageTool() {
             />
           </label>
 
-          {bgMode === "solid" && (
+          {bgMode === "solid" ? (
             <div className="flex flex-col gap-1.5">
               <span className="text-[11px] text-foreground-muted">{t.bgColor}</span>
               <div className="flex flex-wrap items-center gap-1.5">
@@ -667,6 +657,16 @@ export function TextToImageTool() {
                   className="w-24 font-mono"
                 />
               </div>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-1.5">
+              <span className="text-[11px] text-foreground-muted">{t.theme}</span>
+              <Segmented
+                ariaLabel={t.theme}
+                value={themeId}
+                onChange={setThemeId}
+                options={TEXT_THEMES.map((item) => ({ value: item.id, label: item.label[locale] }))}
+              />
             </div>
           )}
 
@@ -795,8 +795,8 @@ export function TextToImageTool() {
           <p className="text-[11px] leading-relaxed text-foreground-subtle">{t.hint}</p>
         </section>
 
-        <section className="flex min-w-0 flex-col gap-3">
-          <div className="flex max-h-[68vh] items-start justify-center overflow-auto rounded-lg border border-border bg-surface p-3">
+        <section className="flex h-full min-w-0 flex-col gap-3">
+          <div className="flex max-h-[calc(100vh-10rem)] min-h-[420px] flex-1 items-start justify-center overflow-auto rounded-lg border border-border bg-surface p-3">
             <canvas
               ref={previewRef}
               width={frameWidth}
