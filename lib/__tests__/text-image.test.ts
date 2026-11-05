@@ -7,7 +7,10 @@ import {
   autoHeightCap,
   layoutPages,
   layoutSingle,
+  normalizeHex,
   parseBlocks,
+  relativeLuminance,
+  solidTheme,
   styleFor,
   textTheme,
   usedHeight,
@@ -220,5 +223,68 @@ describe("autoHeightCap", () => {
     expect(autoHeightCap(1080)).toBe(MAX_AUTO_HEIGHT);
     expect(autoHeightCap(4000)).toBe(4000);
     expect(autoHeightCap(3000)).toBe(5333);
+  });
+});
+
+describe("parseBlocks in plain mode", () => {
+  it("keeps markers that belong to the content", () => {
+    const blocks = parseBlocks("# not a heading\n> not a quote\n- not a bullet", "plain");
+
+    expect(blocks.map((block) => block.kind)).toEqual(["body", "body", "body"]);
+    expect(blocks[0].text).toBe("# not a heading");
+    expect(blocks[2].text).toBe("- not a bullet");
+  });
+
+  it("still turns a blank line into a gap", () => {
+    const blocks = parseBlocks("a\n\nb", "plain");
+    expect(blocks.map((block) => block.kind)).toEqual(["body", "space", "body"]);
+  });
+
+  it("defaults to smart parsing", () => {
+    expect(parseBlocks("# heading")[0].kind).toBe("h1");
+  });
+});
+
+describe("normalizeHex", () => {
+  it("expands shorthand and lowercases", () => {
+    expect(normalizeHex("#ABC")).toBe("#aabbcc");
+    expect(normalizeHex("0x1A2B3C")).toBe("#1a2b3c");
+    expect(normalizeHex("  #FFF  ")).toBe("#ffffff");
+  });
+
+  it("rejects anything that is not a colour", () => {
+    expect(normalizeHex("red")).toBeNull();
+    expect(normalizeHex("#abcd")).toBeNull();
+    expect(normalizeHex("")).toBeNull();
+  });
+});
+
+describe("solidTheme", () => {
+  it("puts light type on a dark fill and dark type on a light one", () => {
+    expect(solidTheme("#111827").text).toBe("#f6f7f9");
+    expect(solidTheme("#ffffff").text).toBe("#14161b");
+    expect(solidTheme("#134e4a").text).toBe("#f6f7f9");
+    expect(solidTheme("#fef3c7").text).toBe("#14161b");
+  });
+
+  it("marks the background flat so the painter skips the gradient", () => {
+    const theme = solidTheme("#0f766e");
+    expect(theme.from).toBe("#0f766e");
+    expect(theme.to).toBe(theme.from);
+  });
+
+  it("falls back to white for an unusable value", () => {
+    expect(solidTheme("nope").from).toBe("#ffffff");
+  });
+});
+
+describe("relativeLuminance", () => {
+  it("spans black to white", () => {
+    expect(relativeLuminance("#000000")).toBeCloseTo(0, 5);
+    expect(relativeLuminance("#ffffff")).toBeCloseTo(1, 5);
+  });
+
+  it("keeps mid grey on the dark-text side of the threshold", () => {
+    expect(relativeLuminance("#808080")).toBeGreaterThan(0.179);
   });
 });

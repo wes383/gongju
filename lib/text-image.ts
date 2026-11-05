@@ -84,15 +84,21 @@ export function clampFont(value: number): number {
   return Math.min(MAX_FONT, Math.max(MIN_FONT, Math.round(value)));
 }
 
-export interface TextTheme {
-  id: "paper" | "ink" | "mono" | "dusk" | "forest";
-  label: { zh: string; en: string };
-  /** Background gradient, top-left to bottom-right */
+export type ThemeId = "paper" | "ink" | "mono" | "dusk" | "forest";
+
+/** Only the colours matter to the painter, so a solid fill can stand in for a palette */
+export interface ThemeColors {
+  /** Background gradient, top-left to bottom-right; equal stops mean a flat fill */
   from: string;
   to: string;
   text: string;
   muted: string;
   accent: string;
+}
+
+export interface TextTheme extends ThemeColors {
+  id: ThemeId;
+  label: { zh: string; en: string };
 }
 
 export const TEXT_THEMES: TextTheme[] = [
@@ -143,19 +149,64 @@ export const TEXT_THEMES: TextTheme[] = [
   },
 ];
 
-export function textTheme(id: TextTheme["id"]): TextTheme {
+export function textTheme(id: ThemeId): TextTheme {
   return TEXT_THEMES.find((item) => item.id === id) ?? TEXT_THEMES[0];
 }
 
+/** Expand `#abc` / `#AABBCC` to a lowercase six-digit hex, or null if unusable */
+export function normalizeHex(value: string): string | null {
+  const body = value.trim().replace(/^#/, "").replace(/^0x/i, "");
+  if (/^[0-9a-f]{3}$/i.test(body)) {
+    const expanded = Array.from(body)
+      .map((char) => char + char)
+      .join("");
+    return `#${expanded.toLowerCase()}`;
+  }
+  if (/^[0-9a-f]{6}$/i.test(body)) return `#${body.toLowerCase()}`;
+  return null;
+}
+
+/** WCAG relative luminance, used to decide which way the text should go */
+export function relativeLuminance(hex: string): number {
+  const normalized = normalizeHex(hex) ?? "#ffffff";
+  const channels = [1, 3, 5].map((offset) => {
+    const value = Number.parseInt(normalized.slice(offset, offset + 2), 16) / 255;
+    return value <= 0.03928 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2];
+}
+
 /**
- * Split source text into styled blocks. Only line-leading markers are honoured
- * (`#`, `##`, `>`, `-`); inline Markdown stays literal, because silently
- * stripping asterisks from pasted text would change what the user asked to
- * render.
+ * A flat background still needs legible type: pick ink or paper from the
+ * background's luminance instead of inheriting the palette's text colour, which
+ * would be invisible on half of the swatches.
  */
-export function parseBlocks(source: string): Block[] {
+export function solidTheme(background: string): ThemeColors {
+  const fill = normalizeHex(background) ?? "#ffffff";
+  const light = relativeLuminance(fill) > 0.179;
+  return {
+    from: fill,
+    to: fill,
+    text: light ? "#14161b" : "#f6f7f9",
+    muted: light ? "#5b6472" : "#a8b0bd",
+    accent: light ? "#b45309" : "#fbbf24",
+  };
+}
+
+export type ParseMode = "smart" | "plain";
+
+/**
+ * Split source text into styled blocks.
+ *
+ * `smart` honours line-leading markers (`#`, `##`, `>`, `-`); inline Markdown
+ * stays literal, because silently stripping asterisks from pasted text would
+ * change what the user asked to render. `plain` treats every line as body text,
+ * so `#` and `-` that belong to the content survive verbatim.
+ */
+export function parseBlocks(source: string, mode: ParseMode = "smart"): Block[] {
   const blocks: Block[] = [];
   const lines = source.replace(/\r\n?/g, "\n").split("\n");
+  const plain = mode === "plain";
 
   for (const raw of lines) {
     const line = raw.trim();
@@ -166,7 +217,9 @@ export function parseBlocks(source: string): Block[] {
       continue;
     }
 
-    if (/^#{2,6}\s+/.test(line)) {
+    if (plain) {
+      blocks.push({ kind: "body", text: line });
+    } else if (/^#{2,6}\s+/.test(line)) {
       blocks.push({ kind: "h2", text: line.replace(/^#{2,6}\s+/, "") });
     } else if (/^#\s+/.test(line)) {
       blocks.push({ kind: "h1", text: line.replace(/^#\s+/, "") });
