@@ -20,9 +20,11 @@ import { downloadBlob, downloadZip } from "@/lib/files";
 import {
   SIZE_PRESETS,
   TEXT_THEMES,
+  autoHeightCap,
   clampEdge,
   clampFont,
   layoutPages,
+  layoutSingle,
   parseBlocks,
   textTheme,
   usedHeight,
@@ -38,6 +40,7 @@ const COPY = {
     preview: "预览",
     theme: "配色",
     size: "尺寸",
+    mode: "输出",
     fontSize: "字号",
     lineHeight: "行高",
     padding: "边距",
@@ -45,7 +48,7 @@ const COPY = {
     valign: "垂直",
     footer: "署名",
     format: "格式",
-    download: "下载当前页",
+    download: "下载图片",
     downloadAll: (count: number) => `打包下载 ${count} 张`,
     prev: "上一张",
     next: "下一张",
@@ -54,7 +57,7 @@ const COPY = {
     customH: "高",
     sample: "示例",
     clear: "清空",
-    hint: "行首写 # 标题、## 小标题、> 引用、- 列表，其余按原文排版。折行与分页由真实字宽计算，中文标点不会落在行首。",
+    hint: "行首写 # 标题、## 小标题、> 引用、- 列表，其余按原文排版。一张图模式下高度跟着内容增长，预设尺寸只作为最小高度；折行按真实字宽计算，中文标点不会落在行首。",
     note: "图片在本机用 Canvas 绘制，文字不会上传到任何服务器。内容超出一页时按同一版式自动分页，可以逐张下载，也可以打包成 zip 一次拿走。",
     sizes: { story: "竖版", square: "方形", card: "横版", a4: "A4", custom: "自定义" },
     lineHeights: { tight: "紧凑", normal: "正常", loose: "宽松" },
@@ -62,6 +65,8 @@ const COPY = {
     aligns: { left: "左", center: "中", right: "右" },
     valigns: { top: "顶部", center: "居中" },
     formats: { png: "PNG", jpeg: "JPEG" },
+    modes: { single: "一张图", pages: "分页" },
+    shrinkNote: (size: number) => `内容较长，字号已自动缩到 ${size}px，所有文字仍在这一张图里`,
     sampleText: `# 每天十分钟
 
 把一件事拆到「现在就能开始」的大小，然后只做那一件。
@@ -77,6 +82,7 @@ const COPY = {
     preview: "Preview",
     theme: "Palette",
     size: "Size",
+    mode: "Output",
     fontSize: "Font size",
     lineHeight: "Leading",
     padding: "Margin",
@@ -84,7 +90,7 @@ const COPY = {
     valign: "Vertical",
     footer: "Signature",
     format: "Format",
-    download: "Download page",
+    download: "Download image",
     downloadAll: (count: number) => `Download all ${count}`,
     prev: "Previous",
     next: "Next",
@@ -93,7 +99,7 @@ const COPY = {
     customH: "Height",
     sample: "Sample",
     clear: "Clear",
-    hint: "Start a line with # for a heading, ## for a subheading, > for a quote and - for a list. Wrapping measures real glyph widths, so Chinese punctuation never lands at the start of a line.",
+    hint: "Start a line with # for a heading, ## for a subheading, > for a quote and - for a list. In one-image mode the height grows with the content, so the preset size is only a minimum; wrapping measures real glyph widths.",
     note: "The image is drawn on a canvas on your device, so the text never reaches a server. Content that overflows is paged with the same layout: download pages one by one, or take them all as a zip.",
     sizes: { story: "Story", square: "Square", card: "Wide", a4: "A4", custom: "Custom" },
     lineHeights: { tight: "Tight", normal: "Normal", loose: "Loose" },
@@ -101,6 +107,8 @@ const COPY = {
     aligns: { left: "Left", center: "Center", right: "Right" },
     valigns: { top: "Top", center: "Middle" },
     formats: { png: "PNG", jpeg: "JPEG" },
+    modes: { single: "One image", pages: "Pages" },
+    shrinkNote: (size: number) => `Long text, so the type was scaled to ${size}px — everything is still on this one image`,
     sampleText: `# Ten minutes a day
 
 Break the task down until it is small enough to start right now, then do only that.
@@ -119,6 +127,16 @@ type VAlign = "top" | "center";
 type LineHeightId = "tight" | "normal" | "loose";
 type PaddingId = "narrow" | "normal" | "wide";
 type Format = "png" | "jpeg";
+
+interface LayoutResult {
+  pages: PlacedLine[][];
+  failure: unknown;
+  /** Full canvas height, padding included */
+  imageHeight: number;
+  /** Body size actually used after any auto-shrink */
+  usedSize: number;
+  shrunk: boolean;
+}
 
 const LINE_HEIGHT_VALUES: Record<LineHeightId, number> = {
   tight: 1.35,
@@ -266,6 +284,7 @@ export function TextToImageTool() {
 
   const [text, setText] = React.useState(t.sampleText);
   const [sizeChoice, setSizeChoice] = React.useState<SizeChoice>("story");
+  const [single, setSingle] = React.useState(true);
   const [customWidth, setCustomWidth] = React.useState("1080");
   const [customHeight, setCustomHeight] = React.useState("1920");
   const [themeId, setThemeId] = React.useState<TextTheme["id"]>("paper");
@@ -301,39 +320,79 @@ export function TextToImageTool() {
   }, []);
 
   const preset = SIZE_PRESETS.find((item) => item.id === sizeChoice);
-  const width = preset ? preset.width : clampEdge(Number.parseInt(customWidth, 10), 1080);
-  const height = preset ? preset.height : clampEdge(Number.parseInt(customHeight, 10), 1920);
+  const frameWidth = preset ? preset.width : clampEdge(Number.parseInt(customWidth, 10), 1080);
+  // In one-image mode this is only the minimum height, so a short note still
+  // produces a card rather than a thin strip
+  const frameHeight = preset ? preset.height : clampEdge(Number.parseInt(customHeight, 10), 1920);
   const padding = PADDING_VALUES[paddingId];
   const baseSize = clampFont(Number.parseInt(fontInput, 10));
   const lineHeight = LINE_HEIGHT_VALUES[lineHeightId];
   const theme = textTheme(themeId);
 
-  const contentWidth = Math.max(40, width - padding * 2);
-  const contentHeight = Math.max(40, height - padding * 2);
+  const contentWidth = Math.max(40, frameWidth - padding * 2);
+  const frameContentHeight = Math.max(40, frameHeight - padding * 2);
 
-  const layout = React.useMemo(() => {
-    if (!isClient) return { pages: [] as PlacedLine[][], failure: null as unknown };
+  const layout = React.useMemo<LayoutResult>(() => {
+    const empty: LayoutResult = {
+      pages: [],
+      failure: null,
+      imageHeight: frameHeight,
+      usedSize: baseSize,
+      shrunk: false,
+    };
+    if (!isClient) return empty;
+
     const context = measureContextFor(fontEpoch);
-    const family = canvasFontFamily(document.body);
     const options: LayoutOptions = {
       size: baseSize,
       lineHeight,
       width: contentWidth,
-      height: contentHeight,
-      fontFamily: family,
+      height: frameContentHeight,
+      fontFamily: canvasFontFamily(document.body),
+    };
+    const measure = (value: string, font: string) => {
+      if (!context) return value.length * baseSize * 0.6;
+      context.font = font;
+      return context.measureText(value).width;
     };
 
     try {
-      const measure = (value: string, font: string) => {
-        if (!context) return value.length * baseSize * 0.6;
-        context.font = font;
-        return context.measureText(value).width;
+      const blocks = parseBlocks(text);
+      if (single) {
+        // The text decides the height; only the canvas ceiling forces a shrink
+        const cap = Math.max(120, autoHeightCap(frameWidth) - padding * 2);
+        const result = layoutSingle(blocks, options, measure, cap);
+        return {
+          pages: [result.lines],
+          failure: null,
+          imageHeight: Math.max(frameHeight, padding * 2 + result.height),
+          usedSize: result.size,
+          shrunk: result.shrunk,
+        };
+      }
+      return {
+        pages: layoutPages(blocks, options, measure),
+        failure: null,
+        imageHeight: frameHeight,
+        usedSize: baseSize,
+        shrunk: false,
       };
-      return { pages: layoutPages(parseBlocks(text), options, measure), failure: null };
     } catch (error) {
-      return { pages: [] as PlacedLine[][], failure: error };
+      return { ...empty, failure: error };
     }
-  }, [isClient, fontEpoch, text, baseSize, lineHeight, contentWidth, contentHeight]);
+  }, [
+    isClient,
+    fontEpoch,
+    text,
+    baseSize,
+    lineHeight,
+    contentWidth,
+    frameContentHeight,
+    frameWidth,
+    frameHeight,
+    padding,
+    single,
+  ]);
 
   const pageCount = layout.pages.length;
   // Editing can shorten the document while a later page is open
@@ -344,8 +403,8 @@ export function TextToImageTool() {
     const canvas = previewRef.current;
     if (!canvas) return;
     drawPage(canvas, layout.pages[activePage] ?? [], {
-      width,
-      height,
+      width: frameWidth,
+      height: layout.imageHeight,
       padding,
       theme,
       align,
@@ -358,10 +417,10 @@ export function TextToImageTool() {
     });
   }, [
     layout.pages,
+    layout.imageHeight,
     activePage,
     pageCount,
-    width,
-    height,
+    frameWidth,
     padding,
     theme,
     align,
@@ -372,7 +431,7 @@ export function TextToImageTool() {
   ]);
 
   const filename = (index: number) =>
-    `text-image-${width}x${height}-${index + 1}.${format === "png" ? "png" : "jpg"}`;
+    `text-image-${frameWidth}x${layout.imageHeight}-${index + 1}.${format === "png" ? "png" : "jpg"}`;
 
   const download = () => {
     const canvas = previewRef.current;
@@ -388,8 +447,8 @@ export function TextToImageTool() {
 
     for (let index = 0; index < layout.pages.length; index += 1) {
       drawPage(scratch, layout.pages[index], {
-        width,
-        height,
+        width: frameWidth,
+        height: layout.imageHeight,
         padding,
         theme,
         align,
@@ -405,7 +464,8 @@ export function TextToImageTool() {
     }
 
     if (files.length === 1) downloadBlob(files[0].blob, files[0].name);
-    else if (files.length > 1) await downloadZip(files, `text-image-${width}x${height}.zip`);
+    else if (files.length > 1)
+      await downloadZip(files, `text-image-${frameWidth}x${layout.imageHeight}.zip`);
   };
 
   const failure = layout.failure;
@@ -413,6 +473,17 @@ export function TextToImageTool() {
   return (
     <div className="flex flex-col gap-4">
       <OptionBar>
+        <OptionField label={t.mode}>
+          <Segmented
+            ariaLabel={t.mode}
+            value={single ? "single" : "pages"}
+            onChange={(value) => setSingle(value === "single")}
+            options={[
+              { value: "single", label: t.modes.single },
+              { value: "pages", label: t.modes.pages },
+            ]}
+          />
+        </OptionField>
         <OptionField label={t.theme}>
           <Segmented
             ariaLabel={t.theme}
@@ -556,13 +627,13 @@ export function TextToImageTool() {
         </section>
 
         <section className="flex min-w-0 flex-col gap-3">
-          <div className="flex items-center justify-center overflow-hidden rounded-lg border border-border bg-surface p-3">
+          <div className="flex max-h-[68vh] items-start justify-center overflow-auto rounded-lg border border-border bg-surface p-3">
             <canvas
               ref={previewRef}
-              width={width}
-              height={height}
+              width={frameWidth}
+              height={layout.imageHeight}
               aria-label={t.preview}
-              className="mx-auto block h-auto max-h-[68vh] w-auto max-w-full rounded-md"
+              className="mx-auto block h-auto w-full rounded-md"
             />
           </div>
 
@@ -629,11 +700,17 @@ export function TextToImageTool() {
             </div>
           )}
 
+          {layout.shrunk && (
+            <p className="px-1 text-[11px] leading-relaxed text-orange-fg">
+              {t.shrinkNote(layout.usedSize)}
+            </p>
+          )}
+
           <div className="flex items-start gap-1.5 px-1 text-[11px] leading-relaxed text-foreground-subtle">
             <ImageIcon className="mt-0.5 h-3.5 w-3.5 shrink-0" />
             <span>
               <span className="font-mono text-foreground-faint">
-                {width} × {height}
+                {frameWidth} × {layout.imageHeight}
               </span>{" "}
               · {t.note}
             </span>
