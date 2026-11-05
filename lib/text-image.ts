@@ -86,6 +86,27 @@ export function clampFont(value: number): number {
   return Math.min(MAX_FONT, Math.max(MIN_FONT, Math.round(value)));
 }
 
+/**
+ * Line height is a multiple of the type size, so the floor is 1: anything
+ * tighter and consecutive lines start to overlap.
+ */
+export const MIN_LINE_HEIGHT = 1;
+export const MAX_LINE_HEIGHT = 3;
+
+export function clampLineHeight(value: number): number {
+  if (!Number.isFinite(value)) return 1.5;
+  return Math.min(MAX_LINE_HEIGHT, Math.max(MIN_LINE_HEIGHT, Math.round(value * 100) / 100));
+}
+
+/** Padding in px; half the canvas width is already unusable, so 600 is plenty */
+export const MIN_PADDING = 0;
+export const MAX_PADDING = 600;
+
+export function clampPadding(value: number): number {
+  if (!Number.isFinite(value)) return 96;
+  return Math.min(MAX_PADDING, Math.max(MIN_PADDING, Math.round(value)));
+}
+
 export type ThemeId = "paper" | "ink" | "mono" | "dusk" | "forest";
 
 /** Only the colours matter to the painter, so a solid fill can stand in for a palette */

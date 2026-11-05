@@ -2,12 +2,18 @@ import { describe, expect, it } from "vitest";
 import { isCodedError } from "@/lib/errors";
 import {
   MAX_AUTO_HEIGHT,
+  MAX_LINE_HEIGHT,
+  MAX_PADDING,
   MIN_FIT_FONT,
   MAX_PAGES,
   MAX_FONT,
   MIN_FONT,
+  MIN_LINE_HEIGHT,
+  MIN_PADDING,
   autoHeightCap,
   clampFont,
+  clampLineHeight,
+  clampPadding,
   layoutPages,
   layoutSingle,
   normalizeHex,
@@ -351,5 +357,31 @@ describe("clampFont", () => {
     expect(clampFont(5000)).toBe(MAX_FONT);
     expect(clampFont(1)).toBe(MIN_FONT);
     expect(clampFont(Number.NaN)).toBe(32);
+  });
+});
+
+describe("clampLineHeight", () => {
+  it("keeps two decimals of a custom leading", () => {
+    expect(clampLineHeight(1.65)).toBe(1.65);
+    expect(clampLineHeight(1.234)).toBe(1.23);
+  });
+
+  it("stays between one and three times the type size", () => {
+    expect(clampLineHeight(0.4)).toBe(MIN_LINE_HEIGHT);
+    expect(clampLineHeight(9)).toBe(MAX_LINE_HEIGHT);
+    // An empty or unparsable field falls back to the standard leading
+    expect(clampLineHeight(Number.NaN)).toBe(1.5);
+  });
+});
+
+describe("clampPadding", () => {
+  it("rounds a custom margin to whole pixels", () => {
+    expect(clampPadding(132.6)).toBe(133);
+  });
+
+  it("stops at the edges a layout can still use", () => {
+    expect(clampPadding(1200)).toBe(MAX_PADDING);
+    expect(clampPadding(-20)).toBe(MIN_PADDING);
+    expect(clampPadding(Number.NaN)).toBe(96);
   });
 });

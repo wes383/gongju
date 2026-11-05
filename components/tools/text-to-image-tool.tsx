@@ -30,6 +30,8 @@ import {
   autoHeightCap,
   clampEdge,
   clampFont,
+  clampLineHeight,
+  clampPadding,
   layoutPages,
   layoutSingle,
   normalizeHex,
@@ -69,11 +71,15 @@ const COPY = {
     pageOf: (index: number, total: number) => `第 ${index} / ${total} 张`,
     customW: "宽",
     customH: "高",
+    custom: "自定义",
+    customLineHeight: "自定义行高",
+    customPadding: "自定义边距",
+    lineHeightUnit: "倍字号",
+    paddingUnit: "px",
     sample: "示例",
     clear: "清空",
     hint: "行首写 # 标题、## 小标题、> 引用、- 列表，其余按原文排版；切到纯文本则原样输出，标记不再生效。一张图只需设置宽度（200–4000），高度跟着内容走；分页模式选固定尺寸，含 A4。",
     note: "图片在本机用 Canvas 绘制，文字不会上传到任何服务器。内容超出一页时按同一版式自动分页，可以逐张下载，也可以打包成 zip 一次拿走。",
-    sizes: { custom: "自定义" },
     width: "宽度",
     lineHeights: { xTight: "很紧", tight: "紧凑", normal: "标准", loose: "宽松", xLoose: "很宽" },
     paddings: { xNarrow: "极窄", narrow: "窄", normal: "标准", wide: "宽", xWide: "很宽" },
@@ -117,11 +123,15 @@ const COPY = {
     pageOf: (index: number, total: number) => `${index} / ${total}`,
     customW: "Width",
     customH: "Height",
+    custom: "Custom",
+    customLineHeight: "Custom leading",
+    customPadding: "Custom margin",
+    lineHeightUnit: "× font size",
+    paddingUnit: "px",
     sample: "Sample",
     clear: "Clear",
     hint: "Start a line with # for a heading, ## for a subheading, > for a quote and - for a list; plain text keeps those markers literal. In one-image mode you only set the width (200–4000) and the height follows the content; paged mode uses a fixed size, A4 included.",
     note: "The image is drawn on a canvas on your device, so the text never reaches a server. Content that overflows is paged with the same layout: download pages one by one, or take them all as a zip.",
-    sizes: { custom: "Custom" },
     width: "Width",
     lineHeights: { xTight: "Tightest", tight: "Tight", normal: "Normal", loose: "Loose", xLoose: "Loosest" },
     paddings: { xNarrow: "Tiny", narrow: "Narrow", normal: "Normal", wide: "Wide", xWide: "Huge" },
@@ -149,6 +159,8 @@ type Align = "left" | "center" | "right";
 type VAlign = "top" | "center";
 type LineHeightId = "xTight" | "tight" | "normal" | "loose" | "xLoose";
 type PaddingId = "xNarrow" | "narrow" | "normal" | "wide" | "xWide";
+type LineHeightChoice = LineHeightId | "custom";
+type PaddingChoice = PaddingId | "custom";
 type Format = "png" | "jpeg";
 type BackgroundMode = "gradient" | "solid";
 
@@ -195,6 +207,10 @@ const PADDING_VALUES: Record<PaddingId, number> = {
   wide: 150,
   xWide: 210,
 };
+
+/** Chip order: the records above are lookups, this is the reading order */
+const LINE_HEIGHT_IDS: LineHeightId[] = ["xTight", "tight", "normal", "loose", "xLoose"];
+const PADDING_IDS: PaddingId[] = ["xNarrow", "narrow", "normal", "wide", "xWide"];
 
 const subscribeNoop = () => () => {};
 
@@ -331,11 +347,16 @@ function edgeText(value: string, fallback: number): string {
   return String(clampEdge(Number.parseInt(value, 10), fallback));
 }
 
-/** Size presets carry their pixel dimensions, so the chip has to wrap freely */
-function sizeChip(active: boolean): string {
+/** Preset rows (size, leading, margin) carry numbers, so the chip has to wrap freely */
+function chip(active: boolean): string {
   return active
     ? "rounded-full border border-accent bg-accent px-2.5 py-1 text-[11px] font-medium text-accent-fg transition-colors"
     : "rounded-full border border-border bg-surface px-2.5 py-1 text-[11px] font-medium text-foreground-muted transition-colors hover:bg-hover-bg hover:text-foreground";
+}
+
+/** Decimal fields accept a comma separator, since some keyboards only offer one */
+function decimal(value: string): number {
+  return Number.parseFloat(value.replace(",", "."));
 }
 
 function toBlob(canvas: HTMLCanvasElement, format: Format): Promise<Blob | null> {
@@ -368,8 +389,10 @@ export function TextToImageTool() {
   /** Size the auto-shrink settled on, kept after the field is rewritten to it */
   const [autoSize, setAutoSize] = React.useState<number | null>(null);
   const [fontFocused, setFontFocused] = React.useState(false);
-  const [lineHeightId, setLineHeightId] = React.useState<LineHeightId>("normal");
-  const [paddingId, setPaddingId] = React.useState<PaddingId>("normal");
+  const [lineHeightId, setLineHeightId] = React.useState<LineHeightChoice>("normal");
+  const [customLineHeight, setCustomLineHeight] = React.useState("1.5");
+  const [paddingId, setPaddingId] = React.useState<PaddingChoice>("normal");
+  const [customPadding, setCustomPadding] = React.useState("96");
   const [align, setAlign] = React.useState<Align>("left");
   const [valign, setValign] = React.useState<VAlign>("top");
   const [footer, setFooter] = React.useState("");
@@ -399,9 +422,11 @@ export function TextToImageTool() {
   }, []);
 
   const preset = SIZE_PRESETS.find((item) => item.id === sizeChoice);
-  const padding = PADDING_VALUES[paddingId];
+  const padding =
+    paddingId === "custom" ? clampPadding(Number.parseInt(customPadding, 10)) : PADDING_VALUES[paddingId];
   const baseSize = clampFont(Number.parseInt(fontInput, 10));
-  const lineHeight = LINE_HEIGHT_VALUES[lineHeightId];
+  const lineHeight =
+    lineHeightId === "custom" ? clampLineHeight(decimal(customLineHeight)) : LINE_HEIGHT_VALUES[lineHeightId];
 
   // One image means one width: the height is whatever the text needs
   const frameWidth = single
@@ -586,6 +611,17 @@ export function TextToImageTool() {
     if (normalized) setBgColor(normalized);
   };
 
+  /** Custom starts from the value on screen, so picking it does not jump the layout */
+  const pickLineHeight = (value: LineHeightChoice) => {
+    if (value === "custom") setCustomLineHeight(String(lineHeight));
+    setLineHeightId(value);
+  };
+
+  const pickPadding = (value: PaddingChoice) => {
+    if (value === "custom") setCustomPadding(String(padding));
+    setPaddingId(value);
+  };
+
   /** Editing the copy retires the last shrink notice: it described other text */
   const updateText = (value: string) => {
     setAutoSize(null);
@@ -738,7 +774,7 @@ export function TextToImageTool() {
                     type="button"
                     aria-pressed={sizeChoice === item.id}
                     onClick={() => setSizeChoice(item.id)}
-                    className={sizeChip(sizeChoice === item.id)}
+                    className={chip(sizeChoice === item.id)}
                   >
                     {item.label[locale]}
                   </button>
@@ -747,9 +783,9 @@ export function TextToImageTool() {
                   type="button"
                   aria-pressed={sizeChoice === "custom"}
                   onClick={() => setSizeChoice("custom")}
-                  className={sizeChip(sizeChoice === "custom")}
+                  className={chip(sizeChoice === "custom")}
                 >
-                  {t.sizes.custom}
+                  {t.custom}
                 </button>
               </div>
 
@@ -827,35 +863,86 @@ export function TextToImageTool() {
             </label>
           </div>
 
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-            <OptionField label={t.lineHeight}>
-              <Segmented
-                ariaLabel={t.lineHeight}
-                value={lineHeightId}
-                onChange={setLineHeightId}
-                options={[
-                  { value: "xTight" as LineHeightId, label: t.lineHeights.xTight },
-                  { value: "tight" as LineHeightId, label: t.lineHeights.tight },
-                  { value: "normal" as LineHeightId, label: t.lineHeights.normal },
-                  { value: "loose" as LineHeightId, label: t.lineHeights.loose },
-                  { value: "xLoose" as LineHeightId, label: t.lineHeights.xLoose },
-                ]}
-              />
-            </OptionField>
-            <OptionField label={t.padding}>
-              <Segmented
-                ariaLabel={t.padding}
-                value={paddingId}
-                onChange={setPaddingId}
-                options={[
-                  { value: "xNarrow" as PaddingId, label: t.paddings.xNarrow },
-                  { value: "narrow" as PaddingId, label: t.paddings.narrow },
-                  { value: "normal" as PaddingId, label: t.paddings.normal },
-                  { value: "wide" as PaddingId, label: t.paddings.wide },
-                  { value: "xWide" as PaddingId, label: t.paddings.xWide },
-                ]}
-              />
-            </OptionField>
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-1.5">
+              <span className="text-[11px] text-foreground-muted">{t.lineHeight}</span>
+              <div className="flex flex-wrap gap-1.5">
+                {LINE_HEIGHT_IDS.map((id) => (
+                  <button
+                    key={id}
+                    type="button"
+                    aria-pressed={lineHeightId === id}
+                    onClick={() => setLineHeightId(id)}
+                    className={chip(lineHeightId === id)}
+                  >
+                    {t.lineHeights[id]}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  aria-pressed={lineHeightId === "custom"}
+                  onClick={() => pickLineHeight("custom")}
+                  className={chip(lineHeightId === "custom")}
+                >
+                  {t.custom}
+                </button>
+              </div>
+              {lineHeightId === "custom" && (
+                <div className="flex items-center gap-1.5 pt-1">
+                  <Input
+                    value={customLineHeight}
+                    onChange={(event) => setCustomLineHeight(event.target.value)}
+                    onBlur={() => setCustomLineHeight(String(clampLineHeight(decimal(customLineHeight))))}
+                    inputMode="decimal"
+                    size="xs"
+                    placeholder="1.5"
+                    aria-label={t.customLineHeight}
+                    className="w-20 font-mono"
+                  />
+                  <span className="text-[11px] text-foreground-subtle">{t.lineHeightUnit}</span>
+                </div>
+              )}
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <span className="text-[11px] text-foreground-muted">{t.padding}</span>
+              <div className="flex flex-wrap gap-1.5">
+                {PADDING_IDS.map((id) => (
+                  <button
+                    key={id}
+                    type="button"
+                    aria-pressed={paddingId === id}
+                    onClick={() => setPaddingId(id)}
+                    className={chip(paddingId === id)}
+                  >
+                    {t.paddings[id]}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  aria-pressed={paddingId === "custom"}
+                  onClick={() => pickPadding("custom")}
+                  className={chip(paddingId === "custom")}
+                >
+                  {t.custom}
+                </button>
+              </div>
+              {paddingId === "custom" && (
+                <div className="flex items-center gap-1.5 pt-1">
+                  <Input
+                    value={customPadding}
+                    onChange={(event) => setCustomPadding(event.target.value)}
+                    onBlur={() => setCustomPadding(String(clampPadding(Number.parseInt(customPadding, 10))))}
+                    inputMode="numeric"
+                    size="xs"
+                    placeholder="96"
+                    aria-label={t.customPadding}
+                    className="w-20 font-mono"
+                  />
+                  <span className="text-[11px] text-foreground-subtle">{t.paddingUnit}</span>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="flex items-center gap-1">
