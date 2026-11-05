@@ -245,6 +245,15 @@ interface DrawOptions {
   pageCount: number;
 }
 
+/**
+ * Distance from the baseline to the top of the em square — where a "top"
+ * baseline would have put the glyphs. The em metrics are newer than the rest
+ * of TextMetrics, so the font bounding box stands in where they are missing.
+ */
+function emAscent(metrics: TextMetrics & { emHeightAscent?: number }, size: number): number {
+  return metrics.emHeightAscent || metrics.fontBoundingBoxAscent || size * 0.8;
+}
+
 function drawPage(canvas: HTMLCanvasElement, page: PlacedLine[], options: DrawOptions) {
   const ctx = canvas.getContext("2d");
   if (!ctx) return;
@@ -282,7 +291,7 @@ function drawPage(canvas: HTMLCanvasElement, page: PlacedLine[], options: DrawOp
       ? Math.round((contentHeight - used) / 2)
       : 0;
 
-  ctx.textBaseline = "top";
+  ctx.textBaseline = "alphabetic";
 
   for (const line of page) {
     ctx.font = line.font;
@@ -296,17 +305,23 @@ function drawPage(canvas: HTMLCanvasElement, page: PlacedLine[], options: DrawOp
       align === "center" ? left + (room - lineWidth) / 2 : align === "right" ? left + room - lineWidth : left;
     const top = padding + offset + line.top;
 
+    /*
+     * Both the glyphs and the quote rule hang off one explicit baseline. The
+     * canvas "top" baseline is not something the metrics can vouch for — for
+     * CJK faces it sits a fraction of an em away from the ascent reported by
+     * measureText — and guessing it is what left the bar below its own text.
+     */
+    const ascent = emAscent(metrics, line.size);
+    const baseline = top + ascent;
+
     if (line.rule) {
       /*
-       * The bar has to line up with the ink, not the em square: with the box
-       * top as reference a quote looks like it starts above its own text. The
-       * first and last line take the glyph bounds, the rest fill their box so
-       * a wrapped quote stays one continuous bar.
+       * The bar follows the ink, not the em square: the first and last line
+       * take the glyph bounds so the bar reads as tall as the text, the lines
+       * in between fill their box so a wrapped quote stays one continuous bar.
        */
-      const ascent = metrics.fontBoundingBoxAscent || line.size * 0.8;
       const inkAscent = metrics.actualBoundingBoxAscent || line.size * 0.72;
       const inkDescent = metrics.actualBoundingBoxDescent || line.size * 0.18;
-      const baseline = top + ascent;
       const barTop = line.ruleFromText ? baseline - inkAscent : top;
       const barBottom = line.ruleToText ? baseline + inkDescent : top + line.lineHeight;
 
@@ -322,8 +337,11 @@ function drawPage(canvas: HTMLCanvasElement, page: PlacedLine[], options: DrawOp
       ctx.restore();
     }
 
-    ctx.fillText(line.text, x, top);
+    ctx.fillText(line.text, x, baseline);
   }
+
+  // The footer keeps the box-relative "top" baseline it was measured against
+  ctx.textBaseline = "top";
 
   const footer = options.footer.trim();
   const showCounter = options.pageCount > 1;
