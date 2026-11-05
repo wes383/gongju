@@ -278,6 +278,27 @@ function tokenize(text: string): string[] {
 export type Measure = (text: string, font: string) => number;
 
 /**
+ * Cut a token that is wider than a whole line into character-level chunks.
+ * Used for URLs and hashes, which have no space to break at.
+ */
+function breakToken(token: string, maxWidth: number, measure: (value: string) => number): string[] {
+  const chunks: string[] = [];
+  let chunk = "";
+
+  for (const char of Array.from(token)) {
+    if (chunk === "" || measure(chunk + char) <= maxWidth) {
+      chunk += char;
+      continue;
+    }
+    chunks.push(chunk);
+    chunk = char;
+  }
+
+  if (chunk) chunks.push(chunk);
+  return chunks;
+}
+
+/**
  * Greedy line breaking over tokens, with the two CJK line-break rules that
  * matter most: closing punctuation never starts a line and opening brackets
  * never end one. A token wider than the line on its own is split by character
@@ -290,6 +311,21 @@ export function wrapText(text: string, maxWidth: number, measure: (value: string
   const lines: string[] = [];
   let line = "";
 
+  /**
+   * Put a token on a fresh line, cutting it up if it is too wide for one.
+   * Every chunk but the last is closed immediately; the last stays open so the
+   * next token can still share the line.
+   */
+  const startLine = (token: string) => {
+    if (measure(token) <= maxWidth) {
+      line = token;
+      return;
+    }
+    const chunks = breakToken(token, maxWidth, measure);
+    lines.push(...chunks.slice(0, -1));
+    line = chunks[chunks.length - 1] ?? "";
+  };
+
   for (const token of tokens) {
     const candidate = line + token;
     if (measure(candidate) <= maxWidth) {
@@ -297,18 +333,9 @@ export function wrapText(text: string, maxWidth: number, measure: (value: string
       continue;
     }
 
-    // A lone token that cannot fit is broken by character
+    // Nothing on this line yet, so the token itself has to be cut
     if (line.trim() === "") {
-      let chunk = "";
-      for (const char of Array.from(token)) {
-        if (chunk && measure(chunk + char) > maxWidth) {
-          lines.push(chunk);
-          chunk = char;
-        } else {
-          chunk += char;
-        }
-      }
-      line = chunk;
+      startLine(token);
       continue;
     }
 
@@ -327,7 +354,9 @@ export function wrapText(text: string, maxWidth: number, measure: (value: string
     }
 
     if (head.trim()) lines.push(head.trimEnd());
-    line = rest.trimStart();
+    // A token moved to its own line may still be wider than that line — a URL
+    // after a sentence used to be pushed out whole and overflow the canvas
+    startLine(rest.trimStart());
   }
 
   if (line.trim()) lines.push(line.trimEnd());

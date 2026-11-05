@@ -92,6 +92,27 @@ describe("wrapText", () => {
     expect(lines.join("")).toBe("https://example.com/abcdef");
   });
 
+  it("splits an over-long URL that follows ordinary text", () => {
+    // The URL is not the first token, so it lands on a line of its own and
+    // used to be pushed out whole — the case that overflowed the canvas
+    const url = "https://crd.ndl.go.jp/reference/entry/index.php?id=1000300187&page=ref_view";
+    const lines = wrapText(`参考：${url}`, 200, narrow);
+
+    expect(lines.every((line) => narrow(line) <= 200)).toBe(true);
+    expect(lines.join("")).toBe(`参考：${url}`);
+    expect(lines[0]).toBe("参考：");
+  });
+
+  it("splits an over-long token that follows a full line", () => {
+    const token = "0123456789abcdefghijklmnopqrstuvwxyz";
+    const lines = wrapText(`hello world ${token}`, 60, narrow);
+
+    expect(lines.every((line) => narrow(line) <= 60)).toBe(true);
+    expect(lines[0]).toBe("hello");
+    // The word that was pushed off, then every slice of the long token
+    expect(lines.slice(1).join("")).toBe(`world${token}`);
+  });
+
   it("returns no lines for empty input", () => {
     expect(wrapText("   ", 100, narrow)).toEqual([]);
   });
@@ -172,6 +193,29 @@ describe("textTheme", () => {
   it("falls back to the first palette for an unknown id", () => {
     expect(textTheme("paper").id).toBe("paper");
     expect(textTheme("nope" as "paper").id).toBe("paper");
+  });
+});
+
+describe("reference lists", () => {
+  /** The report that started this: three numbered entries, each ending in a long URL */
+  const SOURCE = [
+    "1. Kitakyushu City Library, reference record on the 1952 Japanese release of Gone with the Wind, NDL Collaborative Reference Database. https://crd.ndl.go.jp/reference/entry/index.php?id=1000300187&page=ref_view",
+    "2. Shueisha Online, interview with Natsuko Toda on Gone with the Wind, 10 Sep 2022. https://shueisha.online/articles/-/51060",
+    "3. Michael Schaller, UA Prof. Michael Schaller: Gone with the Wind viewed in 1939 Brooklyn, Berlin & Tokyo, Arizona Daily Star, 2019. https://tucson.com/opinion/local/ua-prof-michael-schaller-gone-with-the-wind-viewed-in-1939-brooklyn-berlin-tokyo/article_f6dd3a0d-8bc6-54c7-bbe6-3fd53014e4aa.html",
+  ].join("\n");
+
+  it("wraps every line inside the content width", () => {
+    const options: LayoutOptions = { ...OPTIONS, size: 32, width: 888, height: 20000 };
+    const result = layoutSingle(parseBlocks(SOURCE, "plain"), options, measure, 20000);
+
+    expect(result.lines.length).toBeGreaterThan(3);
+    for (const line of result.lines) {
+      expect(narrow(line.text)).toBeLessThanOrEqual(options.width - line.indent);
+    }
+    // The URLs survive the split intact
+    const joined = result.lines.map((line) => line.text).join("");
+    expect(joined).toContain("page=ref_view");
+    expect(joined).toContain("article_f6dd3a0d-8bc6-54c7-bbe6-3fd53014e4aa.html");
   });
 });
 
