@@ -167,6 +167,9 @@ const SOLID_SWATCHES = [
   "#7f1d1d",
 ];
 
+/** Plain white: the least opinionated background to start from */
+const DEFAULT_SOLID = "#ffffff";
+
 interface LayoutResult {
   pages: PlacedLine[][];
   failure: unknown;
@@ -358,8 +361,8 @@ export function TextToImageTool() {
   const [customHeight, setCustomHeight] = React.useState("1920");
   const [themeId, setThemeId] = React.useState<ThemeId>("paper");
   const [bgMode, setBgMode] = React.useState<BackgroundMode>("gradient");
-  const [bgColor, setBgColor] = React.useState(SOLID_SWATCHES[6]);
-  const [bgHex, setBgHex] = React.useState(SOLID_SWATCHES[6]);
+  const [bgColor, setBgColor] = React.useState(DEFAULT_SOLID);
+  const [bgHex, setBgHex] = React.useState(DEFAULT_SOLID);
   const [parseMode, setParseMode] = React.useState<ParseMode>("smart");
   const [fontInput, setFontInput] = React.useState("44");
   /** Size the auto-shrink settled on, kept after the field is rewritten to it */
