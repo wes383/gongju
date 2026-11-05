@@ -1,0 +1,169 @@
+import { describe, expect, it } from "vitest";
+import { isCodedError } from "@/lib/errors";
+import {
+  MAX_PAGES,
+  layoutPages,
+  parseBlocks,
+  styleFor,
+  textTheme,
+  usedHeight,
+  wrapText,
+  type LayoutOptions,
+  type Measure,
+} from "../text-image";
+
+/* Every character is 10px wide, which keeps the expected line breaks readable */
+const measure: Measure = (text) => text.length * 10;
+const narrow = (text: string) => text.length * 10;
+
+const OPTIONS: LayoutOptions = {
+  size: 20,
+  lineHeight: 1.5,
+  width: 1000,
+  height: 100,
+  fontFamily: "sans-serif",
+};
+
+describe("parseBlocks", () => {
+  it("reads the line-leading markers and nothing else", () => {
+    const blocks = parseBlocks("# 标题\n## 小标题\n> 引用\n- 条目\n普通正文\n**加粗**");
+
+    expect(blocks.map((block) => block.kind)).toEqual([
+      "h1",
+      "h2",
+      "quote",
+      "bullet",
+      "body",
+      "body",
+    ]);
+    expect(blocks[0].text).toBe("标题");
+    expect(blocks[3].text).toBe("• 条目");
+    // Inline Markdown stays literal instead of losing characters
+    expect(blocks[5].text).toBe("**加粗**");
+  });
+
+  it("treats any heading deeper than two levels as a subheading", () => {
+    expect(parseBlocks("#### 四级")[0]).toMatchObject({ kind: "h2", text: "四级" });
+  });
+
+  it("collapses runs of blank lines and drops them at the end", () => {
+    const blocks = parseBlocks("a\n\n\n\nb\n\n\n");
+    expect(blocks.map((block) => block.kind)).toEqual(["body", "space", "body"]);
+  });
+
+  it("returns nothing for whitespace-only input", () => {
+    expect(parseBlocks("   \n\n  ")).toEqual([]);
+  });
+});
+
+describe("wrapText", () => {
+  it("breaks between CJK characters", () => {
+    expect(wrapText("中文测试一下", 30, narrow)).toEqual(["中文测", "试一下"]);
+  });
+
+  it("never starts a line with closing punctuation", () => {
+    const lines = wrapText("你好世界。再见", 20, narrow);
+    expect(lines[0]).toBe("你好");
+    // The full stop would have started line two, so it stays on line one
+    expect(lines[1].startsWith("。")).toBe(false);
+    expect(lines.join("")).toBe("你好世界。再见");
+  });
+
+  it("never ends a line with an opening bracket", () => {
+    const lines = wrapText("说明（后续内容", 20, narrow);
+    expect(lines[0].endsWith("（")).toBe(false);
+    expect(lines.join("")).toBe("说明（后续内容");
+  });
+
+  it("keeps Latin words whole while they fit", () => {
+    expect(wrapText("hello world again", 60, narrow)).toEqual(["hello", "world", "again"]);
+  });
+
+  it("splits a word wider than the line instead of overflowing", () => {
+    const lines = wrapText("https://example.com/abcdef", 40, narrow);
+    expect(lines.every((line) => narrow(line) <= 40)).toBe(true);
+    expect(lines.join("")).toBe("https://example.com/abcdef");
+  });
+
+  it("returns no lines for empty input", () => {
+    expect(wrapText("   ", 100, narrow)).toEqual([]);
+  });
+});
+
+describe("styleFor", () => {
+  it("scales headings off the body size", () => {
+    const h1 = styleFor("h1", OPTIONS);
+    expect(h1.size).toBe(34);
+    expect(h1.lineHeight).toBe(41);
+    expect(h1.keepWithNext).toBe(33);
+    expect(styleFor("body", OPTIONS)).toMatchObject({ size: 20, lineHeight: 30, spaceAfter: 10 });
+  });
+
+  it("reserves an indent for quotes so the rule has room", () => {
+    expect(styleFor("quote", OPTIONS).indent).toBeGreaterThan(0);
+    expect(styleFor("space", OPTIONS).lineHeight).toBe(12);
+  });
+});
+
+describe("layoutPages", () => {
+  it("pages a flow that runs past the bottom", () => {
+    const pages = layoutPages(parseBlocks("# 标题\n正文一\n正文二"), OPTIONS, measure);
+
+    expect(pages).toHaveLength(2);
+    expect(pages[0].map((line) => line.kind)).toEqual(["h1", "body"]);
+    expect(pages[0][0].top).toBe(0);
+    expect(pages[0][1].top).toBe(47);
+    expect(pages[1][0]).toMatchObject({ text: "正文二", top: 0 });
+  });
+
+  it("pushes a heading to the next page rather than leaving it at the foot", () => {
+    const pages = layoutPages(parseBlocks("正文一\n# 标题\n正文二"), OPTIONS, measure);
+
+    expect(pages).toHaveLength(2);
+    expect(pages[0].map((line) => line.kind)).toEqual(["body"]);
+    expect(pages[1][0].kind).toBe("h1");
+  });
+
+  it("keeps every page inside the content height", () => {
+    const source = Array.from({ length: 12 }, (_, index) => `第 ${index} 段`).join("\n");
+    const pages = layoutPages(parseBlocks(source), OPTIONS, measure);
+
+    expect(pages.length).toBeGreaterThan(1);
+    pages.forEach((page) => expect(usedHeight(page)).toBeLessThanOrEqual(OPTIONS.height));
+    expect(pages.flat()).toHaveLength(12);
+  });
+
+  it("adds a gap for a blank line but not at the top of a page", () => {
+    const pages = layoutPages(parseBlocks("a\n\nb"), OPTIONS, measure);
+    // Paragraph spacing, then the blank line's own gap on top of it
+    expect(pages[0][1].top).toBe(pages[0][0].top + 30 + 10 + 12);
+  });
+
+  it("marks quote lines for the rule and indents them", () => {
+    const pages = layoutPages(parseBlocks("> 一句引用"), OPTIONS, measure);
+    expect(pages[0][0]).toMatchObject({ kind: "quote", rule: true, indent: 17, top: 0 });
+  });
+
+  it("returns one empty page for empty input", () => {
+    const pages = layoutPages([], OPTIONS, measure);
+    expect(pages).toEqual([[]]);
+  });
+
+  it("refuses a document that would need an endless number of pages", () => {
+    const source = Array.from({ length: MAX_PAGES * 4 }, (_, index) => `行 ${index}`).join("\n");
+    try {
+      layoutPages(parseBlocks(source), OPTIONS, measure);
+      throw new Error("expected a coded error");
+    } catch (error) {
+      expect(isCodedError(error)).toBe(true);
+      if (isCodedError(error)) expect(error.code).toBe("textimg.long");
+    }
+  });
+});
+
+describe("textTheme", () => {
+  it("falls back to the first palette for an unknown id", () => {
+    expect(textTheme("paper").id).toBe("paper");
+    expect(textTheme("nope" as "paper").id).toBe("paper");
+  });
+});
