@@ -430,7 +430,7 @@ export function TextToImageTool() {
         return {
           pages: [result.lines],
           failure: null,
-          imageHeight: Math.max(padding * 2 + result.height, padding * 2 + baseSize),
+          imageHeight: Math.max(padding * 2 + result.height, padding * 2 + result.size),
           usedSize: result.size,
           shrunk: result.shrunk,
         };
@@ -467,6 +467,33 @@ export function TextToImageTool() {
     ? canvasFontFamily(document.body, "--font-inter")
     : "system-ui, sans-serif";
 
+  /**
+   * Sizes the user typed in the field, kept so a shrink they caused does not
+   * immediately overwrite their number. Anything else that triggers a shrink —
+   * pasting text, narrowing the frame, changing the margins — writes the size
+   * that was actually used back into the field, so it never claims a size the
+   * image is not drawn at.
+   */
+  const typedFontRef = React.useRef<string | null>(null);
+
+  React.useEffect(() => {
+    if (!layout.shrunk) {
+      // A size that fitted is spent; the next shrink is not the user's doing
+      typedFontRef.current = null;
+      return;
+    }
+    if (typedFontRef.current !== null) {
+      typedFontRef.current = null;
+      return;
+    }
+    const next = String(layout.usedSize);
+    if (next === fontInput) return;
+    // Deferred by a tick: writing state straight from an effect re-renders in a
+    // loop the lint rule quite rightly refuses
+    const id = setTimeout(() => setFontInput(next), 0);
+    return () => clearTimeout(id);
+  }, [layout.shrunk, layout.usedSize, fontInput]);
+
   React.useEffect(() => {
     const canvas = previewRef.current;
     if (!canvas) return;
@@ -479,13 +506,15 @@ export function TextToImageTool() {
       valign,
       footer,
       family,
-      baseSize,
+      // The footer scales off the body size, so it follows any auto-shrink
+      baseSize: layout.usedSize,
       pageIndex: activePage,
       pageCount,
     });
   }, [
     layout.pages,
     layout.imageHeight,
+    layout.usedSize,
     activePage,
     pageCount,
     frameWidth,
@@ -495,7 +524,6 @@ export function TextToImageTool() {
     valign,
     footer,
     family,
-    baseSize,
   ]);
 
   const filename = (index: number) =>
@@ -523,7 +551,7 @@ export function TextToImageTool() {
         valign,
         footer,
         family,
-        baseSize,
+        baseSize: layout.usedSize,
         pageIndex: index,
         pageCount,
       });
@@ -739,7 +767,12 @@ export function TextToImageTool() {
               <span className="text-[11px] text-foreground-muted">{t.fontSize}</span>
               <Input
                 value={fontInput}
-                onChange={(event) => setFontInput(event.target.value)}
+                onChange={(event) => {
+                  // Remember that this number came from the user, so the shrink
+                  // it triggers does not bounce the field back at them
+                  typedFontRef.current = event.target.value;
+                  setFontInput(event.target.value);
+                }}
                 inputMode="numeric"
                 size="xs"
                 aria-label={t.fontSize}
