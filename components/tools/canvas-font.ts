@@ -2,10 +2,14 @@
  * Canvas text has no idea about the page's CSS font stack: `ctx.font` only
  * accepts a family list, so the next/font names have to be read off the
  * document. Both canvas tools share this to keep their output on-brand.
+ *
+ * The latin face is a parameter because the two tools want different ones: the
+ * OG card uses the display face, while text-to-image sets body copy in Inter and
+ * lets CJK fall through to Noto Sans SC.
  */
-export function canvasFontFamily(element: HTMLElement): string {
+export function canvasFontFamily(element: HTMLElement, latinVar = "--font-plus-jakarta-sans"): string {
   const style = getComputedStyle(element);
-  const display = style.getPropertyValue("--font-plus-jakarta-sans").trim();
+  const latin = style.getPropertyValue(latinVar).trim();
   const cjk = style.getPropertyValue("--font-noto-sans-sc").trim();
-  return [display, cjk, "system-ui", "sans-serif"].filter(Boolean).join(", ");
+  return [latin, cjk, "system-ui", "sans-serif"].filter(Boolean).join(", ");
 }

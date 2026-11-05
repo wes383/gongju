@@ -864,8 +864,8 @@ const imageTools: ToolMeta[] = [
     slug: "text-to-image",
     name: { zh: "文字转图片", en: "Text to Image" },
     description: {
-      zh: "把一段文字排成图片，尺寸、配色、字号与边距都可调，超长自动分页并导出 PNG / JPEG",
-      en: "Lay text out as an image with your own size, palette, type scale and margins, auto-paged and exported as PNG or JPEG",
+      zh: "把一段文字排成图片，尺寸、配色、字号与边距都可调，支持纯色背景，长文自动压成一整张并导出 PNG / JPEG",
+      en: "Lay text out as an image with your own size, palette, type scale and margins, solid backgrounds included, exported as PNG or JPEG",
     },
     keywords: ["文字转图片", "长图", "文字卡片", "语录", "朋友圈", "text to image", "quote card", "poster"],
     icon: Type,
