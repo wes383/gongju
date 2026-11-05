@@ -171,6 +171,17 @@ describe("wrapText", () => {
     expect(lines.slice(1).join("")).toBe(`world${token}`);
   });
 
+  it("splits a URL that follows a closing bracket", () => {
+    // The bracket may hang past the edge, but the URL behind it must not come
+    // along whole — that pushed the line out of the canvas
+    const source = "这是一个 [Markdown 官方指南](https://www.markdownguide.org/) 链接。";
+    const lines = wrapText(source, 240, narrow);
+
+    expect(lines[0]).toBe("这是一个 [Markdown 官方指南]");
+    expect(lines.every((line) => narrow(line) <= 240)).toBe(true);
+    expect(lines.join("")).toContain("https://www.markdownguide.org/");
+  });
+
   it("returns no lines for empty input", () => {
     expect(wrapText("   ", 100, narrow)).toEqual([]);
   });
@@ -192,6 +203,15 @@ describe("wrapRuns", () => {
     const lines = wrapRuns(parseInline("`https://example.com/abcdef`"), 40, font, narrow);
     expect(lines.every((line) => narrow(line.map((run) => run.text).join("")) <= 40)).toBe(true);
     expect(lines.flat().every((run) => run.code)).toBe(true);
+  });
+
+  it("splits a URL that follows a closing bracket", () => {
+    const source = "这是一个 [Markdown 官方指南](https://www.markdownguide.org/) 链接。";
+    const lines = wrapRuns(parseInline(source), 240, font, narrow);
+    const text = lines.map((line) => line.map((run) => run.text).join(""));
+
+    expect(text[0]).toBe("这是一个 [Markdown 官方指南]");
+    expect(text.every((line) => narrow(line) <= 240)).toBe(true);
   });
 
   it("returns nothing for empty text or no room", () => {

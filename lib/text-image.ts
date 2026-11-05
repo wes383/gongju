@@ -431,9 +431,23 @@ export function wrapText(text: string, maxWidth: number, measure: (value: string
       continue;
     }
 
-    // Closing punctuation stays with the line it closes, even if it overflows
+    /*
+     * Closing punctuation stays with the line it closes and may hang past the
+     * edge — but only the punctuation itself. Carrying the whole token was
+     * fine while tokens were single characters, and overflowed the canvas as
+     * soon as one started with a bracket: `](https://very/long/url)`.
+     */
     if (NO_LINE_START.includes(Array.from(token)[0])) {
-      line = candidate;
+      const chars = Array.from(token);
+      let cut = 0;
+      while (cut < chars.length && NO_LINE_START.includes(chars[cut])) cut += 1;
+
+      line += chars.slice(0, cut).join("");
+      const rest = chars.slice(cut).join("").trimStart();
+      if (!rest) continue;
+
+      lines.push(line.trimEnd());
+      startLine(rest);
       continue;
     }
 
@@ -547,9 +561,22 @@ export function wrapRuns(
       continue;
     }
 
-    // Closing punctuation stays with the line it closes, even if it overflows
+    /*
+     * Closing punctuation stays with the line it closes and may hang past the
+     * edge, but the rest of the token still has to fit: a bracket in front of
+     * a long URL used to drag the whole URL out of the canvas.
+     */
     if (NO_LINE_START.includes(Array.from(token.text)[0])) {
-      line.push(token);
+      const chars = Array.from(token.text);
+      let cut = 0;
+      while (cut < chars.length && NO_LINE_START.includes(chars[cut])) cut += 1;
+
+      line.push({ text: chars.slice(0, cut).join(""), style: token.style });
+      const rest = chars.slice(cut).join("").trimStart();
+      if (!rest) continue;
+
+      flush();
+      startLine({ text: rest, style: token.style });
       continue;
     }
 
