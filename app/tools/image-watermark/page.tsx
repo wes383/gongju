@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Noto_Serif_SC, Playfair_Display } from "next/font/google";
+import { EB_Garamond, Noto_Serif_SC } from "next/font/google";
 import { JsonLd } from "@/components/site/json-ld";
 import { ToolFrame } from "@/components/tools/tool-frame";
 import { ImageWatermarkTool } from "@/components/tools/image-watermark-tool";
@@ -9,9 +9,9 @@ import { getTool } from "@/lib/tools";
 
 // Only the watermark tool draws with these, so they are loaded with this route
 // instead of the root layout. Latin first, CJK glyphs as the fallback.
-const playfair = Playfair_Display({
+const ebGaramond = EB_Garamond({
   subsets: ["latin"],
-  variable: "--font-playfair",
+  variable: "--font-eb-garamond",
   display: "swap",
 });
 
@@ -30,7 +30,7 @@ export const metadata: Metadata = toolMetadata(meta);
 
 export default function Page() {
   return (
-    <div className={`${playfair.variable} ${notoSerifSC.variable}`}>
+    <div className={`${ebGaramond.variable} ${notoSerifSC.variable}`}>
       <ToolFrame slug="image-watermark">
         <JsonLd data={toolJsonLd(meta)} />
         <ImageWatermarkTool />

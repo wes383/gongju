@@ -62,7 +62,6 @@ const COPY = {
     fontSize: "字号",
     font: "字体",
     fonts: { sans: "无衬线", serif: "衬线" },
-    fontNote: "衬线用 Playfair + Noto Serif SC，首次切换要下载中文字形，加载完会自动重排；行内代码始终等宽。",
     lineHeight: "行高",
     padding: "边距",
     align: "对齐",
@@ -117,7 +116,6 @@ const COPY = {
     fontSize: "Font size",
     font: "Typeface",
     fonts: { sans: "Sans", serif: "Serif" },
-    fontNote: "Serif is Playfair with Noto Serif SC; the CJK glyphs download on first use and the layout settles once they land. Inline code stays monospaced.",
     lineHeight: "Leading",
     padding: "Margin",
     align: "Align",
@@ -1031,7 +1029,6 @@ export function TextToImageTool() {
                 { value: "serif" as FontId, label: t.fonts.serif },
               ]}
             />
-            <p className="text-[11px] leading-relaxed text-foreground-subtle">{t.fontNote}</p>
           </div>
 
           <div className="flex flex-col gap-3">

@@ -18,12 +18,12 @@ export function canvasFontFamily(
 }
 
 /**
- * The serif pair the watermark tool already draws with: Playfair for Latin,
+ * The serif pair the watermark tool already draws with: EB Garamond for Latin,
  * Noto Serif SC for CJK. Same variables, so both tools stay in one type system.
  */
 export function canvasSerifFamily(element: HTMLElement): string {
   const style = getComputedStyle(element);
-  const latin = style.getPropertyValue("--font-playfair").trim();
+  const latin = style.getPropertyValue("--font-eb-garamond").trim();
   const cjk = style.getPropertyValue("--font-noto-serif-sc").trim();
   const stack = [latin, cjk].filter(Boolean).join(", ");
   const fallback = '"Songti SC", SimSun, "Noto Serif SC", serif';

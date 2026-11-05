@@ -30,7 +30,7 @@ export type FontKey = "sans" | "serif";
 
 /**
  * Fonts come from the site's own webfonts, loaded only for this route.
- * Latin face first, CJK face second: Inter / Playfair have no CJK glyphs, so the
+ * Latin face first, CJK face second: Inter / EB Garamond have no CJK glyphs, so the
  * browser falls through to Noto Sans SC / Noto Serif SC for those glyphs.
  */
 const FONTS: Record<
@@ -45,7 +45,7 @@ const FONTS: Record<
     weight: 500,
   },
   serif: {
-    latinVar: "--font-playfair",
+    latinVar: "--font-eb-garamond",
     cjkVar: "--font-noto-serif-sc",
     fallback: '"Songti SC", SimSun, "Noto Serif SC", serif',
     weight: 400,
