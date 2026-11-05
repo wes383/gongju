@@ -64,17 +64,18 @@ const COPY = {
     customH: "高",
     sample: "示例",
     clear: "清空",
-    hint: "行首写 # 标题、## 小标题、> 引用、- 列表，其余按原文排版；切到纯文本则原样输出，这些标记不再生效。一张图模式下高度跟着内容增长，预设尺寸只作为最小高度。",
+    hint: "行首写 # 标题、## 小标题、> 引用、- 列表，其余按原文排版；切到纯文本则原样输出，标记不再生效。一张图只需设置宽度（200–4000），高度跟着内容走；分页模式选固定尺寸，含 A4。",
     note: "图片在本机用 Canvas 绘制，文字不会上传到任何服务器。内容超出一页时按同一版式自动分页，可以逐张下载，也可以打包成 zip 一次拿走。",
-    sizes: { story: "竖版", square: "方形", card: "横版", a4: "A4", custom: "自定义" },
-    lineHeights: { tight: "紧凑", normal: "正常", loose: "宽松" },
-    paddings: { narrow: "窄", normal: "标准", wide: "宽" },
+    sizes: { custom: "自定义" },
+    width: "宽度",
+    lineHeights: { xTight: "很紧", tight: "紧凑", normal: "标准", loose: "宽松", xLoose: "很宽" },
+    paddings: { xNarrow: "极窄", narrow: "窄", normal: "标准", wide: "宽", xWide: "很宽" },
     aligns: { left: "左", center: "中", right: "右" },
     valigns: { top: "顶部", center: "居中" },
     formats: { png: "PNG", jpeg: "JPEG" },
     modes: { single: "一张图", pages: "分页" },
     backgrounds: { gradient: "渐变", solid: "纯色" },
-    parses: { smart: "智能", plain: "纯文本" },
+    parses: { smart: "Markdown", plain: "纯文本" },
     shrinkNote: (size: number) => `内容较长，字号已自动缩到 ${size}px，所有文字仍在这一张图里`,
     sampleText: `# 每天十分钟
 
@@ -111,17 +112,18 @@ const COPY = {
     customH: "Height",
     sample: "Sample",
     clear: "Clear",
-    hint: "Start a line with # for a heading, ## for a subheading, > for a quote and - for a list; switch to plain text to keep those markers literal. In one-image mode the height grows with the content, so the preset size is only a minimum.",
+    hint: "Start a line with # for a heading, ## for a subheading, > for a quote and - for a list; plain text keeps those markers literal. In one-image mode you only set the width (200–4000) and the height follows the content; paged mode uses a fixed size, A4 included.",
     note: "The image is drawn on a canvas on your device, so the text never reaches a server. Content that overflows is paged with the same layout: download pages one by one, or take them all as a zip.",
-    sizes: { story: "Story", square: "Square", card: "Wide", a4: "A4", custom: "Custom" },
-    lineHeights: { tight: "Tight", normal: "Normal", loose: "Loose" },
-    paddings: { narrow: "Narrow", normal: "Normal", wide: "Wide" },
+    sizes: { custom: "Custom" },
+    width: "Width",
+    lineHeights: { xTight: "Tightest", tight: "Tight", normal: "Normal", loose: "Loose", xLoose: "Loosest" },
+    paddings: { xNarrow: "Tiny", narrow: "Narrow", normal: "Normal", wide: "Wide", xWide: "Huge" },
     aligns: { left: "Left", center: "Center", right: "Right" },
     valigns: { top: "Top", center: "Middle" },
     formats: { png: "PNG", jpeg: "JPEG" },
     modes: { single: "One image", pages: "Pages" },
     backgrounds: { gradient: "Gradient", solid: "Solid" },
-    parses: { smart: "Smart", plain: "Plain text" },
+    parses: { smart: "Markdown", plain: "Plain text" },
     shrinkNote: (size: number) => `Long text, so the type was scaled to ${size}px — everything is still on this one image`,
     sampleText: `# Ten minutes a day
 
@@ -138,8 +140,8 @@ Break the task down until it is small enough to start right now, then do only th
 type SizeChoice = SizePreset["id"] | "custom";
 type Align = "left" | "center" | "right";
 type VAlign = "top" | "center";
-type LineHeightId = "tight" | "normal" | "loose";
-type PaddingId = "narrow" | "normal" | "wide";
+type LineHeightId = "xTight" | "tight" | "normal" | "loose" | "xLoose";
+type PaddingId = "xNarrow" | "narrow" | "normal" | "wide" | "xWide";
 type Format = "png" | "jpeg";
 type BackgroundMode = "gradient" | "solid";
 
@@ -169,12 +171,20 @@ interface LayoutResult {
 }
 
 const LINE_HEIGHT_VALUES: Record<LineHeightId, number> = {
+  xTight: 1.2,
   tight: 1.35,
   normal: 1.5,
-  loose: 1.75,
+  loose: 1.7,
+  xLoose: 1.9,
 };
 
-const PADDING_VALUES: Record<PaddingId, number> = { narrow: 48, normal: 96, wide: 144 };
+const PADDING_VALUES: Record<PaddingId, number> = {
+  xNarrow: 28,
+  narrow: 56,
+  normal: 96,
+  wide: 150,
+  xWide: 210,
+};
 
 const subscribeNoop = () => () => {};
 
@@ -303,6 +313,13 @@ function drawPage(canvas: HTMLCanvasElement, page: PlacedLine[], options: DrawOp
   }
 }
 
+/** Size presets carry their pixel dimensions, so the chip has to wrap freely */
+function sizeChip(active: boolean): string {
+  return active
+    ? "rounded-full border border-accent bg-accent px-2.5 py-1 text-[11px] font-medium text-accent-fg transition-colors"
+    : "rounded-full border border-border bg-surface px-2.5 py-1 text-[11px] font-medium text-foreground-muted transition-colors hover:bg-hover-bg hover:text-foreground";
+}
+
 function toBlob(canvas: HTMLCanvasElement, format: Format): Promise<Blob | null> {
   return new Promise((resolve) => {
     canvas.toBlob(
@@ -321,6 +338,7 @@ export function TextToImageTool() {
   const [text, setText] = React.useState(t.sampleText);
   const [sizeChoice, setSizeChoice] = React.useState<SizeChoice>("story");
   const [single, setSingle] = React.useState(true);
+  const [singleWidth, setSingleWidth] = React.useState("1080");
   const [customWidth, setCustomWidth] = React.useState("1080");
   const [customHeight, setCustomHeight] = React.useState("1920");
   const [themeId, setThemeId] = React.useState<ThemeId>("paper");
@@ -360,13 +378,17 @@ export function TextToImageTool() {
   }, []);
 
   const preset = SIZE_PRESETS.find((item) => item.id === sizeChoice);
-  const frameWidth = preset ? preset.width : clampEdge(Number.parseInt(customWidth, 10), 1080);
-  // In one-image mode this is only the minimum height, so a short note still
-  // produces a card rather than a thin strip
-  const frameHeight = preset ? preset.height : clampEdge(Number.parseInt(customHeight, 10), 1920);
   const padding = PADDING_VALUES[paddingId];
   const baseSize = clampFont(Number.parseInt(fontInput, 10));
   const lineHeight = LINE_HEIGHT_VALUES[lineHeightId];
+
+  // One image means one width: the height is whatever the text needs
+  const frameWidth = single
+    ? clampEdge(Number.parseInt(singleWidth, 10), 1080)
+    : preset
+      ? preset.width
+      : clampEdge(Number.parseInt(customWidth, 10), 1080);
+  const frameHeight = preset ? preset.height : clampEdge(Number.parseInt(customHeight, 10), 1920);
   const theme = React.useMemo<ThemeColors>(
     () => (bgMode === "solid" ? solidTheme(bgColor) : textTheme(themeId)),
     [bgMode, bgColor, themeId]
@@ -408,7 +430,7 @@ export function TextToImageTool() {
         return {
           pages: [result.lines],
           failure: null,
-          imageHeight: Math.max(frameHeight, padding * 2 + result.height),
+          imageHeight: Math.max(padding * 2 + result.height, padding * 2 + baseSize),
           usedSize: result.size,
           shrunk: result.shrunk,
         };
@@ -562,14 +584,14 @@ export function TextToImageTool() {
             />
           </OptionField>
         )}
-        <OptionField label={t.size}>
+        <OptionField label={t.parse}>
           <Segmented
-            ariaLabel={t.size}
-            value={sizeChoice}
-            onChange={setSizeChoice}
+            ariaLabel={t.parse}
+            value={parseMode}
+            onChange={setParseMode}
             options={[
-              ...SIZE_PRESETS.map((item) => ({ value: item.id as SizeChoice, label: t.sizes[item.id] })),
-              { value: "custom" as SizeChoice, label: t.sizes.custom },
+              { value: "smart" as ParseMode, label: t.parses.smart },
+              { value: "plain" as ParseMode, label: t.parses.plain },
             ]}
           />
         </OptionField>
@@ -585,17 +607,19 @@ export function TextToImageTool() {
             ]}
           />
         </OptionField>
-        <OptionField label={t.valign}>
-          <Segmented
-            ariaLabel={t.valign}
-            value={valign}
-            onChange={setValign}
-            options={[
-              { value: "top" as VAlign, label: t.valigns.top },
-              { value: "center" as VAlign, label: t.valigns.center },
-            ]}
-          />
-        </OptionField>
+        {!single && (
+          <OptionField label={t.valign}>
+            <Segmented
+              ariaLabel={t.valign}
+              value={valign}
+              onChange={setValign}
+              options={[
+                { value: "top" as VAlign, label: t.valigns.top },
+                { value: "center" as VAlign, label: t.valigns.center },
+              ]}
+            />
+          </OptionField>
+        )}
       </OptionBar>
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,24rem)_minmax(0,1fr)]">
@@ -646,28 +670,67 @@ export function TextToImageTool() {
             </div>
           )}
 
-          {sizeChoice === "custom" && (
-            <div className="grid grid-cols-2 gap-3">
-              <label className="flex flex-col gap-1.5">
-                <span className="text-[11px] text-foreground-muted">{t.customW}</span>
-                <Input
-                  value={customWidth}
-                  onChange={(event) => setCustomWidth(event.target.value)}
-                  inputMode="numeric"
-                  size="xs"
-                  aria-label={t.customW}
-                />
-              </label>
-              <label className="flex flex-col gap-1.5">
-                <span className="text-[11px] text-foreground-muted">{t.customH}</span>
-                <Input
-                  value={customHeight}
-                  onChange={(event) => setCustomHeight(event.target.value)}
-                  inputMode="numeric"
-                  size="xs"
-                  aria-label={t.customH}
-                />
-              </label>
+          {single ? (
+            <label className="flex flex-col gap-1.5">
+              <span className="text-[11px] text-foreground-muted">{t.width}</span>
+              <Input
+                value={singleWidth}
+                onChange={(event) => setSingleWidth(event.target.value)}
+                inputMode="numeric"
+                size="xs"
+                placeholder="1080"
+                aria-label={t.width}
+              />
+            </label>
+          ) : (
+            <div className="flex flex-col gap-1.5">
+              <span className="text-[11px] text-foreground-muted">{t.size}</span>
+              <div className="flex flex-wrap gap-1.5">
+                {SIZE_PRESETS.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    aria-pressed={sizeChoice === item.id}
+                    onClick={() => setSizeChoice(item.id)}
+                    className={sizeChip(sizeChoice === item.id)}
+                  >
+                    {item.label[locale]}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  aria-pressed={sizeChoice === "custom"}
+                  onClick={() => setSizeChoice("custom")}
+                  className={sizeChip(sizeChoice === "custom")}
+                >
+                  {t.sizes.custom}
+                </button>
+              </div>
+
+              {sizeChoice === "custom" && (
+                <div className="grid grid-cols-2 gap-3 pt-1">
+                  <label className="flex flex-col gap-1.5">
+                    <span className="text-[11px] text-foreground-muted">{t.customW}</span>
+                    <Input
+                      value={customWidth}
+                      onChange={(event) => setCustomWidth(event.target.value)}
+                      inputMode="numeric"
+                      size="xs"
+                      aria-label={t.customW}
+                    />
+                  </label>
+                  <label className="flex flex-col gap-1.5">
+                    <span className="text-[11px] text-foreground-muted">{t.customH}</span>
+                    <Input
+                      value={customHeight}
+                      onChange={(event) => setCustomHeight(event.target.value)}
+                      inputMode="numeric"
+                      size="xs"
+                      aria-label={t.customH}
+                    />
+                  </label>
+                </div>
+              )}
             </div>
           )}
 
@@ -695,26 +758,17 @@ export function TextToImageTool() {
           </div>
 
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-            <OptionField label={t.parse}>
-              <Segmented
-                ariaLabel={t.parse}
-                value={parseMode}
-                onChange={setParseMode}
-                options={[
-                  { value: "smart" as ParseMode, label: t.parses.smart },
-                  { value: "plain" as ParseMode, label: t.parses.plain },
-                ]}
-              />
-            </OptionField>
             <OptionField label={t.lineHeight}>
               <Segmented
                 ariaLabel={t.lineHeight}
                 value={lineHeightId}
                 onChange={setLineHeightId}
                 options={[
+                  { value: "xTight" as LineHeightId, label: t.lineHeights.xTight },
                   { value: "tight" as LineHeightId, label: t.lineHeights.tight },
                   { value: "normal" as LineHeightId, label: t.lineHeights.normal },
                   { value: "loose" as LineHeightId, label: t.lineHeights.loose },
+                  { value: "xLoose" as LineHeightId, label: t.lineHeights.xLoose },
                 ]}
               />
             </OptionField>
@@ -724,9 +778,11 @@ export function TextToImageTool() {
                 value={paddingId}
                 onChange={setPaddingId}
                 options={[
+                  { value: "xNarrow" as PaddingId, label: t.paddings.xNarrow },
                   { value: "narrow" as PaddingId, label: t.paddings.narrow },
                   { value: "normal" as PaddingId, label: t.paddings.normal },
                   { value: "wide" as PaddingId, label: t.paddings.wide },
+                  { value: "xWide" as PaddingId, label: t.paddings.xWide },
                 ]}
               />
             </OptionField>
