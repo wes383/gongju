@@ -105,7 +105,7 @@ const COPY = {
     modes: { standalone: "独立应用", fullscreen: "全屏", minimal: "极简", browser: "浏览器标签" },
     copyAll: "复制全部",
     copyJson: "复制 JSON",
-    note: "全部在本机读取，不会上传。较新的字段（显卡、设备内存、网络类型、电池）只有部分浏览器提供，显示「未提供」属正常；分辨率是物理像素，视口不含滚动条。触摸支持只按最大触点数判断，装了触摸屏或数位板驱动、开着浏览器设备模拟时可能显示为支持，可对照「任意指针精度」。",
+    note: "全部在本机读取，不会上传。较新的字段（显卡、设备内存、网络类型、电池）只有部分浏览器提供，显示「未提供」属正常；分辨率是物理像素，视口不含滚动条。",
   },
   en: {
     groups: {
@@ -198,7 +198,7 @@ const COPY = {
     modes: { standalone: "Standalone", fullscreen: "Fullscreen", minimal: "Minimal UI", browser: "Browser tab" },
     copyAll: "Copy all",
     copyJson: "Copy JSON",
-    note: "Everything is read on your device and never uploaded. Newer fields — GPU, device memory, connection type, battery — are only exposed by some browsers, so “not exposed” is normal. Resolution is in physical pixels; the viewport excludes scrollbars. Touch support follows the maximum touch-point count alone, so a touch or pen digitiser driver — or the browser’s device emulation — can make it read as supported; cross-check “Any pointer”.",
+    note: "Everything is read on your device and never uploaded. Newer fields — GPU, device memory, connection type, battery — are only exposed by some browsers, so “not exposed” is normal. Resolution is in physical pixels; the viewport excludes scrollbars.",
   },
 };
 
