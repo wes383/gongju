@@ -36,6 +36,7 @@ import {
   layoutSingle,
   normalizeHex,
   parseBlocks,
+  relativeLuminance,
   runFont,
   solidTheme,
   textTheme,
@@ -286,6 +287,9 @@ function drawPage(canvas: HTMLCanvasElement, page: PlacedLine[], options: DrawOp
 
   const contentWidth = width - padding * 2;
   const contentHeight = height - padding * 2;
+  /* The chip follows the page, not the palette: light ink means light plate */
+  const codePlate =
+    relativeLuminance(theme.text) < 0.5 ? "rgba(255, 255, 255, 0.14)" : "rgba(15, 23, 42, 0.07)";
   const used = usedHeight(page);
   const offset =
     valign === "center" && options.pageCount === 1 && used < contentHeight
@@ -327,10 +331,11 @@ function drawPage(canvas: HTMLCanvasElement, page: PlacedLine[], options: DrawOp
     const ascent = emAscent(metrics, line.size);
     const baseline = top + ascent;
 
-    const widths = line.runs.map((run) => {
+    const runMetrics = line.runs.map((run) => {
       ctx.font = runFont(line.size, line.weight, family, run);
-      return ctx.measureText(run.text).width;
+      return ctx.measureText(run.text);
     });
+    const widths = runMetrics.map((metrics) => metrics.width);
     const lineWidth = widths.reduce((total, value) => total + value, 0);
     const start =
       align === "center" ? left + (room - lineWidth) / 2 : align === "right" ? left + room - lineWidth : left;
@@ -358,12 +363,45 @@ function drawPage(canvas: HTMLCanvasElement, page: PlacedLine[], options: DrawOp
       ctx.restore();
     }
 
-    // Run by run, so bold, italic, code and strike keep their own treatment
+    /* Run by run, so bold, italic, code and strike keep their own treatment */
     let cursor = start;
     line.runs.forEach((run, index) => {
-      const runFill = run.code ? theme.accent : line.kind === "quote" ? theme.muted : theme.text;
+      const fill = line.kind === "quote" ? theme.muted : theme.text;
       ctx.font = runFont(line.size, line.weight, family, run);
-      ctx.fillStyle = runFill;
+      const ink = runMetrics[index];
+
+      /*
+       * Inline code reads as a chip rather than coloured type: a faint rounded
+       * plate behind the glyphs, the same ink as the sentence around it. A
+       * colour accent here competed with links and made every snippet look
+       * like a hyperlink, so the plate carries the signal instead.
+       */
+      if (run.code) {
+        const padX = Math.round(line.size * 0.2);
+        const padY = Math.round(line.size * 0.13);
+        const inkAscent = ink.actualBoundingBoxAscent || line.size * 0.72;
+        const inkDescent = ink.actualBoundingBoxDescent || line.size * 0.18;
+        // A large body size can outgrow the margin, so keep the plate on canvas
+        const plateWidth = Math.round(widths[index] + padX * 2);
+        const plateX = Math.min(Math.max(Math.round(cursor - padX), 0), Math.max(0, width - plateWidth));
+        const plate = {
+          x: plateX,
+          y: Math.round(baseline - inkAscent - padY),
+          w: plateWidth,
+          h: Math.round(inkAscent + inkDescent + padY * 2),
+          r: Math.round(line.size * 0.24),
+        };
+
+        ctx.save();
+        ctx.fillStyle = codePlate;
+        ctx.beginPath();
+        if (typeof ctx.roundRect === "function") ctx.roundRect(plate.x, plate.y, plate.w, plate.h, plate.r);
+        else ctx.rect(plate.x, plate.y, plate.w, plate.h);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      ctx.fillStyle = fill;
       ctx.fillText(run.text, cursor, baseline);
 
       if (run.strike) {
