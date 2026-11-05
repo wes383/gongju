@@ -49,6 +49,50 @@ export function pickUaBrand(brands: readonly UaBrand[] | undefined): string | nu
   return pick ? `${pick.brand} ${pick.version}` : null;
 }
 
+/** The high-entropy half of UA client hints: the fields the reduced hints omit */
+export interface UaHighEntropy {
+  /** CPU architecture, e.g. "x86" or "arm" */
+  architecture?: string;
+  /** "32" or "64" */
+  bitness?: string;
+  /** OS version, not the engine version */
+  platformVersion?: string;
+  uaFullVersion?: string;
+  fullVersionList?: UaBrand[];
+  /** Hardware model; desktops leave it empty */
+  model?: string;
+  /** A 32-bit browser running on 64-bit Windows */
+  wow64?: boolean;
+}
+
+/** The reduced brand string with its build number swapped for the full one */
+export function withFullVersion(
+  brands: readonly UaBrand[] | undefined,
+  fullVersion: string | undefined
+): string | null {
+  const reduced = pickUaBrand(brands);
+  if (!reduced) return null;
+  if (!fullVersion) return reduced;
+  return `${reduced.replace(/\s+\d[\d.]*$/, "")} ${fullVersion}`;
+}
+
+export interface FeatureProbe {
+  name: string;
+  supported: boolean;
+}
+
+export interface SupportSummary {
+  supported: number;
+  total: number;
+  missing: string[];
+}
+
+/** Count how many probes pass, keeping the names of the ones that did not */
+export function summarizeSupport(probes: readonly FeatureProbe[]): SupportSummary {
+  const missing = probes.filter((probe) => !probe.supported).map((probe) => probe.name);
+  return { supported: probes.length - missing.length, total: probes.length, missing };
+}
+
 export type DeviceKind = "mobile" | "tablet" | "desktop";
 
 /**

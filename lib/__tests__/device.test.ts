@@ -5,6 +5,8 @@ import {
   formatDuration,
   formatUtcOffset,
   pickUaBrand,
+  summarizeSupport,
+  withFullVersion,
 } from "../device";
 
 describe("formatBytes", () => {
@@ -64,6 +66,44 @@ describe("pickUaBrand", () => {
   it("returns null without client hints", () => {
     expect(pickUaBrand(undefined)).toBeNull();
     expect(pickUaBrand([])).toBeNull();
+  });
+});
+
+describe("withFullVersion", () => {
+  const uh = (brand: string, version: string) => ({ brand, version });
+
+  it("replaces the reduced build number with the full one", () => {
+    expect(withFullVersion([uh("Chromium", "141"), uh("Google Chrome", "141")], "141.0.7390.55")).toBe(
+      "Google Chrome 141.0.7390.55"
+    );
+  });
+
+  it("keeps the reduced string when no full version arrived", () => {
+    expect(withFullVersion([uh("Microsoft Edge", "141")], undefined)).toBe("Microsoft Edge 141");
+  });
+
+  it("returns null without brands", () => {
+    expect(withFullVersion(undefined, "141.0.0.0")).toBeNull();
+  });
+});
+
+describe("summarizeSupport", () => {
+  it("counts passes and names what is missing", () => {
+    const summary = summarizeSupport([
+      { name: "structuredClone", supported: true },
+      { name: "Nesting", supported: false },
+      { name: "Subgrid", supported: false },
+    ]);
+
+    expect(summary).toEqual({ supported: 1, total: 3, missing: ["Nesting", "Subgrid"] });
+  });
+
+  it("has nothing missing when everything passes", () => {
+    expect(summarizeSupport([{ name: "USB", supported: true }])).toEqual({
+      supported: 1,
+      total: 1,
+      missing: [],
+    });
   });
 });
 

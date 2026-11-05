@@ -1243,10 +1243,10 @@ const devTools: ToolMeta[] = [
     slug: "device-info",
     name: { zh: "设备信息", en: "Device Info" },
     description: {
-      zh: "查看屏幕、视口、设备、显卡、网络、存储与权限等浏览器暴露的信息",
-      en: "Inspect screen, viewport, device, GPU, network, storage and permission details",
+      zh: "查看屏幕、视口、设备、显卡、网络、存储、权限与浏览器能力等全部可读信息",
+      en: "Inspect screen, viewport, device, GPU, network, storage, permissions and browser capabilities",
     },
-    keywords: ["device", "屏幕", "分辨率", "视口", "dpr", "ua", "设备", "gpu", "webgl", "权限", "存储"],
+    keywords: ["device", "屏幕", "分辨率", "视口", "dpr", "ua", "设备", "gpu", "webgl", "权限", "存储", "能力", "css", "wasm"],
     icon: Laptop,
   }),
   devTool({

@@ -10,7 +10,12 @@ import {
   formatDuration,
   formatUtcOffset,
   pickUaBrand,
+  summarizeSupport,
+  withFullVersion,
+  type FeatureProbe,
+  type SupportSummary,
   type UaBrand,
+  type UaHighEntropy,
 } from "@/lib/device";
 
 const COPY = {
@@ -19,12 +24,14 @@ const COPY = {
       screen: "屏幕",
       viewport: "视口",
       device: "设备与系统",
+      locale: "语言与区域",
       display: "偏好与显示",
       graphics: "图形",
       network: "网络",
       storage: "存储",
       permissions: "权限",
       media: "媒体能力",
+      runtime: "运行时与能力",
       page: "页面",
     },
     labels: {
@@ -39,12 +46,22 @@ const COPY = {
       scrollbar: "滚动条宽度",
       ua: "User-Agent",
       uaBrands: "浏览器标识",
+      uaFullVersion: "完整版本",
       kind: "设备类型",
       platform: "平台",
+      platformVersion: "系统版本",
+      arch: "CPU 架构",
+      bitness: "CPU 位数",
+      wow64: "32 位子系统",
+      model: "设备型号",
+      vendor: "浏览器厂商",
+      webdriver: "自动化环境",
       language: "语言",
       languages: "首选语言列表",
       timezone: "时区",
       tzOffset: "时区偏移",
+      intlCalendar: "日历系统",
+      intlNumbering: "数字系统",
       cores: "逻辑 CPU 核数",
       memory: "设备内存",
       battery: "电池",
@@ -53,6 +70,7 @@ const COPY = {
       pointer: "主指针精度",
       anyPointer: "任意指针精度",
       hover: "悬停能力",
+      gpc: "全局隐私控制",
       cookies: "Cookie 可用",
       doNotTrack: "请勿追踪",
       secureContext: "安全上下文",
@@ -64,9 +82,15 @@ const COPY = {
       displayMode: "显示模式",
       glVendor: "显卡厂商",
       glRenderer: "显卡渲染器",
+      glVersion: "WebGL 版本",
+      glSl: "着色语言版本",
       webgl2: "WebGL 2",
       webgpu: "WebGPU",
       maxTexture: "最大纹理尺寸",
+      glLimits: "WebGL 上限",
+      glVertex: "顶点属性",
+      glUnits: "纹理单元",
+      glBuffer: "渲染缓冲",
       online: "在线状态",
       effectiveType: "网络类型",
       downlink: "下行带宽估算",
@@ -74,6 +98,7 @@ const COPY = {
       saveData: "省流模式",
       quota: "存储配额",
       usage: "已用存储",
+      persisted: "存储持久化",
       localStorage: "localStorage",
       indexedDB: "IndexedDB",
       serviceWorker: "Service Worker",
@@ -82,16 +107,34 @@ const COPY = {
       cameraPerm: "摄像头权限",
       micPerm: "麦克风权限",
       sampleRate: "音频采样率",
+      audioChannels: "音频通道数",
+      audioLatency: "音频输出延迟",
+      audioDevices: "音频设备数",
       codecH264: "H.264",
       codecHevc: "HEVC",
       codecVp9: "VP9",
       codecAv1: "AV1",
       codecAac: "AAC",
       codecOpus: "Opus",
+      visibility: "页面可见性",
+      focus: "窗口焦点",
       protocol: "协议",
       loadTime: "页面加载耗时",
+      resourceCount: "资源数量",
+      transferred: "资源传输量",
       heap: "JS 堆内存",
+      historyLength: "历史记录长度",
+      characterSet: "文档编码",
+      referrer: "来源页",
+      crossOriginIsolated: "跨源隔离",
+      wasm: "WebAssembly",
+      pdfViewer: "PDF 查看器",
+      jsApis: "现代 JS API",
+      cssSupport: "CSS 特性",
+      peripherals: "外设接口",
+      gamepads: "游戏手柄",
       unknown: "未提供",
+      none: "无",
     },
     kinds: { mobile: "手机", tablet: "平板", desktop: "桌面" },
     charging: "（充电中）",
@@ -103,6 +146,11 @@ const COPY = {
     pointers: { fine: "精细（鼠标）", coarse: "粗略（触摸）", none: "无" },
     hovers: { yes: "支持", no: "不支持" },
     modes: { standalone: "独立应用", fullscreen: "全屏", minimal: "极简", browser: "浏览器标签" },
+    states: { visible: "可见", hidden: "隐藏" },
+    missing: "缺",
+    listSep: "、",
+    bits: "位",
+    devices: { input: "输入", output: "输出" },
     copyAll: "复制全部",
     copyJson: "复制 JSON",
     note: "全部在本机读取，不会上传。较新的字段（显卡、设备内存、网络类型、电池）只有部分浏览器提供，显示「未提供」属正常；分辨率是物理像素，视口不含滚动条。",
@@ -112,12 +160,14 @@ const COPY = {
       screen: "Screen",
       viewport: "Viewport",
       device: "Device and system",
+      locale: "Language and region",
       display: "Preferences and display",
       graphics: "Graphics",
       network: "Network",
       storage: "Storage",
       permissions: "Permissions",
       media: "Media support",
+      runtime: "Runtime and capabilities",
       page: "Page",
     },
     labels: {
@@ -132,12 +182,22 @@ const COPY = {
       scrollbar: "Scrollbar width",
       ua: "User-Agent",
       uaBrands: "Browser brand",
+      uaFullVersion: "Full version",
       kind: "Device type",
       platform: "Platform",
+      platformVersion: "OS version",
+      arch: "CPU architecture",
+      bitness: "CPU bitness",
+      wow64: "32-bit subsystem",
+      model: "Device model",
+      vendor: "Vendor",
+      webdriver: "Automation",
       language: "Language",
       languages: "Preferred languages",
       timezone: "Time zone",
       tzOffset: "UTC offset",
+      intlCalendar: "Calendar",
+      intlNumbering: "Numbering system",
       cores: "Logical CPU cores",
       memory: "Device memory",
       battery: "Battery",
@@ -146,6 +206,7 @@ const COPY = {
       pointer: "Primary pointer",
       anyPointer: "Any pointer",
       hover: "Hover",
+      gpc: "Global Privacy Control",
       cookies: "Cookies enabled",
       doNotTrack: "Do Not Track",
       secureContext: "Secure context",
@@ -157,9 +218,15 @@ const COPY = {
       displayMode: "Display mode",
       glVendor: "GPU vendor",
       glRenderer: "GPU renderer",
+      glVersion: "WebGL version",
+      glSl: "GLSL version",
       webgl2: "WebGL 2",
       webgpu: "WebGPU",
       maxTexture: "Max texture size",
+      glLimits: "WebGL limits",
+      glVertex: "vertex attribs",
+      glUnits: "texture units",
+      glBuffer: "renderbuffer",
       online: "Online",
       effectiveType: "Connection type",
       downlink: "Estimated downlink",
@@ -167,6 +234,7 @@ const COPY = {
       saveData: "Data saver",
       quota: "Storage quota",
       usage: "Storage used",
+      persisted: "Persistent storage",
       localStorage: "localStorage",
       indexedDB: "IndexedDB",
       serviceWorker: "Service Worker",
@@ -175,16 +243,34 @@ const COPY = {
       cameraPerm: "Camera",
       micPerm: "Microphone",
       sampleRate: "Audio sample rate",
+      audioChannels: "Audio channels",
+      audioLatency: "Audio latency",
+      audioDevices: "Audio devices",
       codecH264: "H.264",
       codecHevc: "HEVC",
       codecVp9: "VP9",
       codecAv1: "AV1",
       codecAac: "AAC",
       codecOpus: "Opus",
+      visibility: "Page visibility",
+      focus: "Window focus",
       protocol: "Protocol",
       loadTime: "Page load",
+      resourceCount: "Resources",
+      transferred: "Transferred",
       heap: "JS heap",
+      historyLength: "History length",
+      characterSet: "Character set",
+      referrer: "Referrer",
+      crossOriginIsolated: "Cross-origin isolated",
+      wasm: "WebAssembly",
+      pdfViewer: "PDF viewer",
+      jsApis: "Modern JS APIs",
+      cssSupport: "CSS features",
+      peripherals: "Peripherals",
+      gamepads: "Gamepads",
       unknown: "not exposed",
+      none: "None",
     },
     kinds: { mobile: "Phone", tablet: "Tablet", desktop: "Desktop" },
     charging: " (charging)",
@@ -196,6 +282,11 @@ const COPY = {
     pointers: { fine: "Fine (mouse)", coarse: "Coarse (touch)", none: "None" },
     hovers: { yes: "Yes", no: "No" },
     modes: { standalone: "Standalone", fullscreen: "Fullscreen", minimal: "Minimal UI", browser: "Browser tab" },
+    states: { visible: "Visible", hidden: "Hidden" },
+    missing: "missing",
+    listSep: ", ",
+    bits: "-bit",
+    devices: { input: "in", output: "out" },
     copyAll: "Copy all",
     copyJson: "Copy JSON",
     note: "Everything is read on your device and never uploaded. Newer fields — GPU, device memory, connection type, battery — are only exposed by some browsers, so “not exposed” is normal. Resolution is in physical pixels; the viewport excludes scrollbars.",
@@ -213,12 +304,16 @@ const GROUPS: { id: GroupId; rows: Label[] }[] = [
     id: "device",
     rows: [
       "kind",
-      "uaBrands",
       "platform",
-      "language",
-      "languages",
-      "timezone",
-      "tzOffset",
+      "platformVersion",
+      "arch",
+      "bitness",
+      "wow64",
+      "model",
+      "uaBrands",
+      "uaFullVersion",
+      "vendor",
+      "webdriver",
       "cores",
       "memory",
       "battery",
@@ -227,25 +322,70 @@ const GROUPS: { id: GroupId; rows: Label[] }[] = [
       "pointer",
       "anyPointer",
       "hover",
-      "cookies",
-      "doNotTrack",
-      "secureContext",
       "ua",
     ],
+  },
+  {
+    id: "locale",
+    rows: ["language", "languages", "timezone", "tzOffset", "intlCalendar", "intlNumbering"],
   },
   {
     id: "display",
     rows: ["colorScheme", "reducedMotion", "contrast", "colorGamut", "dynamicRange", "displayMode"],
   },
-  { id: "graphics", rows: ["glVendor", "glRenderer", "webgl2", "webgpu", "maxTexture"] },
+  {
+    id: "graphics",
+    rows: ["glVendor", "glRenderer", "glVersion", "glSl", "webgl2", "webgpu", "maxTexture", "glLimits"],
+  },
   { id: "network", rows: ["online", "effectiveType", "downlink", "rtt", "saveData"] },
-  { id: "storage", rows: ["quota", "usage", "localStorage", "indexedDB", "serviceWorker"] },
+  { id: "storage", rows: ["quota", "usage", "persisted", "localStorage", "indexedDB", "serviceWorker"] },
   { id: "permissions", rows: ["geoPerm", "notifyPerm", "cameraPerm", "micPerm"] },
   {
     id: "media",
-    rows: ["sampleRate", "codecH264", "codecHevc", "codecVp9", "codecAv1", "codecAac", "codecOpus"],
+    rows: [
+      "sampleRate",
+      "audioChannels",
+      "audioLatency",
+      "audioDevices",
+      "codecH264",
+      "codecHevc",
+      "codecVp9",
+      "codecAv1",
+      "codecAac",
+      "codecOpus",
+    ],
   },
-  { id: "page", rows: ["protocol", "loadTime", "heap"] },
+  {
+    id: "runtime",
+    rows: [
+      "gpc",
+      "cookies",
+      "doNotTrack",
+      "secureContext",
+      "crossOriginIsolated",
+      "wasm",
+      "pdfViewer",
+      "jsApis",
+      "cssSupport",
+      "peripherals",
+      "gamepads",
+    ],
+  },
+  {
+    id: "page",
+    rows: [
+      "visibility",
+      "focus",
+      "protocol",
+      "loadTime",
+      "resourceCount",
+      "transferred",
+      "heap",
+      "historyLength",
+      "characterSet",
+      "referrer",
+    ],
+  },
 ];
 
 const CODECS: { label: Label; type: string }[] = [
@@ -256,6 +396,50 @@ const CODECS: { label: Label; type: string }[] = [
   { label: "codecAac", type: 'audio/mp4; codecs="mp4a.40.2"' },
   { label: "codecOpus", type: 'audio/webm; codecs="opus"' },
 ];
+
+/** Each entry is the condition handed to `CSS.supports` */
+const CSS_QUERIES: [string, string][] = [
+  [":has()", "selector(:has(*))"],
+  ["Container queries", "container-type: inline-size"],
+  ["Nesting", "selector(&)"],
+  ["color-mix()", "color: color-mix(in srgb, red, blue)"],
+  ["backdrop-filter", "backdrop-filter: blur(1px)"],
+  ["Subgrid", "grid-template-columns: subgrid"],
+  ["dvh", "height: 100dvh"],
+  ["oklch()", "color: oklch(50% 0.1 200)"],
+  ["text-wrap: balance", "text-wrap: balance"],
+  ["aspect-ratio", "aspect-ratio: 1"],
+];
+
+/**
+ * A representative slice of newer language and platform APIs. Feature tests
+ * rather than version sniffing: a browser either has the function or it does
+ * not, whatever it claims to be.
+ */
+const JS_PROBES: [string, () => boolean][] = [
+  ["structuredClone", () => typeof structuredClone === "function"],
+  ["Object.hasOwn", () => typeof Object.hasOwn === "function"],
+  ["Array.at", () => typeof [].at === "function"],
+  ["Array.findLast", () => typeof [].findLast === "function"],
+  ["AbortSignal.timeout", () => typeof AbortSignal.timeout === "function"],
+  [
+    "Intl.Segmenter",
+    () => typeof (Intl as unknown as { Segmenter?: unknown }).Segmenter === "function",
+  ],
+  ["URL.canParse", () => typeof (URL as unknown as { canParse?: unknown }).canParse === "function"],
+  [
+    "Promise.withResolvers",
+    () => typeof (Promise as unknown as { withResolvers?: unknown }).withResolvers === "function",
+  ],
+];
+
+const PERIPHERAL_KEYS = ["bluetooth", "usb", "serial", "hid", "nfc"];
+
+/** "8 / 10 · missing Nesting, Subgrid" — passes first, then what is absent */
+function supportText(summary: SupportSummary, t: Copy): string {
+  const head = `${summary.supported} / ${summary.total}`;
+  return summary.missing.length > 0 ? `${head} · ${t.missing} ${summary.missing.join(t.listSep)}` : head;
+}
 
 const PERMISSIONS: { label: Label; name: string }[] = [
   { label: "geoPerm", name: "geolocation" },
@@ -275,6 +459,7 @@ interface UserAgentData {
   platform?: string;
   mobile?: boolean;
   brands?: UaBrand[];
+  getHighEntropyValues?: (hints: string[]) => Promise<UaHighEntropy>;
 }
 
 interface Battery {
@@ -287,6 +472,7 @@ type NavigatorExtras = Navigator & {
   connection?: Connection;
   userAgentData?: UserAgentData;
   getBattery?: () => Promise<Battery>;
+  globalPrivacyControl?: boolean;
 };
 
 type Values = Partial<Record<Label, string>>;
@@ -297,17 +483,27 @@ function media(query: string): boolean {
   return window.matchMedia(query).matches;
 }
 
+interface GpuInfo {
+  vendor?: string;
+  renderer?: string;
+  version?: string;
+  glsl?: string;
+  webgl2: boolean;
+  webgpu: boolean;
+  maxTexture?: number;
+  vertexAttribs?: number;
+  textureUnits?: number;
+  renderbuffer?: number;
+}
+
 /**
  * A canvas only hands out one context type, so WebGL 1 and 2 need a probe each.
  * Blocked or software-rendered GPUs simply return null here.
  */
-function readGpu(): { vendor?: string; renderer?: string; webgl2: boolean; webgpu: boolean; maxTexture?: number } {
-  const info = {
-    vendor: undefined as string | undefined,
-    renderer: undefined as string | undefined,
+function readGpu(): GpuInfo {
+  const info: GpuInfo = {
     webgl2: false,
     webgpu: "gpu" in navigator,
-    maxTexture: undefined as number | undefined,
   };
 
   try {
@@ -321,7 +517,12 @@ function readGpu(): { vendor?: string; renderer?: string; webgl2: boolean; webgp
         info.vendor = String(gl.getParameter(debug.UNMASKED_VENDOR_WEBGL));
         info.renderer = String(gl.getParameter(debug.UNMASKED_RENDERER_WEBGL));
       }
+      info.version = String(gl.getParameter(gl.VERSION));
+      info.glsl = String(gl.getParameter(gl.SHADING_LANGUAGE_VERSION));
       info.maxTexture = Number(gl.getParameter(gl.MAX_TEXTURE_SIZE));
+      info.vertexAttribs = Number(gl.getParameter(gl.MAX_VERTEX_ATTRIBS));
+      info.textureUnits = Number(gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS));
+      info.renderbuffer = Number(gl.getParameter(gl.MAX_RENDERBUFFER_SIZE));
     }
     info.webgl2 = document.createElement("canvas").getContext("webgl2") !== null;
   } catch {
@@ -338,17 +539,97 @@ function readCodecs(): Partial<Record<Label, string>> {
   return out;
 }
 
+interface AudioInfo {
+  sampleRate: number;
+  channels?: number;
+  latency?: number;
+}
+
 /** Constructing a context is the only way to ask; it is closed straight away */
-function readSampleRate(): number | null {
+function readAudio(): AudioInfo | null {
   try {
     if (!window.AudioContext) return null;
     const context = new window.AudioContext();
-    const rate = context.sampleRate;
+    const info: AudioInfo = {
+      sampleRate: context.sampleRate,
+      channels: context.destination?.maxChannelCount,
+      // `outputLatency` is the honest figure; `baseLatency` is the graph only
+      latency: (context as AudioContext & { outputLatency?: number }).outputLatency || context.baseLatency,
+    };
     void context.close();
-    return rate;
+    return info;
   } catch {
     return null;
   }
+}
+
+/** Device counts only: labels need a permission prompt, and they are private */
+async function readAudioDevices(): Promise<{ inputs: number; outputs: number } | null> {
+  try {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    return {
+      inputs: devices.filter((device) => device.kind === "audioinput").length,
+      outputs: devices.filter((device) => device.kind === "audiooutput").length,
+    };
+  } catch {
+    return null;
+  }
+}
+
+async function readHighEntropy(): Promise<UaHighEntropy | null> {
+  const hints = (navigator as NavigatorExtras).userAgentData?.getHighEntropyValues;
+  if (!hints) return null;
+  try {
+    return await hints([
+      "architecture",
+      "bitness",
+      "platformVersion",
+      "uaFullVersion",
+      "fullVersionList",
+      "model",
+      "wow64",
+    ]);
+  } catch {
+    return null;
+  }
+}
+
+interface Capabilities {
+  css: SupportSummary;
+  js: SupportSummary;
+  peripherals: string[];
+}
+
+/**
+ * Feature support is fixed for the lifetime of the page, so the probes run once
+ * even though the surrounding values are recollected on every resize.
+ */
+let capabilityCache: Capabilities | null = null;
+
+function readCapabilities(): Capabilities {
+  if (capabilityCache) return capabilityCache;
+
+  const css: FeatureProbe[] = CSS_QUERIES.map(([name, query]) => ({
+    name,
+    supported: typeof CSS !== "undefined" && CSS.supports(query),
+  }));
+  const js: FeatureProbe[] = JS_PROBES.map(([name, test]) => ({ name, supported: test() }));
+  const peripherals = PERIPHERAL_KEYS.filter((key) => key in navigator).map(
+    (key) => key.charAt(0).toUpperCase() + key.slice(1)
+  );
+
+  capabilityCache = {
+    css: summarizeSupport(css),
+    js: summarizeSupport(js),
+    peripherals,
+  };
+  return capabilityCache;
+}
+
+function readResources(): { count: number; bytes: number } {
+  const entries = performance.getEntriesByType("resource") as PerformanceResourceTiming[];
+  const bytes = entries.reduce((total, entry) => total + (entry.transferSize || 0), 0);
+  return { count: entries.length, bytes };
 }
 
 type PermissionName_ = "granted" | "denied" | "prompt" | "unknown";
@@ -395,6 +676,9 @@ function collectSync(t: Copy): Values {
   const storage = storageProbe();
   const page = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined;
   const heap = (performance as Performance & { memory?: { usedJSHeapSize: number } }).memory;
+  const capabilities = readCapabilities();
+  const resources = readResources();
+  const intl = Intl.DateTimeFormat().resolvedOptions();
 
   /*
    * `pointer` only describes the primary input; `any-pointer` also reports a
@@ -428,6 +712,9 @@ function collectSync(t: Copy): Values {
     scrollbar: `${window.innerWidth - root.clientWidth} px`,
     ua: nav.userAgent,
     uaBrands: pickUaBrand(nav.userAgentData?.brands) ?? t.labels.unknown,
+    vendor: nav.vendor || t.labels.unknown,
+    webdriver: ok(nav.webdriver),
+    gpc: nav.globalPrivacyControl === undefined ? t.labels.unknown : ok(nav.globalPrivacyControl),
     kind:
       t.kinds[
         deviceKind({
@@ -439,8 +726,10 @@ function collectSync(t: Copy): Values {
     platform: nav.userAgentData?.platform ?? nav.platform ?? t.labels.unknown,
     language: nav.language,
     languages: nav.languages?.join(", ") || t.labels.unknown,
-    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    timezone: intl.timeZone,
     tzOffset: formatUtcOffset(-new Date().getTimezoneOffset()),
+    intlCalendar: intl.calendar ?? t.labels.unknown,
+    intlNumbering: intl.numberingSystem ?? t.labels.unknown,
     cores: nav.hardwareConcurrency ? String(nav.hardwareConcurrency) : t.labels.unknown,
     memory: nav.deviceMemory ? `${nav.deviceMemory} GB` : t.labels.unknown,
     touch: ok(nav.maxTouchPoints > 0),
@@ -473,9 +762,24 @@ function collectSync(t: Copy): Values {
     localStorage: ok(storage.localStorage),
     indexedDB: ok(storage.indexedDB),
     serviceWorker: ok("serviceWorker" in navigator),
+    visibility: document.visibilityState === "hidden" ? t.states.hidden : t.states.visible,
+    focus: ok(document.hasFocus()),
     protocol: location.protocol.replace(":", ""),
     loadTime: page && page.loadEventEnd > 0 ? formatDuration(page.loadEventEnd - page.startTime) : t.labels.unknown,
+    resourceCount: String(resources.count),
+    transferred: resources.bytes > 0 ? formatBytes(resources.bytes) : t.labels.unknown,
     heap: heap ? formatBytes(heap.usedJSHeapSize) : t.labels.unknown,
+    historyLength: String(window.history.length),
+    characterSet: document.characterSet,
+    referrer: document.referrer || t.labels.none,
+    crossOriginIsolated: ok(window.crossOriginIsolated),
+    wasm: ok(typeof WebAssembly === "object" && typeof WebAssembly.instantiate === "function"),
+    pdfViewer: "pdfViewerEnabled" in nav ? ok(nav.pdfViewerEnabled) : t.labels.unknown,
+    jsApis: supportText(capabilities.js, t),
+    cssSupport: supportText(capabilities.css, t),
+    peripherals:
+      capabilities.peripherals.length > 0 ? capabilities.peripherals.join(t.listSep) : t.labels.none,
+    gamepads: String(navigator.getGamepads?.().filter(Boolean).length ?? 0),
   };
 }
 
@@ -490,10 +794,17 @@ export function DeviceInfoTool() {
     const id = window.setTimeout(read, 0);
     window.addEventListener("resize", read);
     window.addEventListener("orientationchange", read);
+    // Visibility and focus are read too, so they refresh when the tab moves
+    window.addEventListener("visibilitychange", read);
+    window.addEventListener("focus", read);
+    window.addEventListener("blur", read);
     return () => {
       window.clearTimeout(id);
       window.removeEventListener("resize", read);
       window.removeEventListener("orientationchange", read);
+      window.removeEventListener("visibilitychange", read);
+      window.removeEventListener("focus", read);
+      window.removeEventListener("blur", read);
     };
   }, [t]);
 
@@ -503,7 +814,7 @@ export function DeviceInfoTool() {
     const load = async () => {
       const gpu = readGpu();
       const codecs = readCodecs();
-      const sampleRate = readSampleRate();
+      const audio = readAudio();
 
       let quota: number | null = null;
       let usage: number | null = null;
@@ -528,6 +839,16 @@ export function DeviceInfoTool() {
         PERMISSIONS.map(async (probe) => [probe.label, await readPermission(probe.name)] as const)
       );
 
+      const high = await readHighEntropy();
+      const audioDevices = await readAudioDevices();
+
+      let persisted: boolean | null = null;
+      try {
+        persisted = (await navigator.storage?.persisted?.()) ?? null;
+      } catch {
+        persisted = null;
+      }
+
       if (cancelled) return;
 
       setValues((prev) => ({
@@ -535,13 +856,34 @@ export function DeviceInfoTool() {
         ...codecs,
         glVendor: gpu.vendor ?? t.labels.unknown,
         glRenderer: gpu.renderer ?? t.labels.unknown,
+        glVersion: gpu.version ?? t.labels.unknown,
+        glSl: gpu.glsl ?? t.labels.unknown,
         webgl2: ok(gpu.webgl2),
         webgpu: ok(gpu.webgpu),
         maxTexture: gpu.maxTexture ? `${gpu.maxTexture} px` : t.labels.unknown,
+        glLimits:
+          gpu.vertexAttribs == null
+            ? t.labels.unknown
+            : `${t.labels.glVertex} ${gpu.vertexAttribs} · ${t.labels.glUnits} ${gpu.textureUnits} · ${t.labels.glBuffer} ${gpu.renderbuffer}`,
         quota: quota == null ? t.labels.unknown : formatBytes(quota),
         usage: usage == null ? t.labels.unknown : formatBytes(usage),
         ...permissionValues(permissions, t),
-        sampleRate: sampleRate ? `${sampleRate} Hz` : t.labels.unknown,
+        sampleRate: audio ? `${audio.sampleRate} Hz` : t.labels.unknown,
+        audioChannels: audio?.channels ? String(audio.channels) : t.labels.unknown,
+        audioLatency: audio?.latency != null ? formatDuration(audio.latency * 1000) : t.labels.unknown,
+        audioDevices: audioDevices
+          ? `${t.devices.input} ${audioDevices.inputs} · ${t.devices.output} ${audioDevices.outputs}`
+          : t.labels.unknown,
+        persisted: persisted == null ? t.labels.unknown : ok(persisted),
+        platformVersion: high?.platformVersion || t.labels.unknown,
+        arch: high?.architecture || t.labels.unknown,
+        bitness: high?.bitness ? `${high.bitness}${t.bits}` : t.labels.unknown,
+        wow64: high?.wow64 == null ? t.labels.unknown : ok(high.wow64),
+        model: high?.model || t.labels.unknown,
+        uaFullVersion: high
+          ? (withFullVersion((navigator as NavigatorExtras).userAgentData?.brands, high.uaFullVersion) ??
+            t.labels.unknown)
+          : t.labels.unknown,
         battery: battery
           ? `${Math.round(battery.level * 100)}%${battery.charging ? t.charging : ""}`
           : t.labels.unknown,
