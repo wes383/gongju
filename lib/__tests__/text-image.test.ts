@@ -214,6 +214,20 @@ describe("wrapRuns", () => {
     expect(text.every((line) => narrow(line) <= 240)).toBe(true);
   });
 
+  it("keeps the space on both sides of an inline span", () => {
+    // The gap on the right of a code span used to fall out at the run boundary
+    const lines = wrapRuns(parseInline("这是一个 `行内代码` 的写法。"), 1000, font, narrow);
+    const text = lines.map((line) => line.map((run) => run.text).join("")).join("");
+
+    expect(text).toBe("这是一个 行内代码 的写法。");
+    expect(lines[0].map((run) => run.code)).toEqual([false, true, false]);
+  });
+
+  it("does not start a line with the space it broke at", () => {
+    const lines = wrapRuns(parseInline("这是一个 `行内代码` 的写法。"), 60, font, narrow);
+    expect(lines.every((line) => !line[0].text.startsWith(" "))).toBe(true);
+  });
+
   it("returns nothing for empty text or no room", () => {
     expect(wrapRuns([], 100, font, narrow)).toEqual([]);
     expect(wrapRuns(parseInline("文字"), 0, font, narrow)).toEqual([]);

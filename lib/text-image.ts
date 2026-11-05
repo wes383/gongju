@@ -480,7 +480,17 @@ function styledTokens(runs: InlineRun[]): StyledToken[] {
   for (const run of runs) {
     // Only the flags, so merging a token back cannot carry the run's text along
     const style: RunStyle = { bold: run.bold, italic: run.italic, code: run.code, strike: run.strike };
-    for (const token of tokenize(run.text)) tokens.push({ text: token, style });
+    /*
+     * tokenize() keeps a space only when it already has a token to hang it on,
+     * which is never true at the start of a run. Without this the space right
+     * of an inline span disappeared while the one on its left survived, so
+     * `行内代码` lost its trailing gap.
+     */
+    const chars = Array.from(run.text);
+    let lead = 0;
+    while (lead < chars.length && (chars[lead] === " " || chars[lead] === "\t")) lead += 1;
+    if (lead > 0 && tokens.length > 0) tokens.push({ text: " ", style });
+    for (const token of tokenize(chars.slice(lead).join(""))) tokens.push({ text: token, style });
   }
   return tokens;
 }
@@ -502,7 +512,10 @@ function mergeTokens(tokens: StyledToken[]): InlineRun[] {
     else runs.push({ text: token.text, ...token.style });
   }
 
-  // The space carried along with the last word does not belong to the line
+  // The space carried along with the last word does not belong to the line,
+  // and neither does the one the line broke at
+  const head = runs[0];
+  if (head) head.text = head.text.replace(/^\s+/, "");
   const tail = runs[runs.length - 1];
   if (tail) tail.text = tail.text.replace(/\s+$/, "");
   return runs.filter((run) => run.text !== "");
