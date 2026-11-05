@@ -20,7 +20,7 @@ import {
   SampleButton,
   Segmented,
 } from "@/components/tools/tool-ui";
-import { canvasFontFamily } from "@/components/tools/canvas-font";
+import { canvasFontFamily, canvasSerifFamily } from "@/components/tools/canvas-font";
 import { useCopy, useLocale } from "@/components/locale-provider";
 import { errorText } from "@/lib/errors";
 import { downloadBlob, downloadZip } from "@/lib/files";
@@ -60,6 +60,9 @@ const COPY = {
     size: "尺寸",
     mode: "输出",
     fontSize: "字号",
+    font: "字体",
+    fonts: { sans: "无衬线", serif: "衬线" },
+    fontNote: "衬线用系统自带的宋体类字体（macOS 的 Songti SC、Windows 的宋体），和预览一致；行内代码始终等宽。",
     lineHeight: "行高",
     padding: "边距",
     align: "对齐",
@@ -112,6 +115,9 @@ const COPY = {
     size: "Size",
     mode: "Output",
     fontSize: "Font size",
+    font: "Typeface",
+    fonts: { sans: "Sans", serif: "Serif" },
+    fontNote: "Serif uses a serif face installed on your system, so the export matches the preview; inline code stays monospaced.",
     lineHeight: "Leading",
     padding: "Margin",
     align: "Align",
@@ -165,6 +171,7 @@ type LineHeightChoice = LineHeightId | "custom";
 type PaddingChoice = PaddingId | "custom";
 type Format = "png" | "jpeg";
 type BackgroundMode = "gradient" | "solid";
+type FontId = "sans" | "serif";
 
 /** A spread wide enough to cover paper, pastel and ink backgrounds */
 const SOLID_SWATCHES = [
@@ -498,6 +505,7 @@ export function TextToImageTool() {
   const [bgHex, setBgHex] = React.useState(DEFAULT_SOLID);
   const [parseMode, setParseMode] = React.useState<ParseMode>("smart");
   const [fontInput, setFontInput] = React.useState("44");
+  const [fontId, setFontId] = React.useState<FontId>("sans");
   /** Size the auto-shrink settled on, kept after the field is rewritten to it */
   const [autoSize, setAutoSize] = React.useState<number | null>(null);
   const [fontFocused, setFontFocused] = React.useState(false);
@@ -555,6 +563,13 @@ export function TextToImageTool() {
   const contentWidth = Math.max(40, frameWidth - padding * 2);
   const frameContentHeight = Math.max(40, frameHeight - padding * 2);
 
+  /* The canvas has no CSS inheritance, so the family stack is read off the DOM */
+  const family = isClient
+    ? fontId === "serif"
+      ? canvasSerifFamily(document.body)
+      : canvasFontFamily(document.body, "--font-inter")
+    : "system-ui, sans-serif";
+
   const layout = React.useMemo<LayoutResult>(() => {
     const empty: LayoutResult = {
       pages: [],
@@ -571,7 +586,7 @@ export function TextToImageTool() {
       lineHeight,
       width: contentWidth,
       height: frameContentHeight,
-      fontFamily: canvasFontFamily(document.body, "--font-inter"),
+      fontFamily: family,
     };
     const measure = (value: string, font: string) => {
       if (!context) return value.length * baseSize * 0.6;
@@ -606,6 +621,7 @@ export function TextToImageTool() {
   }, [
     isClient,
     fontEpoch,
+    family,
     text,
     baseSize,
     lineHeight,
@@ -621,9 +637,6 @@ export function TextToImageTool() {
   const pageCount = layout.pages.length;
   // Editing can shorten the document while a later page is open
   const activePage = Math.min(page, Math.max(0, pageCount - 1));
-  const family = isClient
-    ? canvasFontFamily(document.body, "--font-inter")
-    : "system-ui, sans-serif";
 
   /**
    * Report the size the shrink actually used back into the field, so it never
@@ -973,6 +986,20 @@ export function TextToImageTool() {
                 aria-label={t.footer}
               />
             </label>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <span className="text-[11px] text-foreground-muted">{t.font}</span>
+            <Segmented
+              ariaLabel={t.font}
+              value={fontId}
+              onChange={setFontId}
+              options={[
+                { value: "sans" as FontId, label: t.fonts.sans },
+                { value: "serif" as FontId, label: t.fonts.serif },
+              ]}
+            />
+            <p className="text-[11px] leading-relaxed text-foreground-subtle">{t.fontNote}</p>
           </div>
 
           <div className="flex flex-col gap-3">
