@@ -51,6 +51,7 @@ const COPY = {
       touch: "触摸支持",
       maxTouch: "最大触点",
       pointer: "主指针精度",
+      anyPointer: "任意指针精度",
       hover: "悬停能力",
       cookies: "Cookie 可用",
       doNotTrack: "请勿追踪",
@@ -104,7 +105,7 @@ const COPY = {
     modes: { standalone: "独立应用", fullscreen: "全屏", minimal: "极简", browser: "浏览器标签" },
     copyAll: "复制全部",
     copyJson: "复制 JSON",
-    note: "全部在本机读取，不会上传。较新的字段（显卡、设备内存、网络类型、电池）只有部分浏览器提供，显示「未提供」属正常；分辨率为物理像素，视口不含滚动条。",
+    note: "全部在本机读取，不会上传。较新的字段（显卡、设备内存、网络类型、电池）只有部分浏览器提供，显示「未提供」属正常；分辨率是物理像素，视口不含滚动条。触摸支持只按最大触点数判断，装了触摸屏或数位板驱动、开着浏览器设备模拟时可能显示为支持，可对照「任意指针精度」。",
   },
   en: {
     groups: {
@@ -143,6 +144,7 @@ const COPY = {
       touch: "Touch support",
       maxTouch: "Max touch points",
       pointer: "Primary pointer",
+      anyPointer: "Any pointer",
       hover: "Hover",
       cookies: "Cookies enabled",
       doNotTrack: "Do Not Track",
@@ -196,7 +198,7 @@ const COPY = {
     modes: { standalone: "Standalone", fullscreen: "Fullscreen", minimal: "Minimal UI", browser: "Browser tab" },
     copyAll: "Copy all",
     copyJson: "Copy JSON",
-    note: "Everything is read on your device and never uploaded. Newer fields — GPU, device memory, connection type, battery — are only exposed by some browsers, so “not exposed” is normal. Resolution is in physical pixels; the viewport excludes scrollbars.",
+    note: "Everything is read on your device and never uploaded. Newer fields — GPU, device memory, connection type, battery — are only exposed by some browsers, so “not exposed” is normal. Resolution is in physical pixels; the viewport excludes scrollbars. Touch support follows the maximum touch-point count alone, so a touch or pen digitiser driver — or the browser’s device emulation — can make it read as supported; cross-check “Any pointer”.",
   },
 };
 
@@ -223,6 +225,7 @@ const GROUPS: { id: GroupId; rows: Label[] }[] = [
       "touch",
       "maxTouch",
       "pointer",
+      "anyPointer",
       "hover",
       "cookies",
       "doNotTrack",
@@ -393,7 +396,18 @@ function collectSync(t: Copy): Values {
   const page = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined;
   const heap = (performance as Performance & { memory?: { usedJSHeapSize: number } }).memory;
 
-  const pointer = media("(pointer: coarse)") ? t.pointers.coarse : media("(pointer: fine)") ? t.pointers.fine : t.pointers.none;
+  /*
+   * `pointer` only describes the primary input; `any-pointer` also reports a
+   * touch digitiser the machine keeps around. Splitting them is what makes a
+   * "touch supported" reading on a non-touch desktop explainable.
+   */
+  const pointerKind = (kind: "pointer" | "any-pointer"): string => {
+    if (media(`(${kind}: coarse)`)) return t.pointers.coarse;
+    if (media(`(${kind}: fine)`)) return t.pointers.fine;
+    return t.pointers.none;
+  };
+  const pointer = pointerKind("pointer");
+  const anyPointer = pointerKind("any-pointer");
   const displayMode = media("(display-mode: standalone)")
     ? t.modes.standalone
     : media("(display-mode: fullscreen)")
@@ -429,9 +443,10 @@ function collectSync(t: Copy): Values {
     tzOffset: formatUtcOffset(-new Date().getTimezoneOffset()),
     cores: nav.hardwareConcurrency ? String(nav.hardwareConcurrency) : t.labels.unknown,
     memory: nav.deviceMemory ? `${nav.deviceMemory} GB` : t.labels.unknown,
-    touch: ok(nav.maxTouchPoints > 0 || media("(pointer: coarse)")),
+    touch: ok(nav.maxTouchPoints > 0),
     maxTouch: String(nav.maxTouchPoints ?? 0),
     pointer,
+    anyPointer,
     hover: media("(hover: hover)") ? t.hovers.yes : t.hovers.no,
     cookies: ok(nav.cookieEnabled),
     doNotTrack: ok(nav.doNotTrack === "1" || nav.doNotTrack === "yes"),
