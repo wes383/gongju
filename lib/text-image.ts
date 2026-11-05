@@ -58,6 +58,22 @@ export const MAX_FONT = 160;
 /** Page cap: a wall of text should be split by the user, not by an endless loop */
 export const MAX_PAGES = 40;
 
+/**
+ * Canvas limits in practice: Chrome stops at 32767px on the long edge, and
+ * mobile Safari caps the total area near 16M pixels. Staying inside both keeps
+ * a single long image exportable on phones.
+ */
+export const MAX_AUTO_HEIGHT = 12000;
+export const MAX_CANVAS_AREA = 16_000_000;
+
+/** Tallest image a given width can produce without hitting those limits */
+export function autoHeightCap(width: number): number {
+  return Math.max(1000, Math.min(MAX_AUTO_HEIGHT, Math.floor(MAX_CANVAS_AREA / Math.max(1, width))));
+}
+
+/** Smallest size the auto-shrink will go to before giving up */
+export const MIN_FIT_FONT = 10;
+
 export function clampEdge(value: number, fallback: number): number {
   if (!Number.isFinite(value)) return fallback;
   return Math.min(MAX_EDGE, Math.max(MIN_EDGE, Math.round(value)));
@@ -445,4 +461,61 @@ export function usedHeight(page: PlacedLine[]): number {
   if (page.length === 0) return 0;
   const last = page[page.length - 1];
   return last.top + last.lineHeight;
+}
+
+/** Tall enough that the paginator never breaks, so the flow comes back whole */
+const UNBOUNDED = 1e7;
+
+function onePage(blocks: Block[], options: LayoutOptions, measure: Measure): PlacedLine[] {
+  return layoutPages(blocks, { ...options, height: UNBOUNDED }, measure)[0] ?? [];
+}
+
+export interface SingleLayout {
+  lines: PlacedLine[];
+  /** Content height actually used, padding excluded */
+  height: number;
+  /** Body size that was used, smaller than requested when the type was scaled */
+  size: number;
+  /** True when the type was scaled down to keep everything on one image */
+  shrunk: boolean;
+}
+
+/**
+ * Lay the whole document out on a single canvas.
+ *
+ * Height is whatever the text needs, so nothing is ever paged away. When that
+ * would exceed the canvas limits the body size is reduced instead — the last
+ * resort, because unreadably small text is still worse than a tall image.
+ */
+export function layoutSingle(
+  blocks: Block[],
+  options: LayoutOptions,
+  measure: Measure,
+  maxHeight: number
+): SingleLayout {
+  const natural = onePage(blocks, options, measure);
+  const naturalHeight = usedHeight(natural);
+  if (naturalHeight <= maxHeight) {
+    return { lines: natural, height: naturalHeight, size: options.size, shrunk: false };
+  }
+
+  // Binary search the largest size that still fits the cap
+  let low = Math.min(MIN_FIT_FONT, options.size);
+  let high = options.size;
+  let best: SingleLayout | null = null;
+
+  while (low <= high) {
+    const mid = Math.floor((low + high) / 2);
+    const lines = onePage(blocks, { ...options, size: mid }, measure);
+    const height = usedHeight(lines);
+    if (height <= maxHeight) {
+      best = { lines, height, size: mid, shrunk: true };
+      low = mid + 1;
+    } else {
+      high = mid - 1;
+    }
+  }
+
+  if (best) return best;
+  throw codedError("textimg.overflow");
 }

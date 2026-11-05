@@ -1,8 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { isCodedError } from "@/lib/errors";
 import {
+  MAX_AUTO_HEIGHT,
+  MIN_FIT_FONT,
   MAX_PAGES,
+  autoHeightCap,
   layoutPages,
+  layoutSingle,
   parseBlocks,
   styleFor,
   textTheme,
@@ -165,5 +169,56 @@ describe("textTheme", () => {
   it("falls back to the first palette for an unknown id", () => {
     expect(textTheme("paper").id).toBe("paper");
     expect(textTheme("nope" as "paper").id).toBe("paper");
+  });
+});
+
+describe("layoutSingle", () => {
+  it("keeps a short document whole at the requested size", () => {
+    const result = layoutSingle(parseBlocks("第一段\n第二段"), OPTIONS, measure, 1000);
+
+    expect(result.shrunk).toBe(false);
+    expect(result.size).toBe(20);
+    expect(result.lines).toHaveLength(2);
+    expect(result.height).toBe(usedHeight(result.lines));
+  });
+
+  it("scales the type down until everything fits a tight cap", () => {
+    const source = Array.from({ length: 10 }, (_, index) => `第 ${index} 段`).join("\n");
+    const result = layoutSingle(parseBlocks(source), OPTIONS, measure, 300);
+
+    expect(result.shrunk).toBe(true);
+    expect(result.size).toBeLessThan(20);
+    expect(result.size).toBeGreaterThanOrEqual(MIN_FIT_FONT);
+    expect(result.height).toBeLessThanOrEqual(300);
+    // Nothing is dropped on the way: one line per paragraph, all ten of them
+    expect(result.lines).toHaveLength(10);
+  });
+
+  it("grows past the frame instead of paging when height is free", () => {
+    const source = Array.from({ length: 10 }, (_, index) => `第 ${index} 段`).join("\n");
+    const result = layoutSingle(parseBlocks(source), OPTIONS, measure, 100000);
+
+    expect(result.shrunk).toBe(false);
+    expect(result.lines).toHaveLength(10);
+    expect(result.height).toBeGreaterThan(OPTIONS.height);
+  });
+
+  it("reports overflow rather than silently clipping", () => {
+    const source = Array.from({ length: 10 }, (_, index) => `第 ${index} 段`).join("\n");
+    try {
+      layoutSingle(parseBlocks(source), OPTIONS, measure, 20);
+      throw new Error("expected a coded error");
+    } catch (error) {
+      expect(isCodedError(error)).toBe(true);
+      if (isCodedError(error)) expect(error.code).toBe("textimg.overflow");
+    }
+  });
+});
+
+describe("autoHeightCap", () => {
+  it("stays inside the canvas area limit", () => {
+    expect(autoHeightCap(1080)).toBe(MAX_AUTO_HEIGHT);
+    expect(autoHeightCap(4000)).toBe(4000);
+    expect(autoHeightCap(3000)).toBe(5333);
   });
 });
