@@ -60,12 +60,13 @@ export const MAX_FONT = 800;
 export const MAX_PAGES = 40;
 
 /**
- * Canvas limits in practice: Chrome stops at 32767px on the long edge, and
- * mobile Safari caps the total area near 16M pixels. Staying inside both keeps
- * a single long image exportable on phones.
+ * Canvas limits in practice: Chrome stops at 32767px on the long edge, so the
+ * height ceiling stays well below it. The area budget is deliberately larger
+ * than the 16M a phone can hold: a long article at a readable size needs the
+ * height, and the paged mode remains the fallback for anything longer.
  */
-export const MAX_AUTO_HEIGHT = 12000;
-export const MAX_CANVAS_AREA = 16_000_000;
+export const MAX_AUTO_HEIGHT = 20000;
+export const MAX_CANVAS_AREA = 24_000_000;
 
 /** Tallest image a given width can produce without hitting those limits */
 export function autoHeightCap(width: number): number {

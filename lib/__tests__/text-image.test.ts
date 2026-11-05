@@ -268,8 +268,13 @@ describe("layoutSingle", () => {
 describe("autoHeightCap", () => {
   it("stays inside the canvas area limit", () => {
     expect(autoHeightCap(1080)).toBe(MAX_AUTO_HEIGHT);
-    expect(autoHeightCap(4000)).toBe(4000);
-    expect(autoHeightCap(3000)).toBe(5333);
+    expect(autoHeightCap(3000)).toBe(8000);
+    expect(autoHeightCap(4000)).toBe(6000);
+  });
+
+  it("never grows past the long edge ceiling", () => {
+    // Area alone would allow a 120000px strip at this width
+    expect(autoHeightCap(200)).toBe(MAX_AUTO_HEIGHT);
   });
 });
 
