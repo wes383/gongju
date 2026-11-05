@@ -320,6 +320,14 @@ function drawPage(canvas: HTMLCanvasElement, page: PlacedLine[], options: DrawOp
   }
 }
 
+/**
+ * A blurred size field reports the number the canvas would really use, so the
+ * box never shows 9000 while the image is drawn at the ceiling.
+ */
+function edgeText(value: string, fallback: number): string {
+  return String(clampEdge(Number.parseInt(value, 10), fallback));
+}
+
 /** Size presets carry their pixel dimensions, so the chip has to wrap freely */
 function sizeChip(active: boolean): string {
   return active
@@ -710,6 +718,7 @@ export function TextToImageTool() {
               <Input
                 value={singleWidth}
                 onChange={(event) => setSingleWidth(event.target.value)}
+                onBlur={() => setSingleWidth(edgeText(singleWidth, 1080))}
                 inputMode="numeric"
                 size="xs"
                 placeholder="1080"
@@ -748,6 +757,7 @@ export function TextToImageTool() {
                     <Input
                       value={customWidth}
                       onChange={(event) => setCustomWidth(event.target.value)}
+                      onBlur={() => setCustomWidth(edgeText(customWidth, 1080))}
                       inputMode="numeric"
                       size="xs"
                       aria-label={t.customW}
@@ -758,6 +768,7 @@ export function TextToImageTool() {
                     <Input
                       value={customHeight}
                       onChange={(event) => setCustomHeight(event.target.value)}
+                      onBlur={() => setCustomHeight(edgeText(customHeight, 1920))}
                       inputMode="numeric"
                       size="xs"
                       aria-label={t.customH}
