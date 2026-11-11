@@ -190,13 +190,12 @@ export function ToolDirectory() {
         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent text-accent-fg">
           <Wrench className="h-5 w-5" />
         </span>
-        <div className="flex min-w-0 flex-col">
-          <h1 className="font-display text-lg font-bold leading-tight text-foreground">
-            {SITE_NAME}
-          </h1>
-          <p className="truncate text-xs text-foreground-muted">
-            {HOME_TITLE[locale].split(" · ")[1]}
-          </p>
+        <h1 className="min-w-0 truncate font-display text-lg font-bold leading-tight text-foreground">
+          {SITE_NAME}
+        </h1>
+        <div className="ml-auto flex shrink-0 items-center gap-2">
+          <LanguageToggle size="icon" className="h-10 w-10" />
+          <ThemeToggle size="icon" className="h-10 w-10" />
         </div>
       </header>
       <div className="flex items-center gap-3">
@@ -226,9 +225,6 @@ export function ToolDirectory() {
             </button>
           )}
         </div>
-
-        <LanguageToggle size="icon" className="h-12 w-12 shrink-0" />
-        <ThemeToggle size="icon" className="h-12 w-12 shrink-0" />
       </div>
 
       <div className="mt-8 flex flex-col gap-8">
