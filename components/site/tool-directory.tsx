@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { ThemeToggle } from "@/components/site/theme-toggle";
 import { LanguageToggle } from "@/components/site/language-toggle";
+import { FeedbackLink } from "@/components/site/feedback-link";
 import { ToolCard } from "@/components/site/tool-card";
 import { useLocale, useT } from "@/components/locale-provider";
 import { useDocumentTitle } from "@/components/use-document-title";
@@ -276,12 +277,15 @@ export function ToolDirectory() {
 
       <footer className="mt-14 flex flex-col items-center gap-3 border-t border-border pt-6 text-xs text-foreground-subtle sm:flex-row sm:justify-between">
         <p>{t.footerTagline}</p>
-        <Link
-          href="/privacy"
-          className="inline-flex items-center rounded-full px-2 py-1 transition-colors duration-base ease-out hover:bg-hover-bg hover:text-foreground"
-        >
-          {t.privacy}
-        </Link>
+        <div className="flex items-center gap-1">
+          <FeedbackLink />
+          <Link
+            href="/privacy"
+            className="inline-flex items-center rounded-full px-2 py-1 transition-colors duration-base ease-out hover:bg-hover-bg hover:text-foreground"
+          >
+            {t.privacy}
+          </Link>
+        </div>
       </footer>
     </div>
   );

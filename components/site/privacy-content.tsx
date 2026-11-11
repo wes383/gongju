@@ -61,7 +61,7 @@ const COPY: Record<Locale, PrivacyCopy> = {
     lede: "GongJu（以下简称“本站”）是一个纯浏览器端运行的在线工具箱。本政策说明本站如何处理信息：哪些数据始终留在你的设备上，哪些有限的信息会经过托管服务，以及你对数据拥有的控制权。",
     effectiveLabel: "生效日期",
     effectiveDate: "2026-11-11",
-    version: "版本 1.0",
+    version: "版本 1.1",
     applies: "适用于本站全部页面与工具",
     sections: {
       overview: "引言与适用范围",
@@ -114,7 +114,7 @@ const COPY: Record<Locale, PrivacyCopy> = {
     },
     thirdParty: [
       "本站不集成任何第三方 SDK、统计服务、广告网络或社交插件。页面字体在构建时下载并随站点自托管，运行时不会向字体服务商发起请求。",
-      "本站包含指向外部网站（如 GitHub 项目仓库）的链接。点击后你将离开本站，外部网站的数据实践由其自身隐私政策约束，本站对其内容与实践不承担责任。",
+      "本站包含指向外部网站（如 GitHub 项目仓库、Tally 反馈表单）的链接。点击后你将离开本站，外部网站的数据实践由其自身隐私政策约束，本站对其内容与实践不承担责任。通过反馈表单提交的内容由 Tally 按其隐私政策处理，不会回传至本站。",
     ],
     security: [
       "由于处理全部在本地完成，你的数据不经过网络传输，从根本上避免了传输与服务器存储环节的泄露风险；本站为纯静态站点，不维护用户数据库，因此不存在服务器端的个人数据泄露面。",
@@ -139,7 +139,7 @@ const COPY: Record<Locale, PrivacyCopy> = {
     lede: "GongJu (the “Site”) is an online toolbox that runs entirely in your browser. This policy explains how the Site handles information: what stays on your device, the limited information that passes through the hosting service, and the control you have over your data.",
     effectiveLabel: "Effective",
     effectiveDate: "2026-11-11",
-    version: "Version 1.0",
+    version: "Version 1.1",
     applies: "Applies to every page and tool on this Site",
     sections: {
       overview: "Introduction & Scope",
@@ -192,7 +192,7 @@ const COPY: Record<Locale, PrivacyCopy> = {
     },
     thirdParty: [
       "The Site integrates no third-party SDKs, analytics services, ad networks or social plugins. Fonts are downloaded at build time and self-hosted with the Site, so no requests are made to font providers at runtime.",
-      "The Site contains links to external websites, such as the GitHub project repository. Once you click, you leave the Site; those websites' data practices are governed by their own privacy policies, and the Site is not responsible for their content or practices.",
+      "The Site contains links to external websites, such as the GitHub project repository and the Tally feedback forms. Once you click, you leave the Site; those websites' data practices are governed by their own privacy policies, and the Site is not responsible for their content or practices. Anything you submit through the feedback forms is processed by Tally under its own privacy policy and is not sent back to the Site.",
     ],
     security: [
       "Because all processing happens locally, your data never crosses the network, which removes the transmission and server-storage exposure by design. The Site is fully static and keeps no user database, so there is no server-side personal data to breach.",

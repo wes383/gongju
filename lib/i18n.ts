@@ -58,6 +58,7 @@ export interface Dict {
     back: string;
   };
   privacy: string;
+  feedback: string;
   footerTagline: string;
   /** Keyed by the `code` carried by CodedError; {0}, {1} are placeholders */
   errors: Record<string, string>;
@@ -109,6 +110,7 @@ const zh: Dict = {
     back: "回到工具列表",
   },
   privacy: "隐私政策",
+  feedback: "反馈与建议",
   footerTagline: "纯浏览器运行 · 数据不出本机",
   errors: {
     "base64.invalidChars": "包含非法字符，这不是合法的 Base64 字符串",
@@ -348,6 +350,7 @@ const en: Dict = {
     back: "Back to all tools",
   },
   privacy: "Privacy Policy",
+  feedback: "Feedback & Suggestions",
   footerTagline: "Runs in your browser · data stays on your device",
   errors: {
     "base64.invalidChars": "Contains characters that are not valid Base64",
