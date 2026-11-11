@@ -185,7 +185,7 @@ export function ToolDirectory() {
   );
 
   return (
-    <div className="mx-auto w-full max-w-[1080px] px-5 py-10 sm:py-14">
+    <div className="mx-auto flex min-h-dvh w-full max-w-[1080px] flex-col px-5 py-10 sm:py-14">
       <header className="mb-6 flex items-center gap-3">
         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent text-accent-fg">
           <Wrench className="h-5 w-5" />
@@ -227,7 +227,7 @@ export function ToolDirectory() {
         </div>
       </div>
 
-      <div className="mt-8 flex flex-col gap-8">
+      <div className="mt-8 flex flex-1 flex-col gap-8">
         {groups.map((cat, index) => {
           const Icon = cat.icon;
           const isCollapsed = collapsed.includes(cat.id);
@@ -282,7 +282,9 @@ export function ToolDirectory() {
         })}
 
         {groups.length === 0 && (
-          <p className="py-20 text-center text-sm text-foreground-subtle">{t.searchEmpty}</p>
+          <p className="flex flex-1 items-center justify-center py-20 text-center text-sm text-foreground-subtle">
+            {t.searchEmpty}
+          </p>
         )}
       </div>
 
