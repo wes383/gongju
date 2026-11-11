@@ -172,6 +172,11 @@ import type { Locale } from "@/lib/i18n";
 
 type LocalizedText = Record<Locale, string>;
 
+export interface ToolFaq {
+  q: LocalizedText;
+  a: LocalizedText;
+}
+
 export interface ToolMeta {
   slug: string;
   name: LocalizedText;
@@ -179,6 +184,7 @@ export interface ToolMeta {
   keywords: string[];
   category: CategoryId;
   icon: LucideIcon;
+  faq?: ToolFaq[];
 }
 
 export type CategoryId =
@@ -264,6 +270,29 @@ const encodingTools: ToolMeta[] = [
     },
     keywords: ["base64", "b64", "编码", "解码", "encode", "decode"],
     icon: Binary,
+    faq: [
+      {
+        q: { zh: "Base64 是加密吗？", en: "Is Base64 encryption?" },
+        a: {
+          zh: "不是。Base64 只是把字节映射成 64 个可打印字符，任何人都能解码，不提供保密性。需要保护内容请使用 AES-GCM 等加密工具。",
+          en: "No. Base64 merely maps bytes onto 64 printable characters; anyone can decode it, so it provides no secrecy. Use real encryption such as AES-GCM to protect content.",
+        },
+      },
+      {
+        q: { zh: "支持中文和 emoji 吗？", en: "Does it handle Chinese text and emoji?" },
+        a: {
+          zh: "支持。编码在 UTF-8 字节层面进行，中文、emoji 都能正确往返；解码端也按 UTF-8 还原。",
+          en: "Yes. Encoding works on UTF-8 bytes, so Chinese text and emoji round-trip correctly, and decoding restores them as UTF-8.",
+        },
+      },
+      {
+        q: { zh: "我的数据会被上传吗？", en: "Is my data uploaded anywhere?" },
+        a: {
+          zh: "不会。所有计算都在浏览器本地完成，数据不出本机，无需账号，也没有追踪。",
+          en: "No. Everything runs locally in your browser — nothing leaves your device, and there is no account or tracking.",
+        },
+      },
+    ],
   }),
   tool({
     slug: "url-encode",
@@ -274,6 +303,25 @@ const encodingTools: ToolMeta[] = [
     },
     keywords: ["url", "urlencode", "urldecode", "百分号", "转义", "encode"],
     icon: Link2,
+    faq: [
+      {
+        q: { zh: "什么时候需要 URL 编码？", en: "When is URL encoding needed?" },
+        a: {
+          zh: "当参数值里含有空格、中文或 & = # 等保留字符时，要转成百分号形式，否则它们会被当作 URL 结构的一部分解析。",
+          en: "When a value contains spaces, non-ASCII text or reserved characters such as & = #, percent-encoding stops them being parsed as part of the URL structure.",
+        },
+      },
+      {
+        q: {
+          zh: "encodeURIComponent 和 encodeURI 有什么区别？",
+          en: "encodeURIComponent vs encodeURI — what's the difference?",
+        },
+        a: {
+          zh: "encodeURI 保留 : / ? # 等结构字符，适合编码整条 URL；encodeURIComponent 连这些也编码，适合编码单个查询参数的值。",
+          en: "encodeURI keeps structural characters like : / ? #, so it suits a whole URL; encodeURIComponent encodes those too, so it suits a single query-parameter value.",
+        },
+      },
+    ],
   }),
   tool({
     slug: "html-entity",
@@ -284,6 +332,22 @@ const encodingTools: ToolMeta[] = [
     },
     keywords: ["html", "entity", "实体", "转义", "escape", "unescape"],
     icon: Code2,
+    faq: [
+      {
+        q: { zh: "为什么要转义 HTML 实体？", en: "Why escape HTML entities?" },
+        a: {
+          zh: "< > & 等字符在 HTML 里有语法含义，直接写入会被解析成标签；转成 &lt; &gt; &amp; 后才能作为纯文本显示。",
+          en: "Characters like < > & carry markup meaning and would be parsed as tags; escaped as &lt; &gt; &amp; they display as plain text.",
+        },
+      },
+      {
+        q: { zh: "转义能防 XSS 吗？", en: "Does escaping prevent XSS?" },
+        a: {
+          zh: "把不可信输入转义后再插入 HTML 是防 XSS 的基本手段，但属性、脚本、URL 等不同位置各有规则，不能只依赖这一层。",
+          en: "Escaping untrusted input before inserting it into HTML is a core XSS defense, but attributes, scripts and URLs each have their own rules — it is not the only layer you need.",
+        },
+      },
+    ],
   }),
   tool({
     slug: "unicode",
@@ -294,6 +358,25 @@ const encodingTools: ToolMeta[] = [
     },
     keywords: ["unicode", "中文", "转义", "码点", "codepoint", "\\u"],
     icon: Languages,
+    faq: [
+      {
+        q: {
+          zh: "\\u 转义、&#DDDD; 和 U+XXXX 是什么关系？",
+          en: "How do \\u escapes, &#DDDD; and U+XXXX relate?",
+        },
+        a: {
+          zh: "它们是同一个码点的不同写法：U+4E2D 是标准记法，\\u4e2d 用于 JavaScript/JSON，&#19996; 用于 HTML，指向同一个字符。",
+          en: "They are different notations for one code point: U+4E2D is the standard form, \\u4e2d is used in JavaScript/JSON and &#19996; in HTML — all the same character.",
+        },
+      },
+      {
+        q: { zh: "为什么有些 emoji 是两个 \\u？", en: "Why do some emoji need two \\u escapes?" },
+        a: {
+          zh: "超出 U+FFFF 的字符（多数 emoji）在 UTF-16 里用一对代理项表示，因此出现两个 \\u 转义，这是正常现象。",
+          en: "Characters above U+FFFF (most emoji) are stored as a UTF-16 surrogate pair, so two \\u escapes are expected.",
+        },
+      },
+    ],
   }),
   tool({
     slug: "hex",
@@ -324,6 +407,25 @@ const encodingTools: ToolMeta[] = [
     },
     keywords: ["jwt", "token", "json web token", "bearer", "解码"],
     icon: KeyRound,
+    faq: [
+      {
+        q: { zh: "解码 JWT 能看到什么？", en: "What does decoding a JWT reveal?" },
+        a: {
+          zh: "Header 和 Payload 只是 Base64Url 编码，任何人都能读出其中的声明（如 sub、exp）。签名只防篡改，不保密内容。",
+          en: "The header and payload are only Base64Url-encoded, so anyone can read claims such as sub and exp. The signature guards against tampering, not eavesdropping.",
+        },
+      },
+      {
+        q: {
+          zh: "在这里解码会泄露 token 吗？能验签吗？",
+          en: "Is my token leaked here? Can signatures be verified?",
+        },
+        a: {
+          zh: "解码完全在浏览器本地完成，token 不会被发送出去。本工具只做解码展示，不校验签名——验签需要密钥，应在服务端完成。",
+          en: "Decoding happens entirely in your browser and the token is never sent anywhere. This tool only decodes; signature verification needs the secret key and belongs on the server.",
+        },
+      },
+    ],
   }),
   tool({
     slug: "query-string",
@@ -344,6 +446,22 @@ const encodingTools: ToolMeta[] = [
     },
     keywords: ["markdown", "md", "html", "渲染", "转换", "turndown"],
     icon: FileCode2,
+    faq: [
+      {
+        q: { zh: "渲染出的 HTML 安全吗？", en: "Is the rendered HTML safe?" },
+        a: {
+          zh: "预览经过 DOMPurify 净化，内联脚本与事件属性会被移除；但把输出用于自己的站点时，仍建议按场景再做一次净化。",
+          en: "The preview is sanitized with DOMPurify, which strips inline scripts and event handlers; still, sanitize again for your own site's context before reusing the output.",
+        },
+      },
+      {
+        q: { zh: "支持哪些语法？", en: "Which syntax is supported?" },
+        a: {
+          zh: "渲染使用 marked 并开启 GFM：表格、删除线、任务列表都可用；反向转换使用 turndown，把 HTML 转回 Markdown。",
+          en: "Rendering uses marked with GFM enabled — tables, strikethrough and task lists work; turndown handles the reverse HTML-to-Markdown conversion.",
+        },
+      },
+    ],
   }),
   tool({
     slug: "yaml",
@@ -354,6 +472,22 @@ const encodingTools: ToolMeta[] = [
     },
     keywords: ["yaml", "yml", "json", "配置", "k8s", "转换"],
     icon: FileJson,
+    faq: [
+      {
+        q: { zh: "YAML 转 JSON 会丢信息吗？", en: "Does YAML-to-JSON lose information?" },
+        a: {
+          zh: "映射、列表、标量都能无损互转；但注释会被丢弃，锚点与别名会被展开成实际值，这些在 JSON 里没有对应物。",
+          en: "Maps, lists and scalars convert cleanly, but comments are dropped and anchors/aliases are expanded to their values — JSON has no equivalent for them.",
+        },
+      },
+      {
+        q: { zh: "YAML 缩进能用 Tab 吗？", en: "Can YAML be indented with tabs?" },
+        a: {
+          zh: "不能。YAML 规范禁止用 Tab 缩进，只能用空格，通常每层两个；解析报错时先检查缩进。",
+          en: "No. The YAML spec forbids tab indentation — use spaces, conventionally two per level. Check indentation first when parsing fails.",
+        },
+      },
+    ],
   }),
   tool({
     slug: "xml",
@@ -374,6 +508,22 @@ const encodingTools: ToolMeta[] = [
     },
     keywords: ["csv", "json", "表格", "excel", "tsv", "转换"],
     icon: Table2,
+    faq: [
+      {
+        q: { zh: "字段里的逗号和换行怎么处理？", en: "How are commas and line breaks inside fields handled?" },
+        a: {
+          zh: "按 RFC 4180，含逗号、换行或双引号的字段要用双引号包起来，字段内的双引号写成两个。解析时会自动识别分隔符。",
+          en: "Per RFC 4180, fields containing commas, line breaks or quotes are wrapped in double quotes, and embedded quotes are doubled. The delimiter is detected automatically.",
+        },
+      },
+      {
+        q: { zh: "中文 CSV 在 Excel 里乱码怎么办？", en: "Why does my Chinese CSV look garbled in Excel?" },
+        a: {
+          zh: "通常是编码问题：Excel 偏好带 BOM 的 UTF-8。可以改用「数据 → 从文本导入」并手动选择 UTF-8，或把文件另存为带 BOM 的 UTF-8。",
+          en: "Usually an encoding issue: Excel prefers UTF-8 with BOM. Use Data → From Text and pick UTF-8 explicitly, or re-save the file as UTF-8 with BOM.",
+        },
+      },
+    ],
   }),
   tool({
     slug: "ascii-table",
@@ -437,6 +587,29 @@ const jsonTools: ToolMeta[] = [
     },
     keywords: ["json", "format", "beautify", "minify", "validate", "格式化", "压缩", "校验"],
     icon: Braces,
+    faq: [
+      {
+        q: { zh: "格式化会改变数据吗？", en: "Does formatting change my data?" },
+        a: {
+          zh: "不会。格式化只调整缩进与换行，压缩（minify）只去掉空白，键值内容都保持不变。",
+          en: "No. Formatting only changes indentation and line breaks, and minifying only removes whitespace — the keys and values stay identical.",
+        },
+      },
+      {
+        q: { zh: "能定位 JSON 语法错误吗？", en: "Can it locate JSON syntax errors?" },
+        a: {
+          zh: "可以。解析失败时给出精确的行与列，常见原因是尾逗号、单引号、未加引号的键或多余的括号。",
+          en: "Yes. Parse failures report the exact line and column; the usual culprits are trailing commas, single quotes, unquoted keys or stray brackets.",
+        },
+      },
+      {
+        q: { zh: "敏感的 JSON 贴进来安全吗？", en: "Is it safe to paste sensitive JSON?" },
+        a: {
+          zh: "安全。格式化与校验完全在浏览器里完成，内容不会上传，适合处理含敏感信息的配置和接口响应。",
+          en: "Yes. Formatting and validation run entirely in the browser and nothing is uploaded, which suits configs and API responses containing sensitive data.",
+        },
+      },
+    ],
   }),
   jsonTool({
     slug: "json-tree",
@@ -620,6 +793,22 @@ const textTools: ToolMeta[] = [
     },
     keywords: ["regex", "正则", "匹配", "match", "替换", "replace"],
     icon: Regex,
+    faq: [
+      {
+        q: { zh: "为什么有的正则会让页面卡死？", en: "Why can a regex freeze the page?" },
+        a: {
+          zh: "嵌套量词（如 (a+)+）遇到不匹配的长输入会引发灾难性回溯。这里的匹配在 Web Worker 里运行并带超时，不会卡住界面。",
+          en: "Nested quantifiers like (a+)+ can backtrack catastrophically on long non-matching input. Matches here run in a Web Worker with a timeout, so the UI stays responsive.",
+        },
+      },
+      {
+        q: { zh: "标志 g、i、m 各是什么意思？", en: "What do the g, i and m flags mean?" },
+        a: {
+          zh: "g 找出全部匹配而不是第一个；i 忽略大小写；m 让 ^ 和 $ 匹配每一行的开头结尾，而不只是整个字符串。",
+          en: "g finds every match instead of the first; i ignores case; m makes ^ and $ match line boundaries rather than only the whole string.",
+        },
+      },
+    ],
   }),
   textTool({
     slug: "text-cipher",
@@ -713,6 +902,22 @@ const datetimeTools: ToolMeta[] = [
     },
     keywords: ["timestamp", "unix", "时间戳", "秒", "毫秒", "epoch"],
     icon: Clock,
+    faq: [
+      {
+        q: { zh: "时间戳是秒还是毫秒？", en: "Is a timestamp in seconds or milliseconds?" },
+        a: {
+          zh: "Unix 时间戳本义是秒；JavaScript 的 Date.now() 给的是毫秒。10 位是秒、13 位是毫秒，本工具会自动识别秒 / 毫秒 / 微秒 / 纳秒。",
+          en: "A Unix timestamp counts seconds by definition; JavaScript's Date.now() returns milliseconds. Ten digits means seconds, thirteen means milliseconds — this tool auto-detects s/ms/µs/ns.",
+        },
+      },
+      {
+        q: { zh: "时间戳有时区吗？", en: "Do timestamps have a time zone?" },
+        a: {
+          zh: "没有。时间戳是全球统一的时刻，只有转换成可读日期时才涉及时区选择。",
+          en: "No. A timestamp is a single instant worldwide; time zones only matter when rendering it as a human-readable date.",
+        },
+      },
+    ],
   }),
   dateTool({
     slug: "timezone",
@@ -743,6 +948,25 @@ const datetimeTools: ToolMeta[] = [
     },
     keywords: ["cron", "crontab", "定时", "表达式", "schedule", "生成", "builder"],
     icon: CalendarClock,
+    faq: [
+      {
+        q: {
+          zh: "五个字段和六个字段的 cron 有什么区别？",
+          en: "What's the difference between 5-field and 6-field cron?",
+        },
+        a: {
+          zh: "标准 crontab 是五个字段：分 时 日 月 周；Quartz 等调度器在前面加一个秒字段变成六个。写表达式前先确认目标系统用哪种。",
+          en: "Standard crontab has five fields — minute hour day-of-month month day-of-week; Quartz-style schedulers prepend a seconds field. Check which form your target system expects.",
+        },
+      },
+      {
+        q: { zh: "「日」和「周」同时指定会怎样？", en: "What if I set both day-of-month and day-of-week?" },
+        a: {
+          zh: "在标准 crontab 里两者是「或」的关系：任一条件满足就触发，这是常见的配置陷阱。",
+          en: "In standard crontab they are OR-ed: the job runs when either matches — a common configuration gotcha.",
+        },
+      },
+    ],
   }),
   dateTool({
     slug: "date-add",
@@ -796,6 +1020,22 @@ const hashTools: ToolMeta[] = [
     },
     keywords: ["hash", "md5", "sha1", "sha256", "sha512", "sha3", "摘要", "哈希"],
     icon: Hash,
+    faq: [
+      {
+        q: { zh: "MD5 还能用来存密码吗？", en: "Is MD5 still safe for storing passwords?" },
+        a: {
+          zh: "不能。MD5 和 SHA-1 已可被碰撞且计算太快，密码存储应使用 bcrypt、scrypt 或 Argon2 这类慢哈希；MD5 只适合非安全场景的校验和。",
+          en: "No. MD5 and SHA-1 are collision-prone and fast to brute force; store passwords with slow hashes like bcrypt, scrypt or Argon2. MD5 is fine only for non-security checksums.",
+        },
+      },
+      {
+        q: { zh: "哈希和加密有什么区别？", en: "How is hashing different from encryption?" },
+        a: {
+          zh: "哈希是单向指纹，不可逆，用于校验完整性与去重；加密是可逆的，需要密钥才能还原原文。",
+          en: "A hash is a one-way fingerprint used for integrity checks and deduplication; encryption is reversible and needs a key to recover the original.",
+        },
+      },
+    ],
   }),
   hashTool({
     slug: "hmac",
@@ -816,6 +1056,22 @@ const hashTools: ToolMeta[] = [
     },
     keywords: ["密码", "password", "生成", "随机", "强密码"],
     icon: Lock,
+    faq: [
+      {
+        q: { zh: "生成的密码安全吗？", en: "Are the generated passwords secure?" },
+        a: {
+          zh: "使用浏览器加密级随机源 crypto.getRandomValues 在本机生成，不经过网络，比人为设定的密码更难预测。",
+          en: "They are drawn from the browser's cryptographic RNG (crypto.getRandomValues) on your own machine, never over the network, and are far harder to guess than human-chosen passwords.",
+        },
+      },
+      {
+        q: { zh: "密码多长才够？", en: "How long should a password be?" },
+        a: {
+          zh: "一般建议 16 位以上并混合大小写、数字与符号；重要账户用密码管理器保存，并为每个站点生成不同的密码。",
+          en: "Aim for 16+ characters mixing cases, digits and symbols; keep them in a password manager and use a unique one per site.",
+        },
+      },
+    ],
   }),
   hashTool({
     slug: "uuid",
@@ -826,6 +1082,22 @@ const hashTools: ToolMeta[] = [
     },
     keywords: ["uuid", "guid", "v4", "v7", "唯一标识"],
     icon: Fingerprint,
+    faq: [
+      {
+        q: { zh: "v4 和 v7 有什么区别？", en: "What's the difference between v4 and v7?" },
+        a: {
+          zh: "v4 完全随机；v7 前 48 位是毫秒时间戳，按生成时间有序，做数据库主键能减少索引碎片。",
+          en: "v4 is fully random; v7 embeds a 48-bit millisecond timestamp so it sorts by creation time — a better database primary key that reduces index fragmentation.",
+        },
+      },
+      {
+        q: { zh: "UUID 会重复吗？", en: "Can UUIDs collide?" },
+        a: {
+          zh: "v4 有 122 位随机空间，实际使用中碰撞概率可以忽略，但理论上不为零；海量写入场景仍建议保留唯一约束。",
+          en: "v4 carries 122 random bits, so collisions are negligible in practice but not impossible; keep a uniqueness constraint at massive scale.",
+        },
+      },
+    ],
   }),
   hashTool({
     slug: "random-string",
@@ -879,6 +1151,22 @@ const imageTools: ToolMeta[] = [
     },
     keywords: ["压缩", "compress", "图片压缩", "瘦身", "kb", "webp"],
     icon: ImageDown,
+    faq: [
+      {
+        q: { zh: "压缩会损失画质吗？", en: "Does compression reduce quality?" },
+        a: {
+          zh: "有损格式（JPEG/WebP 等）靠丢弃人眼不敏感的细节换体积，质量参数越低失真越明显；限制最大边长则直接减少像素数。",
+          en: "Lossy formats (JPEG/WebP) trade details the eye barely notices for size — lower quality means more visible artifacts; capping the longest edge simply reduces pixels.",
+        },
+      },
+      {
+        q: { zh: "图片会被上传吗？", en: "Are my images uploaded?" },
+        a: {
+          zh: "不会。压缩在浏览器内完成，原图不出本机，批量处理后打包下载也是在本地生成的。",
+          en: "No. Compression happens in your browser, the originals never leave your device, and even the batch zip is built locally.",
+        },
+      },
+    ],
   }),
   imageTool({
     slug: "image-convert",
@@ -1135,6 +1423,25 @@ const qrcodeTools: ToolMeta[] = [
     },
     keywords: ["二维码", "qrcode", "生成", "wifi", "名片", "vcard"],
     icon: QrCode,
+    faq: [
+      {
+        q: { zh: "二维码能存多少数据？", en: "How much data fits in a QR code?" },
+        a: {
+          zh: "最大约 7089 个数字或 4296 个字母数字字符（版本 40、最低纠错）。内容越多点阵越密，越难扫描，建议尽量放短内容或短链接。",
+          en: "Up to 7,089 digits or 4,296 alphanumeric characters at version 40 with the lowest error correction. More data means denser modules and harder scanning — keep payloads short.",
+        },
+      },
+      {
+        q: {
+          zh: "要叠加 Logo 时纠错等级怎么选？",
+          en: "Which error-correction level should I use with a logo?",
+        },
+        a: {
+          zh: "L/M/Q/H 分别可恢复约 7%/15%/25%/30% 的污损。叠加 Logo 时选 H，被遮住的中心区域才能被纠错冗余恢复。",
+          en: "L/M/Q/H recover roughly 7/15/25/30% damage. Pick H when overlaying a logo so the covered centre can still be recovered from the redundancy.",
+        },
+      },
+    ],
   }),
   qrTool({
     slug: "qrcode-reader",
@@ -1398,6 +1705,22 @@ const pdfTools: ToolMeta[] = [
     },
     keywords: ["pdf", "合并", "拼接", "merge", "combine", "join"],
     icon: Merge,
+    faq: [
+      {
+        q: { zh: "合并后的页序怎么定？", en: "How is the page order decided?" },
+        a: {
+          zh: "按你调整后的文件顺序依次拼接，每个文件内部保持原有页序；带密码的 PDF 需要先解除加密才能合并。",
+          en: "Files are concatenated in the order you arrange, each keeping its internal page order; password-protected PDFs must be decrypted first.",
+        },
+      },
+      {
+        q: { zh: "合并会压缩体积吗？", en: "Does merging shrink the files?" },
+        a: {
+          zh: "合并本身不重新压缩内容，体积约等于各文件之和；需要更小体积请使用 PDF 压缩工具。整个合并过程在浏览器本地完成。",
+          en: "Merging does not re-compress content, so the result is roughly the sum of the inputs; use the PDF compressor for smaller output. The whole merge runs locally in your browser.",
+        },
+      },
+    ],
   }),
   pdfTool({
     slug: "pdf-split",

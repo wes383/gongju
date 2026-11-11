@@ -60,6 +60,7 @@ export interface Dict {
   privacy: string;
   feedback: string;
   footerTagline: string;
+  faq: string;
   /** Keyed by the `code` carried by CodedError; {0}, {1} are placeholders */
   errors: Record<string, string>;
 }
@@ -112,6 +113,7 @@ const zh: Dict = {
   privacy: "隐私政策",
   feedback: "意见反馈",
   footerTagline: "纯浏览器运行 · 数据不出本机",
+  faq: "常见问题",
   errors: {
     "base64.invalidChars": "包含非法字符，这不是合法的 Base64 字符串",
     "base64.badLength": "长度不合法（Base64 长度应为 4 的倍数）",
@@ -352,6 +354,7 @@ const en: Dict = {
   privacy: "Privacy Policy",
   feedback: "Feedback",
   footerTagline: "Runs in your browser · data stays on your device",
+  faq: "FAQ",
   errors: {
     "base64.invalidChars": "Contains characters that are not valid Base64",
     "base64.badLength": "Invalid length: Base64 must be a multiple of 4 characters",

@@ -102,6 +102,21 @@ export function toolJsonLd(tool: ToolMeta): JsonLdNode {
           },
         ],
       },
+      // FAQ markup mirrors the zh HTML that crawlers actually receive
+      ...(tool.faq?.length
+        ? [
+            {
+              "@type": "FAQPage",
+              "@id": `${url}#faq`,
+              inLanguage: SITE_LANG,
+              mainEntity: tool.faq.map((item) => ({
+                "@type": "Question",
+                name: item.q.zh,
+                acceptedAnswer: { "@type": "Answer", text: item.a.zh },
+              })),
+            },
+          ]
+        : []),
     ],
   };
 }

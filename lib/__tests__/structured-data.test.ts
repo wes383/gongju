@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { serializeJsonLd, siteJsonLd, toolJsonLd } from "@/lib/structured-data";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
-import { getTool } from "@/lib/tools";
+import { allTools, getTool } from "@/lib/tools";
 
 const base64 = getTool("base64")!;
 
@@ -53,6 +53,38 @@ describe("tool graph", () => {
       ids.add(String(app["@id"]));
     }
     expect(ids.size).toBe(3);
+  });
+
+  it("emits a FAQPage node mirroring the on-page questions", () => {
+    const faq = graph(toolJsonLd(base64)).find((node) => node["@type"] === "FAQPage");
+    expect(faq).toBeDefined();
+    expect(faq!["@id"]).toBe(`${SITE_URL}/tools/base64#faq`);
+    expect(faq!.inLanguage).toBe("zh-CN");
+    const questions = faq!.mainEntity as Record<string, unknown>[];
+    expect(questions).toHaveLength(base64.faq!.length);
+    expect(questions[0]).toMatchObject({
+      "@type": "Question",
+      name: base64.faq![0].q.zh,
+      acceptedAnswer: { "@type": "Answer", text: base64.faq![0].a.zh },
+    });
+  });
+
+  it("omits FAQPage for tools without FAQs", () => {
+    const tool = allTools.find((t) => !t.faq)!;
+    expect(graph(toolJsonLd(tool)).some((node) => node["@type"] === "FAQPage")).toBe(false);
+  });
+});
+
+describe("faq content", () => {
+  it("is bilingual and non-empty wherever present", () => {
+    for (const tool of allTools) {
+      for (const item of tool.faq ?? []) {
+        expect(item.q.zh, tool.slug).not.toBe("");
+        expect(item.q.en, tool.slug).not.toBe("");
+        expect(item.a.zh, tool.slug).not.toBe("");
+        expect(item.a.en, tool.slug).not.toBe("");
+      }
+    }
   });
 });
 
