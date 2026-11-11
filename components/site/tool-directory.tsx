@@ -10,7 +10,6 @@ import {
   LayoutGrid,
   List,
   Search,
-  ShieldCheck,
   X,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/site/theme-toggle";
@@ -279,9 +278,8 @@ export function ToolDirectory() {
         <p>{t.footerTagline}</p>
         <Link
           href="/privacy"
-          className="inline-flex items-center gap-1.5 rounded-full px-2 py-1 transition-colors duration-base ease-out hover:bg-hover-bg hover:text-foreground"
+          className="inline-flex items-center rounded-full px-2 py-1 transition-colors duration-base ease-out hover:bg-hover-bg hover:text-foreground"
         >
-          <ShieldCheck className="h-3.5 w-3.5" />
           {t.privacy}
         </Link>
       </footer>
