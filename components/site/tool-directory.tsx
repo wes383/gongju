@@ -190,7 +190,7 @@ export function ToolDirectory() {
         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent text-accent-fg">
           <Wrench className="h-5 w-5" />
         </span>
-        <h1 className="min-w-0 truncate font-display text-lg font-bold leading-tight text-foreground">
+        <h1 className="shrink-0 font-display text-lg font-bold leading-normal text-foreground">
           {SITE_NAME}
         </h1>
         <div className="ml-auto flex shrink-0 items-center gap-2">
