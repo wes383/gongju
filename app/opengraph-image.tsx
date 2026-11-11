@@ -1,4 +1,5 @@
 import { ImageResponse } from "next/og";
+import { SITE_ICON_DATA_URI } from "@/lib/site";
 
 /** Latin-only artwork: the default OG font has no CJK glyphs */
 export const alt = "GongJu — a browser-only toolbox for developers";
@@ -21,15 +22,8 @@ export default function OpengraphImage() {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "18px" }}>
-          <div
-            style={{
-              display: "flex",
-              width: "44px",
-              height: "44px",
-              borderRadius: "14px",
-              background: "#25242a",
-            }}
-          />
+          {/* eslint-disable-next-line @next/next/no-img-element -- satori JSX, not DOM; next/image cannot render here */}
+          <img src={SITE_ICON_DATA_URI} width={44} height={44} alt="" />
           <div style={{ display: "flex", fontSize: "30px", color: "#25242a" }}>GongJu</div>
         </div>
 

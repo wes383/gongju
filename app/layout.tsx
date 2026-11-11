@@ -69,9 +69,6 @@ export const metadata: Metadata = {
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
   },
-  // Empty data URL: no favicon is shipped, and this stops the browser from
-  // requesting /favicon.ico and logging a 404 on every load.
-  icons: { icon: "data:," },
 };
 
 export const viewport: Viewport = {

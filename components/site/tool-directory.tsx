@@ -10,6 +10,7 @@ import {
   LayoutGrid,
   List,
   Search,
+  Wrench,
   X,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/site/theme-toggle";
@@ -19,6 +20,7 @@ import { ToolCard } from "@/components/site/tool-card";
 import { useLocale, useT } from "@/components/locale-provider";
 import { useDocumentTitle } from "@/components/use-document-title";
 import { useScrollRestoration } from "@/components/use-scroll-restoration";
+import { SITE_NAME } from "@/lib/site";
 import {
   categories,
   categoryMatches,
@@ -184,6 +186,19 @@ export function ToolDirectory() {
 
   return (
     <div className="mx-auto w-full max-w-[1080px] px-5 py-10 sm:py-14">
+      <header className="mb-6 flex items-center gap-3">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent text-accent-fg">
+          <Wrench className="h-5 w-5" />
+        </span>
+        <div className="flex min-w-0 flex-col">
+          <h1 className="font-display text-lg font-bold leading-tight text-foreground">
+            {SITE_NAME}
+          </h1>
+          <p className="truncate text-xs text-foreground-muted">
+            {HOME_TITLE[locale].split(" · ")[1]}
+          </p>
+        </div>
+      </header>
       <div className="flex items-center gap-3">
         <div className="relative flex-1">
           <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground-subtle" />

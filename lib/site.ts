@@ -27,3 +27,8 @@ export const SITE_LANG = "zh-CN";
 export function absoluteUrl(path: string): string {
   return path.startsWith("http") ? path : `${SITE_URL}${path.startsWith("/") ? "" : "/"}${path}`;
 }
+
+/** Brand mark: lucide `wrench` on an ink rounded square; satori only accepts SVG as an img data URI */
+export const SITE_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="8" fill="#25242a"/><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.106-3.105c.32-.322.863-.22.983.218a6 6 0 0 1-8.259 7.057l-7.91 7.91a1 1 0 0 1-2.999-3l7.91-7.91a6 6 0 0 1 7.057-8.259c.438.12.54.662.219.984z" transform="translate(4 4)" fill="none" stroke="#fcfbfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+export const SITE_ICON_DATA_URI = `data:image/svg+xml,${encodeURIComponent(SITE_ICON_SVG)}`;
