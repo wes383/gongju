@@ -18,7 +18,6 @@ export const metadata: Metadata = {
     description,
     url: `${SITE_URL}/privacy`,
     locale: SITE_OG_LOCALE,
-    alternateLocale: ["en"],
   },
   twitter: {
     card: "summary_large_image",

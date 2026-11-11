@@ -15,7 +15,6 @@ describe("tool metadata", () => {
       description: base64.description.zh,
       url: `${SITE_URL}/tools/base64`,
       locale: "zh_CN",
-      alternateLocale: ["en"],
     });
     expect(meta.twitter).toEqual({
       card: "summary_large_image",

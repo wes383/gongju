@@ -62,7 +62,6 @@ export const metadata: Metadata = {
     description: SITE_DESCRIPTION,
     url: SITE_URL,
     locale: SITE_OG_LOCALE,
-    alternateLocale: ["en"],
   },
   twitter: {
     card: "summary_large_image",

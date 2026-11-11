@@ -44,7 +44,6 @@ export function toolMetadata(tool: ToolMeta): Metadata {
       description,
       url,
       locale: SITE_OG_LOCALE,
-      alternateLocale: ["en"],
     },
     twitter: {
       card: "summary_large_image",
