@@ -17,7 +17,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 ## Architecture
 
 - Next.js 16.4.3 App Router (`cacheComponents`, Turbopack) + React 19 + Tailwind v4. Tool pages are statically generated.
-- `lib/tools.ts` is the single source of truth for tools and categories (nav, home, search). A new tool means: register it there, add `app/tools/<slug>/page.tsx` (metadata + assembly only), and a client component in `components/tools/`.
+- `lib/tools.ts` is the single source of truth for tools and categories (nav, home, search). A new tool means: register it there, add `app/(en)/tools/<slug>/page.tsx` (metadata + assembly only), a client component in `components/tools/`, then run `node scripts/gen-tool-loader.mjs` so the `/zh` catch-all can load it.
 - When adding a new category, re-check tools already filed under other categories and move the ones that fit the new category better (nav, home and search derive from the registry).
 - Shared shell is `ToolFrame`; it takes `slug` and resolves metadata on the client.
 - `lib/*` must stay React-free and unit-testable. Per-tool copy lives in the component's `COPY = { zh, en }` read through `useCopy`.
@@ -28,7 +28,10 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## i18n
 
-- Client-only locale switching (no URL change). `components/locale-provider.tsx` exposes `useLocale / useSetLocale / useT / useCopy`; the choice is stored in `localStorage` under `gongju-locale`, read in `useLayoutEffect` to avoid flicker and hydration mismatch.
+- URL-level locales: English is the default at root URLs, Chinese lives under `/zh`. Two root layouts (`app/(en)/`, `app/(zh)/`) share `components/site/site-shell.tsx`, which hands the locale to `LocaleProvider`; `useLocale / useT / useCopy` read it from context. The URL is the source of truth — no localStorage preference.
+- Internal links go through `localePath(locale, path)`; the language switcher navigates with `switchLocalePath(pathname, next)`. Crossing the two root layouts is a full page load by design.
+- `/zh/tools/[slug]` is a static catch-all (`generateStaticParams`, unknown slugs hit `notFound()`; `instant = false` because a catch-all cannot promise an instant shell, and `dynamicParams` is incompatible with `cacheComponents`) rendering tools through `components/tools/tool-loader.tsx`, a generated slug → lazy component map.
+- Metadata and JSON-LD are per locale: `toolMetadata(tool, locale)`, `siteMetadata(locale)`, `toolJsonLd(tool, locale)`. Every page declares its own canonical plus hreflang alternates (`x-default` = English); never put canonicals or alternates in a layout.
 - Generic UI copy goes in `lib/i18n.ts`; tool-specific copy stays in the tool component.
 - Errors: throw `codedError(code, ...params)` from `lib/errors.ts`, render with `errorText(error, locale)`. Never surface raw `error.message`.
 - English UI must contain no Chinese: render `item[locale]`, never both `zh` and `en`; sample data must be locale-aware.
@@ -43,7 +46,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Next rewrites `<title>` during hydration; use `components/use-document-title.ts` instead of setting `document.title` directly.
 - `ImageResponse` (OG images) only has a Latin font: no CJK text.
 - After editing `lib/tools.ts`, a route may 500 in dev due to Turbopack module cache; restart the dev server.
-- If `tsc` reports syntax errors in `.next/dev/types/validator.ts`, delete that file and let dev regenerate it.
+- If `tsc` reports errors in `.next/dev/types/validator.ts` or `.next/types/validator.ts` (stale route references after moving pages), delete the file and let dev regenerate it.
 
 ## Libraries in use
 

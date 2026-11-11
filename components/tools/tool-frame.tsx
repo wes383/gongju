@@ -6,6 +6,7 @@ import { ArrowLeft } from "lucide-react";
 import { useLocale, useT } from "@/components/locale-provider";
 import { useDocumentTitle } from "@/components/use-document-title";
 import { ToolFaq } from "@/components/tools/tool-faq";
+import { localePath } from "@/lib/i18n";
 import { getTool, toolDescription, toolName } from "@/lib/tools";
 
 export function ToolFrame({
@@ -27,7 +28,7 @@ export function ToolFrame({
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-3">
           <Link
-            href="/"
+            href={localePath(locale, "/")}
             className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-border bg-surface px-4 text-sm font-medium text-foreground transition-colors duration-base ease-out hover:bg-hover-bg"
           >
             <ArrowLeft className="h-4 w-4" />

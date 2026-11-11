@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { useLocale } from "@/components/locale-provider";
+import { localePath } from "@/lib/i18n";
 import { toolDescription, toolName, type ToolMeta } from "@/lib/tools";
 import { cn } from "@/lib/utils";
 
@@ -17,7 +18,7 @@ export function ToolCard({ tool, className }: ToolCardProps) {
 
   return (
     <Link
-      href={`/tools/${tool.slug}`}
+      href={localePath(locale, `/tools/${tool.slug}`)}
       className={cn(
         "group relative flex flex-col gap-3 rounded-lg border border-border bg-surface p-4 transition-all duration-base ease-out",
         "hover:border-border-strong hover:shadow-md",

@@ -1,6 +1,32 @@
 export type Locale = "zh" | "en";
 
-export const LOCALE_STORAGE_KEY = "gongju-locale";
+/** English lives at the root URLs; Chinese is served under /zh */
+export const DEFAULT_LOCALE: Locale = "en";
+
+export const LOCALES: Locale[] = ["en", "zh"];
+
+const LOCALE_PREFIX: Record<Locale, string> = { en: "", zh: "/zh" };
+
+export function otherLocale(locale: Locale): Locale {
+  return locale === "en" ? "zh" : "en";
+}
+
+/** Public URL path for a locale-neutral path such as "/tools/base64" */
+export function localePath(locale: Locale, path: string): string {
+  if (path === "/") return LOCALE_PREFIX[locale] || "/";
+  return `${LOCALE_PREFIX[locale]}${path}`;
+}
+
+export function localeFromPath(pathname: string): Locale {
+  return pathname === "/zh" || pathname.startsWith("/zh/") ? "zh" : "en";
+}
+
+/** Same page in the other locale, for the language switcher */
+export function switchLocalePath(pathname: string, next: Locale): string {
+  const neutral =
+    pathname === "/zh" ? "/" : pathname.startsWith("/zh/") ? pathname.slice(3) : pathname;
+  return localePath(next, neutral);
+}
 
 export const localeLabels: Record<Locale, string> = {
   zh: "中文",

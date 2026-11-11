@@ -1,0 +1,20 @@
+import type { Metadata } from "next";
+import { JsonLd } from "@/components/site/json-ld";
+import { ToolFrame } from "@/components/tools/tool-frame";
+import { PdfSplitTool } from "@/components/tools/pdf-split-tool";
+import { toolMetadata } from "@/lib/page-meta";
+import { toolJsonLd } from "@/lib/structured-data";
+import { getTool } from "@/lib/tools";
+
+const meta = getTool("pdf-split")!;
+
+export const metadata: Metadata = toolMetadata(meta, "en");
+
+export default function Page() {
+  return (
+    <ToolFrame slug="pdf-split">
+      <JsonLd data={toolJsonLd(meta, "en")} />
+      <PdfSplitTool />
+    </ToolFrame>
+  );
+}

@@ -1,0 +1,20 @@
+import type { Metadata } from "next";
+import { JsonLd } from "@/components/site/json-ld";
+import { ToolFrame } from "@/components/tools/tool-frame";
+import { HeartRateZonesTool } from "@/components/tools/heart-rate-zones-tool";
+import { toolMetadata } from "@/lib/page-meta";
+import { toolJsonLd } from "@/lib/structured-data";
+import { getTool } from "@/lib/tools";
+
+const meta = getTool("heart-rate-zones")!;
+
+export const metadata: Metadata = toolMetadata(meta, "en");
+
+export default function Page() {
+  return (
+    <ToolFrame slug="heart-rate-zones">
+      <JsonLd data={toolJsonLd(meta, "en")} />
+      <HeartRateZonesTool />
+    </ToolFrame>
+  );
+}

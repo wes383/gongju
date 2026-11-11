@@ -1,8 +1,10 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Check, Languages } from "lucide-react";
-import { useLocale, useSetLocale, useT } from "@/components/locale-provider";
+import { useLocale, useT } from "@/components/locale-provider";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -11,9 +13,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { localeLabels, type Locale } from "@/lib/i18n";
-
-const LOCALES: Locale[] = ["zh", "en"];
+import { LOCALES, localeLabels, switchLocalePath } from "@/lib/i18n";
 
 export function LanguageToggle({
   size = "icon-sm",
@@ -23,7 +23,7 @@ export function LanguageToggle({
   className?: string;
 }) {
   const locale = useLocale();
-  const setLocale = useSetLocale();
+  const pathname = usePathname();
   const t = useT();
 
   return (
@@ -43,11 +43,13 @@ export function LanguageToggle({
       <DropdownMenuContent align="end" sideOffset={8} className="min-w-[140px]">
         <DropdownMenuLabel>{t.language.menu}</DropdownMenuLabel>
         {LOCALES.map((code) => (
-          <DropdownMenuItem key={code} onClick={() => setLocale(code)}>
-            <span>{localeLabels[code]}</span>
-            {locale === code && (
-              <Check className="ml-auto h-3.5 w-3.5 text-foreground-muted" />
-            )}
+          <DropdownMenuItem key={code} asChild>
+            <Link href={switchLocalePath(pathname, code)}>
+              <span>{localeLabels[code]}</span>
+              {locale === code && (
+                <Check className="ml-auto h-3.5 w-3.5 text-foreground-muted" />
+              )}
+            </Link>
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>

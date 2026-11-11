@@ -1,3 +1,5 @@
+import type { Locale } from "./i18n";
+
 /**
  * Canonical origin of the deployed site.
  *
@@ -13,16 +15,23 @@ export const SITE_URL = (
 
 export const SITE_NAME = "GongJu";
 
-export const SITE_TITLE = "GongJu · 在线工具箱";
+export const SITE_COPY: Record<Locale, { title: string; description: string; keywords: string[] }> = {
+  en: {
+    title: "GongJu · Online Toolbox",
+    description:
+      "A developer toolbox that runs entirely in your browser: encode, decode, format, convert, encrypt, date & time utilities and more. Your data never leaves your device.",
+    keywords: ["online tools", "developer tools", "encode", "decode", "formatter", "converter"],
+  },
+  zh: {
+    title: "GongJu · 在线工具箱",
+    description:
+      "纯浏览器端运行的开发者工具箱：编码解码、格式化、转换、加密、时间日期等常用工具，数据不出本机。",
+    keywords: ["在线工具", "开发者工具", "编码解码", "格式化", "转换器"],
+  },
+};
 
-export const SITE_DESCRIPTION =
-  "纯浏览器端运行的开发者工具箱：编码解码、格式化、转换、加密、时间日期等常用工具，数据不出本机。";
-
-/** Open Graph locale tag, which uses an underscore rather than a dash */
-export const SITE_OG_LOCALE = "zh_CN";
-
-/** BCP 47 tag used by <html lang> and schema.org `inLanguage` */
-export const SITE_LANG = "zh-CN";
+/** Open Graph locale tags, which use underscores rather than dashes */
+export const OG_LOCALE: Record<Locale, string> = { en: "en_US", zh: "zh_CN" };
 
 /** Absolute URL for a site path, used wherever a crawler needs a full URL */
 export function absoluteUrl(path: string): string {

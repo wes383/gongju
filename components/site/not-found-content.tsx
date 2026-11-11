@@ -2,10 +2,12 @@
 
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { useT } from "@/components/locale-provider";
+import { useLocale, useT } from "@/components/locale-provider";
 import { useDocumentTitle } from "@/components/use-document-title";
+import { localePath } from "@/lib/i18n";
 
 export function NotFoundContent() {
+  const locale = useLocale();
   const t = useT();
 
   useDocumentTitle("404 · GongJu");
@@ -16,7 +18,7 @@ export function NotFoundContent() {
       <h1 className="font-display text-xl font-semibold text-foreground">{t.notFound.title}</h1>
       <p className="max-w-[380px] text-sm text-foreground-muted">{t.notFound.description}</p>
       <Link
-        href="/"
+        href={localePath(locale, "/")}
         className="mt-2 inline-flex h-9 items-center gap-1.5 rounded-full border border-border bg-surface px-4 text-sm font-medium text-foreground transition-colors duration-base ease-out hover:bg-hover-bg"
       >
         <ArrowLeft className="h-4 w-4" />

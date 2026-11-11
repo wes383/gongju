@@ -21,6 +21,7 @@ import { useLocale, useT } from "@/components/locale-provider";
 import { useDocumentTitle } from "@/components/use-document-title";
 import { useScrollRestoration } from "@/components/use-scroll-restoration";
 import { SITE_NAME } from "@/lib/site";
+import { localePath } from "@/lib/i18n";
 import {
   categories,
   categoryMatches,
@@ -48,7 +49,7 @@ function ToolRow({ tool }: { tool: ToolMeta }) {
   const Icon = tool.icon;
   return (
     <Link
-      href={`/tools/${tool.slug}`}
+      href={localePath(locale, `/tools/${tool.slug}`)}
       className="group flex items-center gap-3 rounded-md px-3 py-2 transition-colors duration-base ease-out hover:bg-hover-bg"
     >
       <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-hover-bg text-foreground-muted transition-colors group-hover:text-foreground">
@@ -293,7 +294,7 @@ export function ToolDirectory() {
         <div className="flex items-center gap-1">
           <FeedbackLink />
           <Link
-            href="/privacy"
+            href={localePath(locale, "/privacy")}
             className="inline-flex items-center rounded-full px-2 py-1 transition-colors duration-base ease-out hover:bg-hover-bg hover:text-foreground"
           >
             {t.privacy}

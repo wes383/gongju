@@ -4,9 +4,9 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { LanguageToggle } from "@/components/site/language-toggle";
 import { ThemeToggle } from "@/components/site/theme-toggle";
-import { useCopy, useT } from "@/components/locale-provider";
+import { useCopy, useLocale, useT } from "@/components/locale-provider";
 import { useDocumentTitle } from "@/components/use-document-title";
-import type { Locale } from "@/lib/i18n";
+import { localePath, type Locale } from "@/lib/i18n";
 
 type SectionId =
   | "overview"
@@ -263,6 +263,7 @@ function BulletList({ items }: { items: string[] }) {
 
 export function PrivacyContent() {
   const copy = useCopy(COPY);
+  const locale = useLocale();
   const t = useT();
 
   useDocumentTitle(`${copy.title} · GongJu`);
@@ -271,7 +272,7 @@ export function PrivacyContent() {
     <div className="mx-auto w-full max-w-[720px] px-5 py-10 sm:py-14">
       <div className="flex items-center justify-between gap-3">
         <Link
-          href="/"
+          href={localePath(locale, "/")}
           className="text-sm text-foreground-muted underline-offset-4 transition-colors duration-base ease-out hover:text-foreground hover:underline"
         >
           {t.backHome}
